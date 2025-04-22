@@ -1,0 +1,6 @@
+adapters:
+  clients:
+    aws:
+      name: 'AWS'
+      host: localhost
+      port: 50051
