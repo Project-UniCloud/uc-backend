@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package adapter;
+
+service CloudAdapter {
+  rpc GetStatus(StatusRequest) returns (StatusResponse);
+}
+
+message StatusRequest {
+
+}
+
+message StatusResponse {
+  bool isHealthy = 1;
+}
