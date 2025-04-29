@@ -8,24 +8,45 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Builder(access = AccessLevel.PRIVATE)
 @Getter
 public class User {
 
     private final UserId userId;
-    private final FirstName firstName;
-    private final LastName lastName;
-    private final Email email;
-    private final LastLogin lastLogin;
+    private final UserIndexNumber userIndexNumber;
+    private FirstName firstName;
+    private LastName lastName;
+    private Email email;
+    private LastLogin lastLogin;
     private final UserRole userRole;
 
-    public static User createUser(String userId,
-                           String firstName,
-                           String lastName,
-                           String userRole
+    public void updateLastName(LastName newLastName) {
+        this.lastName = newLastName;
+    }
+
+    public void updateFirstName(FirstName newFirstName) {
+        this.firstName = newFirstName;
+    }
+
+    public void updateEmail(Email newEmail) {
+        this.email = newEmail;
+    }
+
+    public void logIn(LastLogin lastLogin) {
+        this.lastLogin = lastLogin;
+    }
+
+    public static User createUser(UUID userId,
+                                  String indexNumber,
+                                  String firstName,
+                                  String lastName,
+                                  String userRole
     ) {
         return User.builder()
                 .userId(UserId.of(userId))
+                .userIndexNumber(UserIndexNumber.of(indexNumber))
                 .firstName(FirstName.of(firstName))
                 .lastName(LastName.of(lastName))
                 .email(Email.empty())
@@ -35,6 +56,7 @@ public class User {
     }
 
     public static User of(UserId userId,
+                          UserIndexNumber userIndexNumber,
                           FirstName firstName,
                           LastName lastName,
                           UserRole userRole,
@@ -43,6 +65,7 @@ public class User {
     ) {
         return User.builder()
                 .userId(userId)
+                .userIndexNumber(userIndexNumber)
                 .firstName(firstName)
                 .lastName(lastName)
                 .userRole(userRole)

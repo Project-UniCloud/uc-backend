@@ -2,25 +2,30 @@ package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
-import com.unicloudapp.cloudmanagment.application.AdapterClientPort;
+import com.unicloudapp.cloudmanagment.application.CloudAccessClientPort;
+import com.unicloudapp.cloudmanagment.domain.CloudAccess;
+import com.unicloudapp.users.application.UserDTO;
+import com.unicloudapp.users.application.UserService;
+import com.unicloudapp.users.domain.User;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
 import java.util.concurrent.TimeUnit;
 
-public class AdapterClientAdapter implements AdapterClientPort {
+class CloudAccessClientAdapter implements CloudAccessClientPort {
 
     private final ManagedChannel channel;
     private final CloudAdapterGrpc.CloudAdapterBlockingStub stub;
+    private final UserService userService;
 
-    public AdapterClientAdapter(String host, int port) {
+    CloudAccessClientAdapter(CloudAccess cloudAccess, UserService userService) {
         this.channel = ManagedChannelBuilder
-                .forAddress(host, port)
+                .forAddress(cloudAccess.getHost().getHost(), cloudAccess.getPort().getPort())
                 .usePlaintext()
                 .build();
-
         this.stub = CloudAdapterGrpc.newBlockingStub(channel);
+        this.userService = userService;
     }
 
     @Override
@@ -39,7 +44,7 @@ public class AdapterClientAdapter implements AdapterClientPort {
     }
 
     @Override
-    public boolean isServerRunning() {
+    public boolean isRunning() {
         try {
             AdapterInterface.StatusRequest request = AdapterInterface.StatusRequest.newBuilder().build();
             AdapterInterface.StatusResponse response = stub.getStatus(request);
@@ -47,5 +52,10 @@ public class AdapterClientAdapter implements AdapterClientPort {
         } catch (StatusRuntimeException e) {
             return false;
         }
+    }
+
+    @Override
+    public User createUser(UserDTO userDTO) {
+        return userService.createUser(userDTO);
     }
 }

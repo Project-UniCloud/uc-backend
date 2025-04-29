@@ -4,14 +4,16 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.UUID;
+
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 public class UserId {
 
-    private final String value;
+    private final UUID value;
 
-    public static UserId of(String value) {
-        if (value.isBlank()) {
+    public static UserId of(UUID value) {
+        if (value == null) {
             throw new IllegalArgumentException();
         }
         return new UserId(value);

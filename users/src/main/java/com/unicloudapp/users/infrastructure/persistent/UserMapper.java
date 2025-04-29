@@ -6,6 +6,7 @@ import com.unicloudapp.commons.domain.LastLogin;
 import com.unicloudapp.commons.domain.LastName;
 import com.unicloudapp.users.domain.User;
 import com.unicloudapp.users.domain.UserId;
+import com.unicloudapp.users.domain.UserIndexNumber;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -15,7 +16,7 @@ class UserMapper {
 
     UserEntity userToEntity(User user) {
         return UserEntity.builder()
-                .id(user.getUserId().getValue())
+                .uuid(user.getUserId().getValue())
                 .firstName(user.getFirstName().getValue())
                 .lastName(user.getLastName().getValue())
                 .email(user.getEmail().getValue())
@@ -27,7 +28,8 @@ class UserMapper {
 
     User entityToUser(UserEntity userEntity) {
         return User.of(
-                UserId.of(userEntity.getId()),
+                UserId.of(userEntity.getUuid()),
+                UserIndexNumber.of(userEntity.getIndexNumber()),
                 FirstName.of(userEntity.getFirstName()),
                 LastName.of(userEntity.getLastName()),
                 userEntity.getRole(),

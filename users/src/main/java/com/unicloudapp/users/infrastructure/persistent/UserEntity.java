@@ -5,18 +5,22 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "users")
 @Getter
-@Setter
+@Setter(AccessLevel.PROTECTED)
 class UserEntity {
 
     @Id
-    private String id;
+    private UUID uuid;
+
+    @Column(nullable = false)
+    private String indexNumber;
 
     @Column(nullable = false)
     private String firstName;

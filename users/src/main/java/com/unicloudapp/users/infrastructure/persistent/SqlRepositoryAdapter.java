@@ -7,8 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Repository
-interface UserRepositoryJpa extends JpaRepository<UserEntity, String> {
+interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
 
 }
 
@@ -25,9 +28,8 @@ class SqlRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public User findById(UserId userId) {
+    public Optional<User> findById(UserId userId) {
         return userRepositoryJpa.findById(userId.getValue())
-                .map(userMapper::entityToUser)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .map(userMapper::entityToUser);
     }
 }

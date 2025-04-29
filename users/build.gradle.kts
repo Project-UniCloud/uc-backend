@@ -24,6 +24,8 @@ dependencies {
     compileOnly(project(":commons"))
     implementation("jakarta.validation:jakarta.validation-api:3.0.0")
     implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+    implementation("org.mapstruct:mapstruct:1.5.3.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.3.Final")
 }
 
 tasks.test {
@@ -35,4 +37,7 @@ tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar
 }
 tasks.getByName<Jar>("jar") {
     enabled = true
+}
+tasks.withType<JavaCompile> {
+    options.annotationProcessorPath = configurations.annotationProcessor.get()
 }
