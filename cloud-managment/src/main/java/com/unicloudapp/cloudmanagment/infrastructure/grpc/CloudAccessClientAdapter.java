@@ -4,9 +4,7 @@ import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloudmanagment.application.CloudAccessClientPort;
 import com.unicloudapp.cloudmanagment.domain.CloudAccess;
-import com.unicloudapp.users.application.UserDTO;
 import com.unicloudapp.users.application.UserService;
-import com.unicloudapp.users.domain.User;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -17,15 +15,13 @@ class CloudAccessClientAdapter implements CloudAccessClientPort {
 
     private final ManagedChannel channel;
     private final CloudAdapterGrpc.CloudAdapterBlockingStub stub;
-    private final UserService userService;
 
-    CloudAccessClientAdapter(CloudAccess cloudAccess, UserService userService) {
+    CloudAccessClientAdapter(CloudAccess cloudAccess) {
         this.channel = ManagedChannelBuilder
                 .forAddress(cloudAccess.getHost().getHost(), cloudAccess.getPort().getPort())
                 .usePlaintext()
                 .build();
         this.stub = CloudAdapterGrpc.newBlockingStub(channel);
-        this.userService = userService;
     }
 
     @Override
@@ -52,10 +48,5 @@ class CloudAccessClientAdapter implements CloudAccessClientPort {
         } catch (StatusRuntimeException e) {
             return false;
         }
-    }
-
-    @Override
-    public User createUser(UserDTO userDTO) {
-        return userService.createUser(userDTO);
     }
 }
