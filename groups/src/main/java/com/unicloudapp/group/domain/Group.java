@@ -1,6 +1,6 @@
 package com.unicloudapp.group.domain;
 
-import com.unicloudapp.common.domain.cloud.CloudAccessId;
+import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.user.UserId;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -20,5 +20,5 @@ public class Group {
     private EndDate endDate;
     private final List<UserId> lecturers;
     private final List<UserId> attenders;
-    private final List<CloudAccessId> cloudAccesses;
+    private final List<CloudAccessClientId> cloudAccesses;
 }

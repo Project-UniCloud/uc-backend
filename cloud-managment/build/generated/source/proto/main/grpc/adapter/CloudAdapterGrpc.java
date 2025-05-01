@@ -46,6 +46,37 @@ public final class CloudAdapterGrpc {
     return getGetStatusMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<adapter.AdapterInterface.CreateUserRequest,
+      adapter.AdapterInterface.UserCreatedResponse> getCreateUserMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateUser",
+      requestType = adapter.AdapterInterface.CreateUserRequest.class,
+      responseType = adapter.AdapterInterface.UserCreatedResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<adapter.AdapterInterface.CreateUserRequest,
+      adapter.AdapterInterface.UserCreatedResponse> getCreateUserMethod() {
+    io.grpc.MethodDescriptor<adapter.AdapterInterface.CreateUserRequest, adapter.AdapterInterface.UserCreatedResponse> getCreateUserMethod;
+    if ((getCreateUserMethod = CloudAdapterGrpc.getCreateUserMethod) == null) {
+      synchronized (CloudAdapterGrpc.class) {
+        if ((getCreateUserMethod = CloudAdapterGrpc.getCreateUserMethod) == null) {
+          CloudAdapterGrpc.getCreateUserMethod = getCreateUserMethod =
+              io.grpc.MethodDescriptor.<adapter.AdapterInterface.CreateUserRequest, adapter.AdapterInterface.UserCreatedResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateUser"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  adapter.AdapterInterface.CreateUserRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  adapter.AdapterInterface.UserCreatedResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new CloudAdapterMethodDescriptorSupplier("CreateUser"))
+              .build();
+        }
+      }
+    }
+    return getCreateUserMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -115,6 +146,13 @@ public final class CloudAdapterGrpc {
         io.grpc.stub.StreamObserver<adapter.AdapterInterface.StatusResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetStatusMethod(), responseObserver);
     }
+
+    /**
+     */
+    default void createUser(adapter.AdapterInterface.CreateUserRequest request,
+        io.grpc.stub.StreamObserver<adapter.AdapterInterface.UserCreatedResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateUserMethod(), responseObserver);
+    }
   }
 
   /**
@@ -151,6 +189,14 @@ public final class CloudAdapterGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getGetStatusMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     */
+    public void createUser(adapter.AdapterInterface.CreateUserRequest request,
+        io.grpc.stub.StreamObserver<adapter.AdapterInterface.UserCreatedResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCreateUserMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -175,6 +221,13 @@ public final class CloudAdapterGrpc {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetStatusMethod(), getCallOptions(), request);
     }
+
+    /**
+     */
+    public adapter.AdapterInterface.UserCreatedResponse createUser(adapter.AdapterInterface.CreateUserRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateUserMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -198,6 +251,13 @@ public final class CloudAdapterGrpc {
     public adapter.AdapterInterface.StatusResponse getStatus(adapter.AdapterInterface.StatusRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getGetStatusMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public adapter.AdapterInterface.UserCreatedResponse createUser(adapter.AdapterInterface.CreateUserRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateUserMethod(), getCallOptions(), request);
     }
   }
 
@@ -224,9 +284,18 @@ public final class CloudAdapterGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getGetStatusMethod(), getCallOptions()), request);
     }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<adapter.AdapterInterface.UserCreatedResponse> createUser(
+        adapter.AdapterInterface.CreateUserRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCreateUserMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_GET_STATUS = 0;
+  private static final int METHODID_CREATE_USER = 1;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -248,6 +317,10 @@ public final class CloudAdapterGrpc {
         case METHODID_GET_STATUS:
           serviceImpl.getStatus((adapter.AdapterInterface.StatusRequest) request,
               (io.grpc.stub.StreamObserver<adapter.AdapterInterface.StatusResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_USER:
+          serviceImpl.createUser((adapter.AdapterInterface.CreateUserRequest) request,
+              (io.grpc.stub.StreamObserver<adapter.AdapterInterface.UserCreatedResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -274,6 +347,13 @@ public final class CloudAdapterGrpc {
               adapter.AdapterInterface.StatusRequest,
               adapter.AdapterInterface.StatusResponse>(
                 service, METHODID_GET_STATUS)))
+        .addMethod(
+          getCreateUserMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              adapter.AdapterInterface.CreateUserRequest,
+              adapter.AdapterInterface.UserCreatedResponse>(
+                service, METHODID_CREATE_USER)))
         .build();
   }
 
@@ -323,6 +403,7 @@ public final class CloudAdapterGrpc {
           serviceDescriptor = result = io.grpc.ServiceDescriptor.newBuilder(SERVICE_NAME)
               .setSchemaDescriptor(new CloudAdapterFileDescriptorSupplier())
               .addMethod(getGetStatusMethod())
+              .addMethod(getCreateUserMethod())
               .build();
         }
       }

@@ -19,7 +19,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
-    implementation("org.springframework.boot:spring-boot-starter")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.google.protobuf:protobuf-java:4.28.2")
     implementation("io.grpc:grpc-netty-shaded:1.72.0")
     implementation("io.grpc:grpc-protobuf:1.72.0")
