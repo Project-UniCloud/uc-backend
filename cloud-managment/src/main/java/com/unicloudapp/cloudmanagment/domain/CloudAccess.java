@@ -1,5 +1,6 @@
 package com.unicloudapp.cloudmanagment.domain;
 
+import com.unicloudapp.common.domain.cloud.CloudAccessId;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.scheduling.support.CronExpression;

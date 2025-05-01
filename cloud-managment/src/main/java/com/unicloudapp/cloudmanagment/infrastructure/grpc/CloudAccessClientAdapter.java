@@ -4,7 +4,6 @@ import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloudmanagment.application.CloudAccessClientPort;
 import com.unicloudapp.cloudmanagment.domain.CloudAccess;
-import com.unicloudapp.users.application.UserService;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;

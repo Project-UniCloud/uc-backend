@@ -1,7 +1,7 @@
 package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 
 import com.unicloudapp.cloudmanagment.application.CloudAccessClientResolverPort;
-import com.unicloudapp.users.application.UserService;
+import com.unicloudapp.user.application.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

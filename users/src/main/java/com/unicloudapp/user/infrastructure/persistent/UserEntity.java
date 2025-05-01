@@ -1,0 +1,37 @@
+package com.unicloudapp.user.infrastructure.persistent;
+
+import com.unicloudapp.user.domain.UserRole;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
+@Table(name = "users")
+@Getter
+@Setter(AccessLevel.PROTECTED)
+class UserEntity {
+
+    @Id
+    private UUID uuid;
+
+    @Column(nullable = false)
+    private String indexNumber;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    private String email;
+    private LocalDateTime lastLogin;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private UserRole.Type role;
+}

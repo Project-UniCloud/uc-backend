@@ -27,6 +27,7 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api:1.3.2")
 
     implementation(project(":users"))
+    implementation(project(":commons"))
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
 }

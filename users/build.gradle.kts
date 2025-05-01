@@ -4,7 +4,7 @@ plugins {
     id("io.spring.dependency-management")
 }
 
-group = "com.unicloudapp"
+group = "com.unicloudapp.user"
 version = "unspecified"
 
 repositories {
