@@ -6,4 +6,8 @@ import lombok.Value;
 public class GroupName {
 
     String name;
+
+    public static GroupName of(String name) {
+        return new GroupName(name);
+    }
 }

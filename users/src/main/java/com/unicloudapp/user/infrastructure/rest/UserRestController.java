@@ -4,7 +4,6 @@ import com.unicloudapp.user.application.UserDTO;
 import com.unicloudapp.user.application.UserService;
 import com.unicloudapp.user.application.ports.out.AuthenticationPort;
 import com.unicloudapp.user.domain.User;
-import com.unicloudapp.user.domain.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,14 +35,31 @@ class UserRestController {
             CreateLecturerRequest createLecturerRequest
     ) {
         var userDTO = UserDTO.builder()
-                .userRoleType(UserRole.Type.LECTURER)
                 .userIndexNumber(createLecturerRequest.userIndexNumber())
                 .firstName(createLecturerRequest.firstName())
                 .lastName(createLecturerRequest.lastName())
                 .build();
-        User createdLecturer = userService.createUser(userDTO);
+        User createdLecturer = userService.createLecturer(userDTO);
         return CreatedLecturerResponse.builder()
                 .lecturerId(createdLecturer.getUserId().getValue())
+                .build();
+    }
+
+    @PostMapping("/students")
+    @ResponseStatus(HttpStatus.CREATED)
+    CreatedStudentResponse createLecturer(
+            @Valid
+            @RequestBody
+            CreateStudentRequest request
+    ) {
+        var userDTO = UserDTO.builder()
+                .userIndexNumber(request.userIndexNumber())
+                .firstName(request.firstName())
+                .lastName(request.lastName())
+                .build();
+        User createdLecturer = userService.createLecturer(userDTO);
+        return CreatedStudentResponse.builder()
+                .studentId(createdLecturer.getUserId().getValue())
                 .build();
     }
 }

@@ -23,3 +23,14 @@ record CreateLecturerRequest(
 ) {
 
 }
+
+record CreateStudentRequest(
+        @NotEmpty
+        String userIndexNumber,
+        @NotEmpty
+        String firstName,
+        @NotEmpty
+        String lastName
+) {
+
+}

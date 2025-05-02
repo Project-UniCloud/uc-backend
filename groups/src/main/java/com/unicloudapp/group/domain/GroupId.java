@@ -8,4 +8,8 @@ import java.util.UUID;
 public class GroupId {
 
     UUID uuid;
+
+    public static GroupId of(UUID uuid) {
+        return new GroupId(uuid);
+    }
 }

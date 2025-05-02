@@ -11,13 +11,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
-
-}
-
-@Repository
 @RequiredArgsConstructor
-class SqlRepositoryAdapter implements UserRepositoryPort {
+class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     private final UserRepositoryJpa userRepositoryJpa;
     private final UserMapper userMapper;
@@ -32,4 +27,9 @@ class SqlRepositoryAdapter implements UserRepositoryPort {
         return userRepositoryJpa.findById(userId.getValue())
                 .map(userMapper::entityToUser);
     }
+}
+
+@Repository
+interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
+
 }

@@ -8,3 +8,8 @@ import java.util.UUID;
 record CreatedLecturerResponse(UUID lecturerId) {
 
 }
+
+@Builder
+record CreatedStudentResponse(UUID studentId) {
+
+}
