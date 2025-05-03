@@ -1,9 +1,7 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
-import com.unicloudapp.group.domain.EndDate;
 import com.unicloudapp.group.domain.GroupName;
 import com.unicloudapp.group.domain.GroupStatus;
-import com.unicloudapp.group.domain.StartDate;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

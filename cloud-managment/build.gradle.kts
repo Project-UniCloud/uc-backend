@@ -15,21 +15,25 @@ repositories {
     mavenCentral()
 }
 
+val protobufJavaVersion = "4.28.2"
+val grpcVersion = "1.72.0"
+val lombokVersion = "1.18.38"
+val javaxAnnotationsVersion = "1.3.2"
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("com.google.protobuf:protobuf-java:4.28.2")
-    implementation("io.grpc:grpc-netty-shaded:1.72.0")
-    implementation("io.grpc:grpc-protobuf:1.72.0")
-    implementation("io.grpc:grpc-stub:1.72.0")
-    implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("com.google.protobuf:protobuf-java:$protobufJavaVersion")
+    implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
+    implementation("io.grpc:grpc-protobuf:$grpcVersion")
+    implementation("io.grpc:grpc-stub:$grpcVersion")
+    implementation("javax.annotation:javax.annotation-api:$javaxAnnotationsVersion")
 
     implementation(project(":commons"))
-    compileOnly("org.projectlombok:lombok:1.18.38")
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
 
 tasks.test {
@@ -38,11 +42,11 @@ tasks.test {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.28.2"
+        artifact = "com.google.protobuf:protoc:$protobufJavaVersion"
     }
     plugins {
         id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.72.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
         }
     }
     generateProtoTasks {
