@@ -21,7 +21,7 @@ dependencies {
     implementation("org.jetbrains:annotations:26.0.2")
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
-    compileOnly(project(":commons"))
+    implementation(project(":commons"))
     implementation("jakarta.validation:jakarta.validation-api:3.0.0")
     implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
     implementation("org.mapstruct:mapstruct:1.5.3.Final")

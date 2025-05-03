@@ -20,13 +20,13 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.google.protobuf:protobuf-java:4.28.2")
     implementation("io.grpc:grpc-netty-shaded:1.72.0")
     implementation("io.grpc:grpc-protobuf:1.72.0")
     implementation("io.grpc:grpc-stub:1.72.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
 
-    implementation(project(":users"))
     implementation(project(":commons"))
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
@@ -68,4 +68,11 @@ sourceSets {
 
 tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    enabled = false
+}
+tasks.getByName<Jar>("jar") {
+    enabled = true
 }

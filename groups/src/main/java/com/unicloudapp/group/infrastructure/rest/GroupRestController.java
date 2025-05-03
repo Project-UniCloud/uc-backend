@@ -1,13 +1,12 @@
 package com.unicloudapp.group.infrastructure.rest;
 
+import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
+import com.unicloudapp.group.domain.GroupId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -21,7 +20,7 @@ class GroupRestController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     UUID createGroup(CreateGroupRequest request) {
-        var groupDto = GroupDTO.builder()
+        GroupDTO groupDto = GroupDTO.builder()
                 .name(request.name())
                 .semester(request.semester())
                 .startDate(request.startDate())
@@ -31,5 +30,11 @@ class GroupRestController {
         return groupService.createGroup(groupDto)
                 .getGroupId()
                 .getUuid();
+    }
+
+    @PutMapping("/{groupId}/attenders/{attenderId}")
+    @ResponseStatus(HttpStatus.OK)
+    void addAttender(@PathVariable UUID groupId, @PathVariable UUID attenderId) {
+        groupService.addAttender(GroupId.of(groupId), UserId.of(attenderId));
     }
 }

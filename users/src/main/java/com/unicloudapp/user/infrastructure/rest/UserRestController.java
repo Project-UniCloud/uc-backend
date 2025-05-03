@@ -57,7 +57,7 @@ class UserRestController {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .build();
-        User createdLecturer = userService.createLecturer(userDTO);
+        User createdLecturer = userService.createStudent(userDTO);
         return CreatedStudentResponse.builder()
                 .studentId(createdLecturer.getUserId().getValue())
                 .build();

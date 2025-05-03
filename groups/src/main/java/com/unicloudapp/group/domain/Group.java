@@ -21,4 +21,8 @@ public class Group {
     private final List<UserId> lecturers;
     private final List<UserId> attenders;
     private final List<CloudAccessClientId> cloudAccesses;
+
+    public void addAttender(UserId attenderId) {
+        attenders.add(attenderId);
+    }
 }

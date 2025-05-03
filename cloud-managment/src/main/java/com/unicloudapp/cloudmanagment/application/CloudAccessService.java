@@ -15,9 +15,12 @@ import java.util.stream.Collectors;
 public class CloudAccessService {
 
     private final Map<String, CloudAccessClient> clients;
+    private final CloudAccessRepositoryPort cloudAccessRepository;
 
     public CloudAccessService(CloudAccessClientProperties cloudAccessClientProperties,
-                              CloudAccessClientControllerFactoryPort cloudAccessClientControllerFactory) {
+                              CloudAccessClientControllerFactoryPort cloudAccessClientControllerFactory,
+                              CloudAccessRepositoryPort cloudAccessRepository
+    ) {
         this.clients = cloudAccessClientProperties.clients()
                 .entrySet()
                 .stream()
@@ -33,12 +36,15 @@ public class CloudAccessService {
                                 .build()
                         )
                 );
+        this.cloudAccessRepository = cloudAccessRepository;
     }
 
     public CloudAccess giveCloudAccess(UserId userId,
                                        CloudAccessClientId cloudAccessClientId
     ) {
         CloudAccessClient cloudAccessClient = clients.get(cloudAccessClientId.getValue());
-        return cloudAccessClient.giveCloudAccess(userId, cloudAccessClientId);
+        return cloudAccessRepository.save(
+                cloudAccessClient.giveCloudAccess(userId, cloudAccessClientId)
+        );
     }
 }

@@ -1,7 +1,10 @@
 package com.unicloudapp.group.application;
 
+import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
+import com.unicloudapp.group.domain.GroupId;
+import jakarta.transaction.Transactional;
 
 public class GroupService {
 
@@ -22,5 +25,15 @@ public class GroupService {
                 groupDTO.endDate()
         );
         return groupRepository.save(group);
+    }
+
+    // WARNING! - What if user with attenderId is not exists or is not a student?
+    // If problem add QueryEvent with user validation
+    @Transactional
+    public void addAttender(GroupId groupId, UserId attenderId) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow();
+        group.addAttender(attenderId);
+        groupRepository.save(group);
     }
 }

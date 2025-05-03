@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -22,6 +23,14 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
                         groupMapper.toEntity(group)
                 )
         );
+    }
+
+    @Override
+    public Optional<Group> findById(UUID id) {
+        return groupJpaRepository.findById(id)
+                .stream()
+                .map(groupMapper::toDomain)
+                .findFirst();
     }
 }
 
