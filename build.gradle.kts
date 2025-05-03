@@ -7,9 +7,6 @@ plugins {
 val springBootVersion = "3.4.4"
 
 allprojects {
-    group = "com.uncloudapp"
-    version = "0.0.1"
-
     repositories {
         mavenCentral()
     }
