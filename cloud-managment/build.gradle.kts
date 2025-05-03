@@ -14,7 +14,6 @@ version = "1.0-SNAPSHOT"
 repositories {
     mavenCentral()
 }
-
 val protobufJavaVersion = "4.28.2"
 val grpcVersion = "1.72.0"
 val lombokVersion = "1.18.38"
@@ -30,9 +29,10 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
     implementation("javax.annotation:javax.annotation-api:$javaxAnnotationsVersion")
-
     implementation(project(":commons"))
+
     compileOnly("org.projectlombok:lombok:$lombokVersion")
+
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 }
 

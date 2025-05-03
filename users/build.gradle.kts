@@ -11,7 +11,6 @@ repositories {
     mavenCentral()
 }
 
-val h2Version = "2.3.232"
 val jetbrainsAnnotationsVersion = "26.0.2"
 val lombokVersion = "1.18.38"
 val jakartaValidationVersion = "3.0.0"
@@ -20,8 +19,6 @@ val hibernateValidatorVersion = "8.0.0.Final"
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-
-    runtimeOnly("com.h2database:h2:$h2Version")
 
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 

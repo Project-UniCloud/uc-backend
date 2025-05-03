@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:mydb
-    username: sa
+    url: jdbc:postgresql://localhost:5432/unicloud
+    username: user
     password: password
-    driverClassName: org.h2.Driver
+    driverClassName: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
 adapters:
@@ -11,6 +11,6 @@ adapters:
     aws:
       name: AWS adapter
       host: localhost
-      port: 8081
+      port: 50051
       costLimit: 3000.00
       cronExpression: 0 0 3 * * *
