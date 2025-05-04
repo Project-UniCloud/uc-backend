@@ -19,7 +19,7 @@ class GroupRestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    UUID createGroup(CreateGroupRequest request) {
+    UUID createGroup(@RequestBody CreateGroupRequest request) {
         GroupDTO groupDto = GroupDTO.builder()
                 .name(request.name())
                 .semester(request.semester())
@@ -32,7 +32,7 @@ class GroupRestController {
                 .getUuid();
     }
 
-    @PutMapping("/{groupId}/attenders/{attenderId}")
+    @PostMapping("/{groupId}/attenders/{attenderId}")
     @ResponseStatus(HttpStatus.OK)
     void addAttender(@PathVariable UUID groupId, @PathVariable UUID attenderId) {
         groupService.addAttender(GroupId.of(groupId), UserId.of(attenderId));

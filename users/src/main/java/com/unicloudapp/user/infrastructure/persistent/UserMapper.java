@@ -4,8 +4,6 @@ import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
-
 @Component
 class UserMapper {
 
@@ -14,6 +12,7 @@ class UserMapper {
                 .uuid(user.getUserId().getValue())
                 .firstName(user.getFirstName().getValue())
                 .lastName(user.getLastName().getValue())
+                .indexNumber(user.getUserIndexNumber().getValue())
                 .email(user.getEmail().getValue())
                 .role(user.getUserRole().getUserRoleType())
                 .lastLogin(user.getLastLogin().getLastLoginAt())

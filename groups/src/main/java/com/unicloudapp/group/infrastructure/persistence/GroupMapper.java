@@ -13,9 +13,9 @@ class GroupMapper {
     GroupEntity toEntity(Group group) {
         return GroupEntity.builder()
                 .uuid(group.getGroupId().getUuid())
-                .name(group.getName())
+                .name(group.getName().getName())
                 .groupStatus(group.getGroupStatus().getStatus())
-                .semester(group.getSemester().toString()) // format: 2024Z
+                .semester(group.getSemester().toString())
                 .startDate(group.getStartDate().getValue())
                 .endDate(group.getEndDate().getValue())
                 .lecturers(group.getLecturers().stream()
@@ -33,7 +33,7 @@ class GroupMapper {
     Group toDomain(GroupEntity groupEntity) {
         return groupFactory.restore(
                 groupEntity.getUuid(),
-                groupEntity.getName().getName(),
+                groupEntity.getName(),
                 groupEntity.getGroupStatus(),
                 groupEntity.getSemester(),
                 groupEntity.getStartDate(),

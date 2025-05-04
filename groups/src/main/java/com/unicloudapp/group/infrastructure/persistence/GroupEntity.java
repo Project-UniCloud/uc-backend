@@ -23,8 +23,8 @@ class GroupEntity {
     @Id
     private UUID uuid;
 
-    @Embedded
-    private GroupName name;
+    @Column(nullable = false)
+    private String name;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

@@ -1,5 +1,7 @@
 package com.unicloudapp.group.domain;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
@@ -21,6 +23,7 @@ public class Semester {
     }
 
     @RequiredArgsConstructor
+    @Getter(value = AccessLevel.PRIVATE)
     public enum Type {
         SUMMER('L'), WINTER('Z');
 
@@ -29,5 +32,10 @@ public class Semester {
         private static Type of(char symbol) {
             return symbol == 'L' ? SUMMER : WINTER;
         }
+    }
+
+    @Override
+    public String toString() {
+        return year.toString() + type.getSymbol();
     }
 }
