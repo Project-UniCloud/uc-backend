@@ -4,25 +4,26 @@ import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.user.UserId;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class GroupFactory {
 
     public Group create(
             String groupName,
             String semester,
-            List<UUID> lecturers,
+            Set<UUID> lecturers,
             LocalDate startDate,
             LocalDate endDate
     ) {
         return Group.builder()
                 .groupId(GroupId.of(UUID.randomUUID()))
                 .groupStatus(GroupStatus.of(GroupStatus.Type.INACTIVE))
-                .lecturers(lecturers.stream().map(UserId::of).toList())
-                .attenders(new ArrayList<>())
-                .cloudAccesses(new ArrayList<>())
+                .lecturers(lecturers.stream()
+                        .map(UserId::of)
+                        .collect(Collectors.toSet()))
+                .attenders(new HashSet<>())
+                .cloudAccesses(new HashSet<>())
                 .name(GroupName.of(groupName))
                 .semester(Semester.of(semester))
                 .startDate(StartDate.of(startDate))
@@ -36,9 +37,9 @@ public class GroupFactory {
                          String semester,
                          LocalDate startDate,
                          LocalDate endDate,
-                         List<UUID> lecturers,
-                         List<UUID> attenders,
-                         List<String> cloudAccesses) {
+                         Set<UUID> lecturers,
+                         Set<UUID> attenders,
+                         Set<String> cloudAccesses) {
         return Group.builder()
                 .groupId(GroupId.of(groupId))
                 .name(GroupName.of(name))
@@ -48,13 +49,13 @@ public class GroupFactory {
                 .endDate(EndDate.of(endDate))
                 .lecturers(lecturers.stream()
                         .map(UserId::of)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .attenders(attenders.stream()
                         .map(UserId::of)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .cloudAccesses(cloudAccesses.stream()
                         .map(CloudAccessClientId::of)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .build();
     }
 }

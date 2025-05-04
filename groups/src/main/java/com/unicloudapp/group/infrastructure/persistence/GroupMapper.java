@@ -5,6 +5,8 @@ import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.domain.*;
 import lombok.RequiredArgsConstructor;
 
+import java.util.stream.Collectors;
+
 @RequiredArgsConstructor
 class GroupMapper {
 
@@ -20,13 +22,13 @@ class GroupMapper {
                 .endDate(group.getEndDate().getValue())
                 .lecturers(group.getLecturers().stream()
                         .map(UserId::getValue)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .attenders(group.getAttenders().stream()
                         .map(UserId::getValue)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .cloudAccesses(group.getCloudAccesses().stream()
                         .map(CloudAccessClientId::getValue)
-                        .toList())
+                        .collect(Collectors.toSet()))
                 .build();
     }
 

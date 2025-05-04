@@ -1,6 +1,5 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
-import com.unicloudapp.group.domain.GroupName;
 import com.unicloudapp.group.domain.GroupStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,7 +8,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -40,15 +39,15 @@ class GroupEntity {
     @ElementCollection
     @CollectionTable(name = "group_lecturers", joinColumns = @JoinColumn(name = "group_id"))
     @Column(name = "user_id")
-    private List<UUID> lecturers;
+    private Set<UUID> lecturers;
 
     @ElementCollection
     @CollectionTable(name = "group_attenders", joinColumns = @JoinColumn(name = "group_id"))
     @Column(name = "user_id")
-    private List<UUID> attenders;
+    private Set<UUID> attenders;
 
     @ElementCollection
     @CollectionTable(name = "group_attenders", joinColumns = @JoinColumn(name = "group_id"))
     //@Column(name = "cloudAccess_id") TODO
-    private List<String> cloudAccesses;
+    private Set<String> cloudAccesses;
 }
