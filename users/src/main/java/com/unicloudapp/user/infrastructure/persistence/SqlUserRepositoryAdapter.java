@@ -1,4 +1,4 @@
-package com.unicloudapp.user.infrastructure.persistent;
+package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;

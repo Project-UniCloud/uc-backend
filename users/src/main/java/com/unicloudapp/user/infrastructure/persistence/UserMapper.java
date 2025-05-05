@@ -1,11 +1,13 @@
-package com.unicloudapp.user.infrastructure.persistent;
+package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
-@Component
+@RequiredArgsConstructor
 class UserMapper {
+
+    private final UserFactory userFactory;
 
     UserEntity userToEntity(User user) {
         return UserEntity.builder()
@@ -20,7 +22,7 @@ class UserMapper {
     }
 
     User entityToUser(UserEntity userEntity) {
-        return UserFactory.createUser(
+        return userFactory.restore(
                 userEntity.getUuid(),
                 userEntity.getIndexNumber(),
                 userEntity.getFirstName(),

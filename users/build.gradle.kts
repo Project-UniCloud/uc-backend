@@ -15,10 +15,12 @@ val jetbrainsAnnotationsVersion = "26.0.2"
 val lombokVersion = "1.18.38"
 val jakartaValidationVersion = "3.0.0"
 val hibernateValidatorVersion = "8.0.0.Final"
+val assertJVersion = "3.27.3"
 
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.assertj:assertj-core:$assertJVersion")
 
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 

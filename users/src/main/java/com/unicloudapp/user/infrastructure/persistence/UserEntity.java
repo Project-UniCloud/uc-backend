@@ -1,4 +1,4 @@
-package com.unicloudapp.user.infrastructure.persistent;
+package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.user.domain.UserRole;
 import jakarta.persistence.*;
