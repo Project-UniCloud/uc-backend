@@ -1,0 +1,15 @@
+build/
+.gradle/
+out/
+.idea/
+*.iml
+*.log
+
+.env
+*.key
+*.pem
+*.crt
+*.db
+secrets.*
+.git
+.DS_Store

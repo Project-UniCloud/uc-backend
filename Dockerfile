@@ -1,10 +1,18 @@
+FROM gradle:8.5-jdk21 AS build
+
+WORKDIR /build
+
+COPY . .
+
+RUN ./gradlew :bootstrap:bootJar
+
 FROM eclipse-temurin:21-jre
 
 RUN useradd -r -u 1001 appuser
 
 WORKDIR /app
 
-COPY bootstrap/build/libs/*.jar app.jar
+COPY --from=build /build/bootstrap/build/libs/*.jar app.jar
 
 RUN chown -R appuser:appuser /app
 
