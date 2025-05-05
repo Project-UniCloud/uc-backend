@@ -11,7 +11,7 @@ import java.util.Hashtable;
 
 //TODO generate token and auth in spring security
 @Component
-class LdapAuthenticationPort implements AuthenticationPort {
+class LdapAuthenticationAdapter implements AuthenticationPort {
 
     //TODO .env albo do docker-compose
     private static final String LDAP_URL = "ldaps://dc1-2016.labs.wmi.amu.edu.pl:636";
