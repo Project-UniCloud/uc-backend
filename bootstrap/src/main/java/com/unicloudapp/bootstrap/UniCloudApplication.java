@@ -1,4 +1,4 @@
-package com.unicloudapp.starter;
+package com.unicloudapp.bootstrap;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

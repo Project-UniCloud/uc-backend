@@ -1,14 +1,11 @@
 package com.unicloudapp.user.domain;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
-@Getter
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Value
 public class UserIndexNumber {
 
-    private final String value;
+    String value;
 
     public static UserIndexNumber of(String value) throws IllegalArgumentException {
         if (value == null || value.isBlank()) {
