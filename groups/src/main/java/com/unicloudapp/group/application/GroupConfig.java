@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 class GroupConfig {
 
     @Bean
-    GroupService getGroupFactory(GroupRepositoryPort groupRepository) {
-        return new GroupService(groupRepository, new GroupFactory());
+    GroupService getGroupFactory(GroupRepositoryPort groupRepository, GroupToDtoMapper groupToDtoMapper) {
+        return new GroupService(groupRepository, new GroupFactory(), groupToDtoMapper);
     }
 }

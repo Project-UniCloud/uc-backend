@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 class SqlGroupPersistentConfig {
 
     @Bean
-    GroupMapper groupMapper() {
-        return new GroupMapper(new GroupFactory());
+    GroupToEntityMapper groupMapper() {
+        return new GroupToEntityMapper(new GroupFactory());
     }
 }

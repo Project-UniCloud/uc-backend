@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-class GroupMapper {
+class GroupToEntityMapper {
 
     private final GroupFactory groupFactory;
 
