@@ -27,7 +27,7 @@ class UserFactoryTest {
         );
 
         assertThat(user.getUserId().getValue()).isEqualTo(userId);
-        assertThat(user.getUserIndexNumber().getValue()).isEqualTo(indexNumber);
+        assertThat(user.getUserLogin().getValue()).isEqualTo(indexNumber);
         assertThat(user.getFirstName().getValue()).isEqualTo(firstName);
         assertThat(user.getLastName().getValue()).isEqualTo(lastName);
         assertThat(user.getUserRole().getUserRoleType()).isEqualTo(role);
@@ -56,7 +56,7 @@ class UserFactoryTest {
         );
 
         assertThat(user.getUserId().getValue()).isEqualTo(userId);
-        assertThat(user.getUserIndexNumber().getValue()).isEqualTo(indexNumber);
+        assertThat(user.getUserLogin().getValue()).isEqualTo(indexNumber);
         assertThat(user.getFirstName().getValue()).isEqualTo(firstName);
         assertThat(user.getLastName().getValue()).isEqualTo(lastName);
         assertThat(user.getUserRole().getUserRoleType()).isEqualTo(role);

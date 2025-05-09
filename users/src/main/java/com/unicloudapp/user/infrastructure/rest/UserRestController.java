@@ -20,7 +20,7 @@ class UserRestController {
 
     @PostMapping("/auth")
     ResponseEntity<Void> authenticate(@Valid @RequestBody AuthenticateRequest authenticateRequest) {
-        authenticationPort.authenticate(authenticateRequest.username(),
+        authenticationPort.authenticate(authenticateRequest.login(),
                 authenticateRequest.password()
         );
         return ResponseEntity.status(200)

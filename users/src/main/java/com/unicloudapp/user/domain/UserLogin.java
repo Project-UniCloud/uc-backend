@@ -3,14 +3,14 @@ package com.unicloudapp.user.domain;
 import lombok.Value;
 
 @Value
-public class UserIndexNumber {
+public class UserLogin {
 
     String value;
 
-    public static UserIndexNumber of(String value) throws IllegalArgumentException {
+    public static UserLogin of(String value) throws IllegalArgumentException {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("TODO");
         }
-        return new UserIndexNumber(value);
+        return new UserLogin(value);
     }
 }

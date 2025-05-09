@@ -14,7 +14,7 @@ class UserMapper {
                 .uuid(user.getUserId().getValue())
                 .firstName(user.getFirstName().getValue())
                 .lastName(user.getLastName().getValue())
-                .indexNumber(user.getUserIndexNumber().getValue())
+                .indexNumber(user.getUserLogin().getValue())
                 .email(user.getEmail().getValue())
                 .role(user.getUserRole().getUserRoleType())
                 .lastLogin(user.getLastLogin().getLastLoginAt())

@@ -40,7 +40,7 @@ public class UserFactory {
                                   LocalDateTime lastLogin) {
         return User.builder()
                 .userId(UserId.of(userId))
-                .userIndexNumber(UserIndexNumber.of(userIndexNumber))
+                .userLogin(UserLogin.of(userIndexNumber))
                 .firstName(FirstName.of(firstName))
                 .lastName(LastName.of(lastName))
                 .email(Email.of(email))

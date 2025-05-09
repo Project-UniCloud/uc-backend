@@ -14,7 +14,7 @@ import lombok.Getter;
 public class User {
 
     private final UserId userId;
-    private final UserIndexNumber userIndexNumber;
+    private final UserLogin userLogin;
     private FirstName firstName;
     private LastName lastName;
     private Email email;
