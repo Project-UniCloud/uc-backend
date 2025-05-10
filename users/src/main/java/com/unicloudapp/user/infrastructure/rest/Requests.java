@@ -12,22 +12,22 @@ record AuthenticateRequest(
 }
 
 record CreateLecturerRequest(
-        @NotEmpty
+        @NotEmpty(message = "userIndexNumber cannot be empty")
         String userIndexNumber,
-        @NotEmpty
+        @NotEmpty(message = "firstName cannot be empty")
         String firstName,
-        @NotEmpty
+        @NotEmpty(message = "lastName cannot be empty")
         String lastName
 ) {
 
 }
 
 record CreateStudentRequest(
-        @NotEmpty
+        @NotEmpty(message = "userIndexNumber cannot be empty")
         String userIndexNumber,
-        @NotEmpty
+        @NotEmpty(message = "firstName cannot be empty")
         String firstName,
-        @NotEmpty
+        @NotEmpty(message = "lastName cannot be empty")
         String lastName
 ) {
 

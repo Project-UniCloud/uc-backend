@@ -2,7 +2,7 @@ package com.unicloudapp.user.domain;
 
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.FirstName;
-import com.unicloudapp.common.domain.LastLogin;
+import com.unicloudapp.common.domain.LastLoginAt;
 import com.unicloudapp.common.domain.LastName;
 import com.unicloudapp.common.domain.user.UserId;
 import lombok.AccessLevel;
@@ -18,7 +18,7 @@ public class User {
     private FirstName firstName;
     private LastName lastName;
     private Email email;
-    private LastLogin lastLogin;
+    private LastLoginAt lastLoginAt;
     private final UserRole userRole;
 
     public void updateLastName(LastName newLastName) {
@@ -33,7 +33,7 @@ public class User {
         this.email = newEmail;
     }
 
-    public void logIn(LastLogin lastLogin) {
-        this.lastLogin = lastLogin;
+    public void logIn(LastLoginAt lastLoginAt) {
+        this.lastLoginAt = lastLoginAt;
     }
 }

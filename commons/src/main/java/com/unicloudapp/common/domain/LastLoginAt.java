@@ -6,22 +6,22 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDateTime;
 
 @Value
-public class LastLogin {
+public class LastLoginAt {
 
     @Nullable
-    LocalDateTime lastLoginAt;
+    LocalDateTime value;
 
-    public static LastLogin of(LocalDateTime lastLogin) {
+    public static LastLoginAt of(LocalDateTime lastLogin) {
         if (lastLogin == null) {
             return neverBeenLoggedIn();
         }
         if (lastLogin.isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("Last login time is after now");
         }
-        return new LastLogin(lastLogin);
+        return new LastLoginAt(lastLogin);
     }
 
-    public static LastLogin neverBeenLoggedIn() {
-        return new LastLogin(null);
+    public static LastLoginAt neverBeenLoggedIn() {
+        return new LastLoginAt(null);
     }
 }

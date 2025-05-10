@@ -2,7 +2,7 @@ package com.unicloudapp.user.domain;
 
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.FirstName;
-import com.unicloudapp.common.domain.LastLogin;
+import com.unicloudapp.common.domain.LastLoginAt;
 import com.unicloudapp.common.domain.LastName;
 import com.unicloudapp.common.domain.user.UserId;
 
@@ -44,7 +44,7 @@ public class UserFactory {
                 .firstName(FirstName.of(firstName))
                 .lastName(LastName.of(lastName))
                 .email(Email.of(email))
-                .lastLogin(LastLogin.of(lastLogin))
+                .lastLoginAt(LastLoginAt.of(lastLogin))
                 .userRole(UserRole.of(userRoleType))
                 .build();
     }

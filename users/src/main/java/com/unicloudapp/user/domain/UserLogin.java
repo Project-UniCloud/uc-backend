@@ -9,7 +9,7 @@ public class UserLogin {
 
     public static UserLogin of(String value) throws IllegalArgumentException {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("TODO");
+            throw new IllegalArgumentException("User login cannot be null or empty");
         }
         return new UserLogin(value);
     }

@@ -18,26 +18,15 @@ public class UserService {
     private final UserFactory userFactory;
 
     public User createLecturer(UserDTO userDTO) {
-        User user = userFactory.create(
-                UUID.randomUUID(),
-                userDTO.getUserIndexNumber(),
-                userDTO.getFirstName(),
-                userDTO.getLastName(),
+        return createUser(userDTO,
                 UserRole.Type.LECTURER
         );
-        return userRepository.save(user);
     }
 
-    // TODO refactor
     public User createStudent(UserDTO userDTO) {
-        User user = userFactory.create(
-                UUID.randomUUID(),
-                userDTO.getUserIndexNumber(),
-                userDTO.getFirstName(),
-                userDTO.getLastName(),
+        return createUser(userDTO,
                 UserRole.Type.STUDENT
         );
-        return userRepository.save(user);
     }
 
     @Transactional
@@ -48,6 +37,20 @@ public class UserService {
                 .orElseThrow(() -> new IllegalStateException(""))
                 .updateFirstName(newFirstName);
     }
+
+    private User createUser(UserDTO userDTO,
+                            UserRole.Type student
+    ) {
+        User user = userFactory.create(
+                UUID.randomUUID(),
+                userDTO.getLogin(),
+                userDTO.getFirstName(),
+                userDTO.getLastName(),
+                student
+        );
+        return userRepository.save(user);
+    }
+
 
     public User findUserById(UserId userId) {
         return userRepository.findById(userId)

@@ -6,7 +6,6 @@ import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.Semester;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Set;

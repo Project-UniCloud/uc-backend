@@ -15,7 +15,7 @@ class UserRoleTest {
         UserRole role = UserRole.of(type);
 
         assertThat(role).isNotNull();
-        assertThat(role.getUserRoleType()).isEqualTo(type);
+        assertThat(role.getValue()).isEqualTo(type);
     }
 
     @Test

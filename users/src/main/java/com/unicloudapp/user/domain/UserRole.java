@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class UserRole {
 
-    private final Type userRoleType;
+    private final Type value;
 
     public static UserRole of(Type userType) {
         if (userType == null) {

@@ -16,8 +16,8 @@ class UserMapper {
                 .lastName(user.getLastName().getValue())
                 .indexNumber(user.getUserLogin().getValue())
                 .email(user.getEmail().getValue())
-                .role(user.getUserRole().getUserRoleType())
-                .lastLogin(user.getLastLogin().getLastLoginAt())
+                .role(user.getUserRole().getValue())
+                .lastLogin(user.getLastLoginAt().getValue())
                 .build();
     }
 
