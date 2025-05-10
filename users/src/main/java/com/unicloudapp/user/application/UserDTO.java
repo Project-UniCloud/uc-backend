@@ -1,21 +1,22 @@
 package com.unicloudapp.user.application;
 
 import com.unicloudapp.user.domain.UserRole;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.Getter;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Builder
-@Getter
-public class UserDTO {
-
-    private final UUID userId;
-    private final String login;
-    private final String firstName;
-    private final String lastName;
-    private final UserRole.Type userRole;
-    private final String email;
-    private final LocalDateTime lastLoginAt;
+public record UserDTO(
+        @NotNull UUID userId,
+        @NotBlank String login,
+        @NotBlank String firstName,
+        @NotBlank String lastName,
+        @NotNull UserRole.Type userRole,
+        @Nullable String email,
+        @Nullable LocalDateTime lastLoginAt
+) {
 }

@@ -5,7 +5,7 @@ import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
 import org.springframework.stereotype.Component;
 
 @Component
-class GrpcCloudAccessClientControllerAdapter implements CloudAccessClientControllerFactoryPort {
+class GrpcCloudAccessClientControllerFactoryAdapter implements CloudAccessClientControllerFactoryPort {
 
     @Override
     public CloudAccessClientController create(String host,

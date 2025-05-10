@@ -41,7 +41,7 @@ class UserRestController {
     ) {
         var userDTO = UserDTO.builder()
                 .login(createLecturerRequest.userIndexNumber())
-                .firstName(createLecturerRequest.firstName())
+                //.firstName(createLecturerRequest.firstName())
                 .lastName(createLecturerRequest.lastName())
                 .build();
         User createdLecturer = userService.createLecturer(userDTO);

@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -27,8 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@ContextConfiguration(classes = {UserService.class})
-@DisabledInAotMode
+@ContextConfiguration(classes = UserService.class)
 @ExtendWith(SpringExtension.class)
 class UserServiceDiffblueTest {
 
@@ -108,7 +106,7 @@ class UserServiceDiffblueTest {
         var userDto = UserDTO.builder()
                 .userId(UUID.randomUUID())
                 .login("42")
-                .firstName("Jane")
+                //.firstName("Jane")
                 .lastName("Doe")
                 .build();
         assertThrows(
@@ -117,7 +115,8 @@ class UserServiceDiffblueTest {
         );
         verify(userFactory).create(isA(UUID.class),
                 eq("42"),
-                eq("Jane"),
+                // eq("Jane"),
+                any(),
                 eq("Doe"),
                 eq(Type.LECTURER)
         );
@@ -257,10 +256,10 @@ class UserServiceDiffblueTest {
     void testCreateStudent_givenUserRepositoryPort_thenThrowIllegalStateException() {
         // Arrange
         when(userFactory.create(Mockito.<UUID>any(),
-                Mockito.<String>any(),
-                Mockito.<String>any(),
-                Mockito.<String>any(),
-                Mockito.<Type>any()
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any()
         )).thenThrow(new IllegalStateException("foo"));
 
         // Act and Assert

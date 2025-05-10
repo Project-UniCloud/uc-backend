@@ -17,6 +17,7 @@ val mapStructVersion = "1.5.5.Final"
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("com.diffblue.cover:cover-annotations:1.3.0")
 
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
@@ -28,6 +29,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-test")
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
+    compileOnly("com.diffblue.cover:cover-annotations:1.3.0")
 }
 
 tasks.test {

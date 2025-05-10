@@ -11,12 +11,15 @@ import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import com.unicloudapp.user.domain.UserRole;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
@@ -42,6 +45,8 @@ import static org.mockito.Mockito.*;
 @DisabledInAotMode
 @ExtendWith(SpringExtension.class)
 class UserRestControllerDiffblueTest {
+
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @MockitoBean
     private AuthenticationPort authenticationPort;
@@ -363,7 +368,7 @@ class UserRestControllerDiffblueTest {
         // Assert
         verify(userDomainDtoMapper).toDto(isA(User.class));
         verify(userRepository).findById(isA(UserId.class));
-        LocalDateTime lastLoginAt = actualUserById.getLastLoginAt();
+        LocalDateTime lastLoginAt = actualUserById.lastLoginAt();
         assertEquals("00:00",
                 lastLoginAt.toLocalTime()
                         .toString()
@@ -373,25 +378,25 @@ class UserRestControllerDiffblueTest {
                 toLocalDateResult.toString()
         );
         assertEquals("Doe",
-                actualUserById.getLastName()
+                actualUserById.lastName()
         );
         assertEquals("Jane",
-                actualUserById.getFirstName()
+                actualUserById.firstName()
         );
         assertEquals("Login",
-                actualUserById.getLogin()
+                actualUserById.lastName()
         );
         assertEquals("jane.doe@example.org",
-                actualUserById.getEmail()
+                actualUserById.email()
         );
         assertEquals(UserRole.Type.ADMIN,
-                actualUserById.getUserRole()
+                actualUserById.userRole()
         );
         assertSame(ofResult2,
                 toLocalDateResult
         );
         assertSame(userId,
-                actualUserById.getUserId()
+                actualUserById.userId()
         );
     }
 
@@ -443,7 +448,7 @@ class UserRestControllerDiffblueTest {
         // Assert
         verify(userDomainDtoMapper).toDto(isNull());
         verify(userService).findUserById(isA(UserId.class));
-        LocalDateTime lastLoginAt = actualUserById.getLastLoginAt();
+        LocalDateTime lastLoginAt = actualUserById.lastLoginAt();
         assertEquals("00:00",
                 lastLoginAt.toLocalTime()
                         .toString()
@@ -453,25 +458,25 @@ class UserRestControllerDiffblueTest {
                 toLocalDateResult.toString()
         );
         assertEquals("Doe",
-                actualUserById.getLastName()
+                actualUserById.lastName()
         );
         assertEquals("Jane",
-                actualUserById.getFirstName()
+                actualUserById.firstName()
         );
         assertEquals("Login",
-                actualUserById.getLogin()
+                actualUserById.login()
         );
         assertEquals("jane.doe@example.org",
-                actualUserById.getEmail()
+                actualUserById.email()
         );
         assertEquals(UserRole.Type.ADMIN,
-                actualUserById.getUserRole()
+                actualUserById.userRole()
         );
         assertSame(ofResult,
                 toLocalDateResult
         );
         assertSame(userId,
-                actualUserById.getUserId()
+                actualUserById.userId()
         );
     }
 }
