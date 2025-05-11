@@ -384,7 +384,7 @@ class UserRestControllerDiffblueTest {
                 actualUserById.firstName()
         );
         assertEquals("Login",
-                actualUserById.lastName()
+                actualUserById.login()
         );
         assertEquals("jane.doe@example.org",
                 actualUserById.email()

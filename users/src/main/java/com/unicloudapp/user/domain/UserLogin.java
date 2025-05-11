@@ -1,8 +1,11 @@
 package com.unicloudapp.user.domain;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Value;
 
 @Value
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserLogin {
 
     String value;

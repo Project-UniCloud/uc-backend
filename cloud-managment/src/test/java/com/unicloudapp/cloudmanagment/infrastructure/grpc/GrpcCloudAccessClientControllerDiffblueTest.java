@@ -1,40 +1,44 @@
 package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 
+import adapter.AdapterInterface;
+import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloudmanagment.domain.CloudAccess;
+import com.unicloudapp.cloudmanagment.domain.CloudAccessId;
+import com.unicloudapp.cloudmanagment.domain.ExternalUserId;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.user.UserId;
-import org.junit.jupiter.api.Disabled;
+import io.grpc.ManagedChannel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
 class GrpcCloudAccessClientControllerDiffblueTest {
 
-    /**
-     * Test {@link GrpcCloudAccessClientController#GrpcCloudAccessClientController(String, int)}.
-     * <p>
-     * Method under test: {@link GrpcCloudAccessClientController#GrpcCloudAccessClientController(String, int)}
-     */
+    @Mock
+    private ManagedChannel channel;
+
+    @Mock
+    private CloudAdapterGrpc.CloudAdapterBlockingStub stub;
+
     @Test
     @DisplayName("Test new GrpcCloudAccessClientController(String, int)")
-    @Disabled("TODO: Complete this test")
     @Tag("MaintainedByDiffblue")
     void testNewGrpcCloudAccessClientController() {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Diffblue AI was unable to find a test
-
         // Arrange
-        // TODO: Populate arranged inputs
-        String host = "";
-        int port = 0;
-
         // Act
-        GrpcCloudAccessClientController actualGrpcCloudAccessClientController = new GrpcCloudAccessClientController(host,
-                port
-        );
-
-        // Assert
-        // TODO: Add assertions on result
+        new GrpcCloudAccessClientController(channel, stub);
     }
 
     /**
@@ -44,21 +48,17 @@ class GrpcCloudAccessClientControllerDiffblueTest {
      */
     @Test
     @DisplayName("Test shutdown()")
-    @Disabled("TODO: Complete this test")
     @Tag("MaintainedByDiffblue")
     void testShutdown() {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Diffblue AI was unable to find a test
-
         // Arrange
-        // TODO: Populate arranged inputs
-        GrpcCloudAccessClientController grpcCloudAccessClientController = null;
-
         // Act
-        grpcCloudAccessClientController.shutdown();
+        GrpcCloudAccessClientController actualGrpcCloudAccessClientController = new GrpcCloudAccessClientController(
+                channel, stub
+        );
+        actualGrpcCloudAccessClientController.shutdown();
 
         // Assert
-        // TODO: Add assertions on result
+        verify(channel).shutdown();
     }
 
     /**
@@ -68,25 +68,34 @@ class GrpcCloudAccessClientControllerDiffblueTest {
      */
     @Test
     @DisplayName("Test giveCloudAccess(UserId, CloudAccessClientId)")
-    @Disabled("TODO: Complete this test")
     @Tag("MaintainedByDiffblue")
     void testGiveCloudAccess() {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Diffblue AI was unable to find a test
-
         // Arrange
-        // TODO: Populate arranged inputs
-        GrpcCloudAccessClientController grpcCloudAccessClientController = null;
-        UserId userId = null;
-        CloudAccessClientId cloudAccessClientId = null;
+        AdapterInterface.UserCreatedResponse response = AdapterInterface.UserCreatedResponse
+                .newBuilder()
+                .setId("42")
+                .build();
+        var userId = UserId.of(UUID.randomUUID());
+        var cloudAccessClientId = CloudAccessClientId.of("aws");
+        when(stub.createUser(any())).thenReturn(response);
+        CloudAccess expectedResult = CloudAccess.builder()
+                .cloudAccessId(CloudAccessId.of(UUID.randomUUID()))
+                .cloudAccessClientId(cloudAccessClientId)
+                .externalUserId(ExternalUserId.of(response.getId()))
+                .userId(userId)
+                .build();
 
         // Act
-        CloudAccess actualGiveCloudAccessResult = grpcCloudAccessClientController.giveCloudAccess(userId,
-                cloudAccessClientId
-        );
+        CloudAccess result = new GrpcCloudAccessClientController(
+                channel,
+                stub
+        ).giveCloudAccess(userId, cloudAccessClientId);
 
         // Assert
-        // TODO: Add assertions on result
+        assertThat(result)
+                .usingRecursiveComparison()
+                .ignoringFields("cloudAccessId")
+                .isEqualTo(expectedResult);
     }
 
     /**
@@ -96,20 +105,23 @@ class GrpcCloudAccessClientControllerDiffblueTest {
      */
     @Test
     @DisplayName("Test isRunning()")
-    @Disabled("TODO: Complete this test")
     @Tag("MaintainedByDiffblue")
     void testIsRunning() {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Diffblue AI was unable to find a test
-
         // Arrange
-        // TODO: Populate arranged inputs
-        GrpcCloudAccessClientController grpcCloudAccessClientController = null;
+        AdapterInterface.StatusRequest request = AdapterInterface.StatusRequest
+                .newBuilder()
+                .build();
+        AdapterInterface.StatusResponse statusResponse = Mockito.mock(AdapterInterface.StatusResponse.class);
+        when(statusResponse.getIsHealthy()).thenReturn(true);
+        when(stub.getStatus(request)).thenReturn(statusResponse);
 
         // Act
-        boolean actualIsRunningResult = grpcCloudAccessClientController.isRunning();
+        boolean actualIsRunningResult = new GrpcCloudAccessClientController(
+                channel,
+                stub
+        ).isRunning();
 
         // Assert
-        // TODO: Add assertions on result
+        assertThat(actualIsRunningResult).isTrue();
     }
 }

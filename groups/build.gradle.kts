@@ -30,6 +30,7 @@ dependencies {
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
     compileOnly("com.diffblue.cover:cover-annotations:1.3.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
 
 tasks.test {

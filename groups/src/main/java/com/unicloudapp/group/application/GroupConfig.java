@@ -1,5 +1,6 @@
 package com.unicloudapp.group.application;
 
+import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.GroupFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +9,11 @@ import org.springframework.context.annotation.Configuration;
 class GroupConfig {
 
     @Bean
-    GroupService getGroupFactory(GroupRepositoryPort groupRepository, GroupToDtoMapper groupToDtoMapper) {
-        return new GroupService(groupRepository, new GroupFactory(), groupToDtoMapper);
+    GroupService getGroupFactory(
+            GroupRepositoryPort groupRepository,
+            GroupToDtoMapper groupToDtoMapper,
+            UserValidationService userValidationService
+    ) {
+        return new GroupService(groupRepository, new GroupFactory(), groupToDtoMapper, userValidationService);
     }
 }

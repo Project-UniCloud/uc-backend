@@ -2,12 +2,14 @@ package com.unicloudapp.user.application;
 
 import com.unicloudapp.common.domain.FirstName;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import com.unicloudapp.user.domain.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -15,7 +17,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Validated
-public class UserService {
+public class UserService implements UserValidationService {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
@@ -55,8 +57,20 @@ public class UserService {
     }
 
 
+    @Override
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    public boolean isUserStudent(UserId userId) {
+        return findUserById(userId).getUserRole()
+                .getValue() == UserRole.Type.STUDENT;
+    }
+
     public User findUserById(UserId userId) {
         return userRepository.findById(userId)
                 .orElseThrow();
+    }
+
+    @Override
+    public boolean isUserExists(UserId userId) {
+        return userRepository.findById(userId).isPresent();
     }
 }

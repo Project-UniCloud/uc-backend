@@ -14,4 +14,8 @@ allprojects {
 
 subprojects {
     apply(plugin = "io.spring.dependency-management")
+
+    tasks.withType<Test> {
+        useJUnitPlatform() // ← wspiera JUnit 5 (Jupiter)
+    }
 }

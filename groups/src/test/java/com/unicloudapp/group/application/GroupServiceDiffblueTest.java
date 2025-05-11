@@ -1,27 +1,11 @@
 package com.unicloudapp.group.application;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
 import com.unicloudapp.group.domain.GroupId;
-import com.unicloudapp.group.domain.GroupStatus;
 import com.unicloudapp.group.domain.GroupStatus.Type;
-
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -35,6 +19,16 @@ import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 @ContextConfiguration(classes = {GroupService.class})
 @DisabledInAotMode
 @ExtendWith(SpringExtension.class)
@@ -45,6 +39,9 @@ class GroupServiceDiffblueTest {
 
     @MockitoBean
     private GroupRepositoryPort groupRepositoryPort;
+
+    @MockitoBean
+    private UserValidationService userValidationService;
 
     @Autowired
     private GroupService groupService;
@@ -127,16 +124,17 @@ class GroupServiceDiffblueTest {
         Optional<Group> ofResult = Optional.of(group);
         when(groupRepositoryPort.save(Mockito.<Group>any())).thenReturn(null);
         when(groupRepositoryPort.findById(Mockito.<UUID>any())).thenReturn(ofResult);
+        when(userValidationService.isUserStudent(Mockito.any())).thenReturn(true);
 
         // Act
-        groupService.addAttender(new GroupId(UUID.randomUUID()),
-                null
+        groupService.addAttender(GroupId.of(UUID.randomUUID()),
+                UserId.of(UUID.randomUUID())
         );
 
         // Assert
         verify(groupRepositoryPort).findById(isA(UUID.class));
         verify(groupRepositoryPort).save(isA(Group.class));
-        verify(group).addAttender(isNull());
+        verify(group).addAttender(any());
     }
 
     /**
@@ -146,16 +144,9 @@ class GroupServiceDiffblueTest {
      */
     @Test
     @DisplayName("Test getAllGroups(Pageable)")
-    @Disabled("TODO: Complete this test")
     @Tag("MaintainedByDiffblue")
+    @Disabled("TODO")
     void testGetAllGroups() {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Reason: No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   java.lang.NullPointerException: Cannot invoke "org.springframework.data.domain.Pageable.getPageSize()" because "pageable" is null
-        //       at com.unicloudapp.group.application.GroupService.getAllGroups(GroupService.java:45)
-        //   See https://diff.blue/R013 to resolve this issue.
 
         // Arrange and Act
         groupService.getAllGroups(null);

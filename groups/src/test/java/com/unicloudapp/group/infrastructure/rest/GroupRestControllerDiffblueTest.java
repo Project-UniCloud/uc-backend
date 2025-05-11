@@ -1,26 +1,13 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupId;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -40,7 +27,17 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-@ContextConfiguration(classes = {GroupRestController.class})
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.*;
+
+@ContextConfiguration(classes = GroupRestController.class)
 @DisabledInAotMode
 @ExtendWith(SpringExtension.class)
 class GroupRestControllerDiffblueTest {
@@ -51,6 +48,9 @@ class GroupRestControllerDiffblueTest {
     @MockitoBean
     private GroupService groupService;
 
+    @MockitoBean
+    private UserValidationService userValidationService;
+
     /**
      * Test {@link GroupRestController#createGroup(CreateGroupRequest)}.
      * <p>
@@ -58,31 +58,14 @@ class GroupRestControllerDiffblueTest {
      */
     @Test
     @DisplayName("Test createGroup(CreateGroupRequest)")
-    @Disabled("TODO: Complete this test")
     @Tag("MaintainedByDiffblue")
     void testCreateGroup() throws Exception {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Reason: No inputs found that don't throw a trivial exception.
-        //   Diffblue Cover tried to run the arrange/act section, but the method under
-        //   test threw
-        //   com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Java 8 date/time type `java.time.LocalDate` not supported by default: add Module "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" to enable handling (through reference chain: com.unicloudapp.group.infrastructure.rest.CreateGroupRequest["startDate"])
-        //       at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
-        //       at com.fasterxml.jackson.databind.SerializerProvider.reportBadDefinition(SerializerProvider.java:1340)
-        //       at com.fasterxml.jackson.databind.ser.impl.UnsupportedTypeSerializer.serialize(UnsupportedTypeSerializer.java:35)
-        //       at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:732)
-        //       at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:770)
-        //       at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:184)
-        //       at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:502)
-        //       at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:341)
-        //       at com.fasterxml.jackson.databind.ObjectMapper._writeValueAndClose(ObjectMapper.java:4819)
-        //       at com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(ObjectMapper.java:4060)
-        //   See https://diff.blue/R013 to resolve this issue.
-
         // Arrange
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/groups")
                 .contentType(MediaType.APPLICATION_JSON);
 
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
         HashSet<UUID> lecturers = new HashSet<>();
         LocalDate startDate = LocalDate.of(1970,
                 1,
@@ -98,6 +81,10 @@ class GroupRestControllerDiffblueTest {
                                 1
                         )
                 )));
+        Group group = mock(Group.class);
+        UUID uuid = UUID.randomUUID();
+        when(group.getGroupId()).thenReturn(GroupId.of(uuid));
+        when(groupService.createGroup(Mockito.any())).thenReturn(group);
 
         // Act
         MockMvcBuilders.standaloneSetup(groupRestController)
@@ -124,7 +111,7 @@ class GroupRestControllerDiffblueTest {
         // Arrange
         Group group = mock(Group.class);
         UUID uuid = UUID.randomUUID();
-        when(group.getGroupId()).thenReturn(new GroupId(uuid));
+        when(group.getGroupId()).thenReturn(GroupId.of(uuid));
         GroupService groupService = mock(GroupService.class);
         when(groupService.createGroup(Mockito.<GroupDTO>any())).thenReturn(group);
         GroupRestController groupRestController = new GroupRestController(groupService);

@@ -1,6 +1,7 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
 import com.unicloudapp.group.domain.GroupId;
@@ -19,6 +20,7 @@ public class GroupService {
     private final GroupRepositoryPort groupRepository;
     private final GroupFactory groupFactory;
     private final GroupToDtoMapper groupMapper;
+    private final UserValidationService userValidationService;
 
     public Group createGroup(GroupDTO groupDTO) {
         Group group = groupFactory.create(
@@ -31,10 +33,12 @@ public class GroupService {
         return groupRepository.save(group);
     }
 
-    // WARNING! - What if user with attenderId is not exists or is not a student?
-    // If problem add QueryEvent with user validation
     @Transactional
     public void addAttender(GroupId groupId, UserId attenderId) {
+        boolean isStudent = userValidationService.isUserStudent(attenderId);
+        if (!isStudent) {
+            throw new RuntimeException("User " + attenderId.getValue() + " is not a student or does not exist.");
+        }
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow();
         group.addAttender(attenderId);

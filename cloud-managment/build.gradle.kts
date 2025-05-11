@@ -18,9 +18,12 @@ val protobufJavaVersion = "4.28.2"
 val grpcVersion = "1.72.0"
 val lombokVersion = "1.18.38"
 val javaxAnnotationsVersion = "1.3.2"
+val assertJVersion = "3.27.3"
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.assertj:assertj-core:$assertJVersion")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -30,7 +33,7 @@ dependencies {
     implementation("io.grpc:grpc-stub:$grpcVersion")
     implementation("javax.annotation:javax.annotation-api:$javaxAnnotationsVersion")
     implementation(project(":commons"))
-
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
