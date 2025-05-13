@@ -1,13 +1,11 @@
 package com.unicloudapp.group.domain;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import lombok.*;
 
 import java.time.Year;
 
 @Value
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Semester {
 
     Year year;

@@ -1,11 +1,12 @@
 package com.unicloudapp.group.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Value;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Value
+@AllArgsConstructor
 public class StartDate {
 
     LocalDate value;
