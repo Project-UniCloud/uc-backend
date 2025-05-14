@@ -3,7 +3,11 @@ package com.unicloudapp.user.infrastructure.rest;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.user.application.UserDTO;
 import com.unicloudapp.user.application.UserDomainDtoMapper;
-import com.unicloudapp.user.application.UserService;
+import com.unicloudapp.user.application.command.CreateLecturerCommand;
+import com.unicloudapp.user.application.command.CreateStudentCommand;
+import com.unicloudapp.user.application.ports.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.ports.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.ports.in.FindUserUseCase;
 import com.unicloudapp.user.application.ports.out.AuthenticationPort;
 import com.unicloudapp.user.domain.User;
 import jakarta.validation.Valid;
@@ -20,7 +24,9 @@ import java.util.UUID;
 class UserRestController {
 
     private final AuthenticationPort authenticationPort;
-    private final UserService userService;
+    private final CreateLecturerUseCase createLecturerUseCase;
+    private final CreateStudentUseCase createStudentUseCase;
+    private final FindUserUseCase findUserUseCase;
     private final UserDomainDtoMapper userDomainDtoMapper;
 
     @PostMapping("/auth")
@@ -34,17 +40,17 @@ class UserRestController {
 
     @PostMapping("/lecturers")
     @ResponseStatus(HttpStatus.CREATED)
-    CreatedLecturerResponse createLecturer(
+    CreatedLecturerResponse createStudent(
             @Valid
             @RequestBody
             CreateLecturerRequest createLecturerRequest
     ) {
-        var userDTO = UserDTO.builder()
+        CreateLecturerCommand createLecturerCommand = CreateLecturerCommand.builder()
                 .login(createLecturerRequest.userIndexNumber())
                 .firstName(createLecturerRequest.firstName())
                 .lastName(createLecturerRequest.lastName())
                 .build();
-        User createdLecturer = userService.createLecturer(userDTO);
+        User createdLecturer = createLecturerUseCase.createLecturer(createLecturerCommand);
         return CreatedLecturerResponse.builder()
                 .lecturerId(createdLecturer.getUserId().getValue())
                 .build();
@@ -52,17 +58,17 @@ class UserRestController {
 
     @PostMapping("/students")
     @ResponseStatus(HttpStatus.CREATED)
-    CreatedStudentResponse createLecturer(
+    CreatedStudentResponse createStudent(
             @Valid
             @RequestBody
             CreateStudentRequest request
     ) {
-        var userDTO = UserDTO.builder()
+        CreateStudentCommand createStudentCommand = CreateStudentCommand.builder()
                 .login(request.userIndexNumber())
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .build();
-        User createdLecturer = userService.createStudent(userDTO);
+        User createdLecturer = createStudentUseCase.createStudent(createStudentCommand);
         return CreatedStudentResponse.builder()
                 .studentId(createdLecturer.getUserId().getValue())
                 .build();
@@ -71,7 +77,7 @@ class UserRestController {
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     UserDTO getUserById(@PathVariable("userId") UUID userId) {
-        User user = userService.findUserById(UserId.of(userId));
+        User user = findUserUseCase.findUserById(UserId.of(userId));
         return userDomainDtoMapper.toDto(user);
     }
 }

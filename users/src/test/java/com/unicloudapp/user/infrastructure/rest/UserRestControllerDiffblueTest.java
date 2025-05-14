@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.user.application.UserDTO;
 import com.unicloudapp.user.application.UserDomainDtoMapper;
-import com.unicloudapp.user.application.UserService;
+import com.unicloudapp.user.application.command.CreateLecturerCommand;
+import com.unicloudapp.user.application.command.CreateStudentCommand;
+import com.unicloudapp.user.application.ports.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.ports.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.ports.in.FindUserUseCase;
 import com.unicloudapp.user.application.ports.out.AuthenticationPort;
 import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
@@ -19,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
@@ -58,7 +61,13 @@ class UserRestControllerDiffblueTest {
     private UserRestController userRestController;
 
     @MockitoBean
-    private UserService userService;
+    private CreateStudentUseCase createStudentUseCase;
+
+    @MockitoBean
+    private CreateLecturerUseCase createLecturerUseCase;
+
+    @MockitoBean
+    private FindUserUseCase findUserUseCase;
 
     /**
      * Test {@link UserRestController#authenticate(AuthenticateRequest)}.
@@ -91,9 +100,9 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateLecturerRequest)} with {@code createLecturerRequest}.
+     * Test {@link UserRestController#createStudent(CreateLecturerRequest)} with {@code createLecturerRequest}.
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateLecturerRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateLecturerRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateLecturerRequest) with 'createLecturerRequest'")
@@ -106,7 +115,7 @@ class UserRestControllerDiffblueTest {
         UUID uuid = UUID.randomUUID();
         when(userId.getValue()).thenReturn(uuid);
         when(user.getUserId()).thenReturn(userId);
-        when(userService.createLecturer(Mockito.any())).thenReturn(user);
+        when(createLecturerUseCase.createLecturer(Mockito.any())).thenReturn(user);
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/lecturers")
                 .contentType(MediaType.APPLICATION_JSON);
         CreateLecturerRequest createLecturerRequest = new CreateLecturerRequest("42",
@@ -133,12 +142,12 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateLecturerRequest)} with {@code createLecturerRequest}.
+     * Test {@link UserRestController#createStudent(CreateLecturerRequest)} with {@code createLecturerRequest}.
      * <ul>
      *   <li>Then return lecturerId is randomUUID.</li>
      * </ul>
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateLecturerRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateLecturerRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateLecturerRequest) with 'createLecturerRequest'; then return lecturerId is randomUUID")
@@ -155,23 +164,24 @@ class UserRestControllerDiffblueTest {
         when(userId.getValue()).thenReturn(randomUUIDResult);
         User user = mock(User.class);
         when(user.getUserId()).thenReturn(userId);
-        UserService userService = mock(UserService.class);
-        when(userService.createLecturer(Mockito.any())).thenReturn(user);
+        when(createLecturerUseCase.createLecturer(Mockito.any())).thenReturn(user);
         UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
-                userService,
+                createLecturerUseCase,
+                createStudentUseCase,
+                findUserUseCase,
                 mock(UserDomainDtoMapper.class)
         );
 
         // Act
         CreatedLecturerResponse actualCreateLecturerResult = userRestController
-                .createLecturer(new CreateLecturerRequest("42",
+                .createStudent(new CreateLecturerRequest("42",
                         "Jane",
                         "Doe"
                 ));
 
         // Assert
         verify(userId).getValue();
-        verify(userService).createLecturer(isA(UserDTO.class));
+        verify(createLecturerUseCase).createLecturer(isA(CreateLecturerCommand.class));
         verify(user).getUserId();
         assertSame(randomUUIDResult,
                 actualCreateLecturerResult.lecturerId()
@@ -179,9 +189,9 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateStudentRequest)} with {@code request}.
+     * Test {@link UserRestController#createStudent(CreateStudentRequest)} with {@code request}.
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateStudentRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateStudentRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'")
@@ -197,7 +207,7 @@ class UserRestControllerDiffblueTest {
         UserId userId = mock(UserId.class);
         when(userId.getValue()).thenReturn(randomUUIDResult);
         when(user.getUserId()).thenReturn(userId);
-        when(userService.createStudent(Mockito.any())).thenReturn(user);
+        when(createStudentUseCase.createStudent(Mockito.any())).thenReturn(user);
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/students")
                 .contentType(MediaType.APPLICATION_JSON);
         CreateStudentRequest createStudentRequest = new CreateStudentRequest("42",
@@ -221,12 +231,12 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateStudentRequest)} with {@code request}.
+     * Test {@link UserRestController#createStudent(CreateStudentRequest)} with {@code request}.
      * <ul>
      *   <li>Then return studentId is randomUUID.</li>
      * </ul>
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateStudentRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateStudentRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'; then return studentId is randomUUID")
@@ -243,23 +253,24 @@ class UserRestControllerDiffblueTest {
         when(userId.getValue()).thenReturn(randomUUIDResult);
         User user = mock(User.class);
         when(user.getUserId()).thenReturn(userId);
-        UserService userService = mock(UserService.class);
-        when(userService.createStudent(Mockito.any())).thenReturn(user);
+        when(createStudentUseCase.createStudent(Mockito.any())).thenReturn(user);
         UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
-                userService,
+                createLecturerUseCase,
+                createStudentUseCase,
+                findUserUseCase,
                 mock(UserDomainDtoMapper.class)
         );
 
         // Act
         CreatedStudentResponse actualCreateLecturerResult = userRestController
-                .createLecturer(new CreateStudentRequest("42",
+                .createStudent(new CreateStudentRequest("42",
                         "Jane",
                         "Doe"
                 ));
 
         // Assert
         verify(userId).getValue();
-        verify(userService).createStudent(isA(UserDTO.class));
+        verify(createStudentUseCase).createStudent(isA(CreateStudentCommand.class));
         verify(user).getUserId();
         assertSame(randomUUIDResult,
                 actualCreateLecturerResult.studentId()
@@ -281,7 +292,7 @@ class UserRestControllerDiffblueTest {
 
         // Arrange
         var randomUUIDResult = UUID.randomUUID();
-        when(userService.findUserById(Mockito.any())).thenReturn(mock(User.class));
+        when(findUserUseCase.findUserById(Mockito.any())).thenReturn(mock(User.class));
         UserDTO.UserDTOBuilder firstNameResult = UserDTO.builder()
                 .email("jane.doe@example.org")
                 .firstName("Jane");
@@ -337,10 +348,6 @@ class UserRestControllerDiffblueTest {
         UserRepositoryPort userRepository = mock(UserRepositoryPort.class);
         Optional<User> ofResult = Optional.of(mock(User.class));
         when(userRepository.findById(Mockito.any())).thenReturn(ofResult);
-        UserService userService = new UserService(userRepository,
-                new UserFactory()
-        );
-
         UserDomainDtoMapper userDomainDtoMapper = mock(UserDomainDtoMapper.class);
         UserDTO.UserDTOBuilder firstNameResult = UserDTO.builder()
                 .email("jane.doe@example.org")
@@ -358,7 +365,9 @@ class UserRestControllerDiffblueTest {
                 .build();
         when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
         UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
-                userService,
+                createLecturerUseCase,
+                createStudentUseCase,
+                findUserUseCase,
                 userDomainDtoMapper
         );
 
@@ -400,15 +409,6 @@ class UserRestControllerDiffblueTest {
         );
     }
 
-    /**
-     * Test {@link UserRestController#getUserById(UUID)}.
-     * <ul>
-     *   <li>Given {@link UserService} {@link UserService#findUserById(UserId)} return {@code null}.</li>
-     *   <li>Then calls {@link UserService#findUserById(UserId)}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link UserRestController#getUserById(UUID)}
-     */
     @Test
     @DisplayName("Test getUserById(UUID); given UserService findUserById(UserId) return 'null'; then calls findUserById(UserId)")
     @Tag("MaintainedByDiffblue")
@@ -419,8 +419,7 @@ class UserRestControllerDiffblueTest {
         //   a non-Spring test was created.
 
         // Arrange
-        UserService userService = mock(UserService.class);
-        when(userService.findUserById(Mockito.any())).thenReturn(null);
+        when(findUserUseCase.findUserById(Mockito.any())).thenReturn(null);
         UserDomainDtoMapper userDomainDtoMapper = mock(UserDomainDtoMapper.class);
         UserDTO.UserDTOBuilder firstNameResult = UserDTO.builder()
                 .email("jane.doe@example.org")
@@ -438,7 +437,9 @@ class UserRestControllerDiffblueTest {
                 .build();
         when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
         UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
-                userService,
+                createLecturerUseCase,
+                createStudentUseCase,
+                findUserUseCase,
                 userDomainDtoMapper
         );
 
@@ -447,7 +448,7 @@ class UserRestControllerDiffblueTest {
 
         // Assert
         verify(userDomainDtoMapper).toDto(isNull());
-        verify(userService).findUserById(isA(UserId.class));
+        verify(findUserUseCase).findUserById(isA(UserId.class));
         LocalDateTime lastLoginAt = actualUserById.lastLoginAt();
         assertEquals("00:00",
                 lastLoginAt.toLocalTime()

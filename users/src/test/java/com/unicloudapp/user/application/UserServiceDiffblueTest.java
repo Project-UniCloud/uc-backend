@@ -4,6 +4,8 @@ import com.diffblue.cover.annotations.MethodsUnderTest;
 import com.unicloudapp.common.domain.FirstName;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.user.application.UserDTO.UserDTOBuilder;
+import com.unicloudapp.user.application.command.CreateLecturerCommand;
+import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -39,14 +41,6 @@ class UserServiceDiffblueTest {
     @Autowired
     private UserService userService;
 
-    /**
-     * Test {@link UserService#createLecturer(UserDTO)}.
-     * <ul>
-     *   <li>Given {@link UserRepositoryPort} {@link UserRepositoryPort#save(User)} throw {@link IllegalStateException#IllegalStateException(String)} with {@code foo}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link UserService#createLecturer(UserDTO)}
-     */
     @Test
     @DisplayName("Test createLecturer(UserDTO); given UserRepositoryPort save(User) throw IllegalStateException(String) with 'foo'")
     @Tag("MaintainedByDiffblue")
@@ -60,12 +54,10 @@ class UserServiceDiffblueTest {
                 Mockito.<String>any(),
                 Mockito.<Type>any()
         )).thenReturn(null);
-        UserDTOBuilder lastNameResult = UserDTO.builder()
-                .firstName("Jane")
-                .lastName("Doe");
-        UserDTO userDTO = lastNameResult.userId(UUID.randomUUID())
+        CreateLecturerCommand userDTO = CreateLecturerCommand.builder()
                 .login("42")
-                .userRole(Type.ADMIN)
+                .firstName("Jane")
+                .lastName("Doe")
                 .build();
 
         // Act and Assert
@@ -81,15 +73,6 @@ class UserServiceDiffblueTest {
         );
     }
 
-    /**
-     * Test {@link UserService#createLecturer(UserDTO)}.
-     * <ul>
-     *   <li>Given {@link UserRepositoryPort}.</li>
-     *   <li>Then throw {@link IllegalStateException}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link UserService#createLecturer(UserDTO)}
-     */
     @Test
     @DisplayName("Test createLecturer(UserDTO); given UserRepositoryPort; then throw IllegalStateException")
     @MethodsUnderTest({"User UserService.createLecturer(UserDTO)"})
@@ -103,30 +86,23 @@ class UserServiceDiffblueTest {
         )).thenThrow(new IllegalStateException("foo"));
 
         // Act and Assert
-        var userDto = UserDTO.builder()
-                .userId(UUID.randomUUID())
+        CreateLecturerCommand userDTO = CreateLecturerCommand.builder()
                 .login("42")
-                //.firstName("Jane")
+                .firstName("Jane")
                 .lastName("Doe")
                 .build();
         assertThrows(
                 IllegalStateException.class,
-                () -> userService.createLecturer(userDto)
+                () -> userService.createLecturer(userDTO)
         );
         verify(userFactory).create(isA(UUID.class),
                 eq("42"),
-                // eq("Jane"),
-                any(),
+                eq("Jane"),
                 eq("Doe"),
                 eq(Type.LECTURER)
         );
     }
 
-    /**
-     * Test {@link UserService#createStudent(UserDTO)}.
-     * <p>
-     * Method under test: {@link UserService#createStudent(UserDTO)}
-     */
     @Test
     @DisplayName("Test createStudent(UserDTO)")
     @Tag("MaintainedByDiffblue")
@@ -140,8 +116,7 @@ class UserServiceDiffblueTest {
         );
 
         // Act
-        var userDto = UserDTO.builder()
-                .userId(UUID.randomUUID())
+        var userDto = CreateStudentCommand.builder()
                 .login("login")
                 .firstName("Jane")
                 .lastName("Doe")
@@ -154,15 +129,6 @@ class UserServiceDiffblueTest {
         assertNull(actualCreateStudentResult);
     }
 
-    /**
-     * Test {@link UserService#createStudent(UserDTO)}.
-     * <ul>
-     *   <li>Given {@link UserRepositoryPort} {@link UserRepositoryPort#save(User)} return {@code null}.</li>
-     *   <li>Then return {@code null}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link UserService#createStudent(UserDTO)}
-     */
     @Test
     @DisplayName("Test createStudent(UserDTO); given UserRepositoryPort save(User) return 'null'; then return 'null'")
     @Tag("MaintainedByDiffblue")
@@ -178,14 +144,13 @@ class UserServiceDiffblueTest {
         )).thenReturn(null);
 
         // Act
-        var userDto = UserDTO.builder()
-                .userId(UUID.randomUUID())
-                .login("login")
+        CreateStudentCommand createStudentCommand = CreateStudentCommand.builder()
+                .login("42")
                 .firstName("Jane")
                 .lastName("Doe")
                 .build();
         User actualCreateStudentResult = userService
-                .createStudent(userDto);
+                .createStudent(createStudentCommand);
 
         // Assert
         verify(userRepositoryPort).save(isNull());
@@ -198,14 +163,6 @@ class UserServiceDiffblueTest {
         assertNull(actualCreateStudentResult);
     }
 
-    /**
-     * Test {@link UserService#createStudent(UserDTO)}.
-     * <ul>
-     *   <li>Given {@link UserRepositoryPort} {@link UserRepositoryPort#save(User)} throw {@link IllegalStateException#IllegalStateException(String)} with {@code foo}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link UserService#createStudent(UserDTO)}
-     */
     @Test
     @DisplayName("Test createStudent(UserDTO); given UserRepositoryPort save(User) throw IllegalStateException(String) with 'foo'")
     @Tag("MaintainedByDiffblue")
@@ -219,17 +176,15 @@ class UserServiceDiffblueTest {
                 Mockito.<String>any(),
                 Mockito.<Type>any()
         )).thenReturn(null);
-        UserDTOBuilder lastNameResult = UserDTO.builder()
-                .firstName("Jane")
-                .lastName("Doe");
-        UserDTO userDTO = lastNameResult.userId(UUID.randomUUID())
+        CreateStudentCommand createStudentCommand = CreateStudentCommand.builder()
                 .login("42")
-                .userRole(Type.ADMIN)
+                .firstName("Jane")
+                .lastName("Doe")
                 .build();
 
         // Act and Assert
         assertThrows(IllegalStateException.class,
-                () -> userService.createStudent(userDTO)
+                () -> userService.createStudent(createStudentCommand)
         );
         verify(userRepositoryPort).save(isNull());
         verify(userFactory).create(isA(UUID.class),
@@ -240,15 +195,6 @@ class UserServiceDiffblueTest {
         );
     }
 
-    /**
-     * Test {@link UserService#createStudent(UserDTO)}.
-     * <ul>
-     *   <li>Given {@link UserRepositoryPort}.</li>
-     *   <li>Then throw {@link IllegalStateException}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link UserService#createStudent(UserDTO)}
-     */
     @Test
     @DisplayName("Test createStudent(UserDTO); given UserRepositoryPort; then throw IllegalStateException")
     @Tag("MaintainedByDiffblue")
@@ -263,15 +209,14 @@ class UserServiceDiffblueTest {
         )).thenThrow(new IllegalStateException("foo"));
 
         // Act and Assert
-        UserDTO userDTO = UserDTO.builder()
-                .userId(UUID.randomUUID())
+        CreateStudentCommand createStudentCommand = CreateStudentCommand.builder()
                 .login("42")
                 .firstName("Jane")
                 .lastName("Doe")
-                .userRole(Type.ADMIN)
                 .build();
+
         assertThrows(IllegalStateException.class,
-                () -> userService.createStudent(userDTO)
+                () -> userService.createStudent(createStudentCommand)
         );
         verify(userFactory).create(isA(UUID.class),
                 eq("42"),

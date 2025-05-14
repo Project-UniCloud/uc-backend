@@ -3,13 +3,17 @@ package com.unicloudapp.user.application;
 import com.unicloudapp.common.domain.FirstName;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.user.UserValidationService;
+import com.unicloudapp.user.application.command.CreateLecturerCommand;
+import com.unicloudapp.user.application.command.CreateStudentCommand;
+import com.unicloudapp.user.application.ports.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.ports.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.ports.in.FindUserUseCase;
 import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import com.unicloudapp.user.domain.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,21 +21,54 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Validated
-public class UserService implements UserValidationService {
+class UserService 
+implements UserValidationService, 
+        CreateStudentUseCase, 
+        CreateLecturerUseCase,
+        FindUserUseCase {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
 
-    public User createLecturer(@Valid UserDTO userDTO) {
-        return createUser(userDTO,
+    @Override
+    public User createLecturer(@Valid CreateLecturerCommand command) {
+        User user = userFactory.create(
+                UUID.randomUUID(),
+                command.login(),
+                command.firstName(),
+                command.lastName(),
                 UserRole.Type.LECTURER
         );
+        return userRepository.save(user);
     }
 
-    public User createStudent(@Valid UserDTO userDTO) {
-        return createUser(userDTO,
+    @Override
+    public User createStudent(@Valid CreateStudentCommand command) {
+        User user = userFactory.create(
+                UUID.randomUUID(),
+                command.login(),
+                command.firstName(),
+                command.lastName(),
                 UserRole.Type.STUDENT
         );
+        return userRepository.save(user);
+    }
+
+    @Override
+    public boolean isUserStudent(UserId userId) {
+        return findUserById(userId).getUserRole()
+                .getValue() == UserRole.Type.STUDENT;
+    }
+
+    @Override
+    public User findUserById(UserId userId) {
+        return userRepository.findById(userId)
+                .orElseThrow();
+    }
+
+    @Override
+    public boolean isUserExists(UserId userId) {
+        return userRepository.findById(userId).isPresent();
     }
 
     @Transactional
@@ -41,36 +78,5 @@ public class UserService implements UserValidationService {
         userRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException(""))
                 .updateFirstName(newFirstName);
-    }
-
-    private User createUser(@Valid UserDTO userDTO,
-                            UserRole.Type student
-    ) {
-        User user = userFactory.create(
-                UUID.randomUUID(),
-                userDTO.login(),
-                userDTO.firstName(),
-                userDTO.lastName(),
-                student
-        );
-        return userRepository.save(user);
-    }
-
-
-    @Override
-    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-    public boolean isUserStudent(UserId userId) {
-        return findUserById(userId).getUserRole()
-                .getValue() == UserRole.Type.STUDENT;
-    }
-
-    public User findUserById(UserId userId) {
-        return userRepository.findById(userId)
-                .orElseThrow();
-    }
-
-    @Override
-    public boolean isUserExists(UserId userId) {
-        return userRepository.findById(userId).isPresent();
     }
 }
