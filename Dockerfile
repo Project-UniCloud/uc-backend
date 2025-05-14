@@ -4,8 +4,6 @@ WORKDIR /build
 
 COPY . .
 
-RUN gradle :cloud-managment:generateProto
-
 RUN gradle :bootstrap:bootJar
 
 FROM eclipse-temurin:21-jre
