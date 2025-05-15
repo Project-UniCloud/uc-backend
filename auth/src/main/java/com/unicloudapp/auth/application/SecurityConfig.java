@@ -42,6 +42,7 @@ class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth").permitAll()
+                        .requestMatchers("/swagger-ui/index.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(new JwtTokenParser(jwtConfigurationProperties.secret()), userDetailsService,
