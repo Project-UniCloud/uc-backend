@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -20,6 +21,7 @@ class GroupRestController {
 
     private final GroupService groupService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     UUID createGroup(@RequestBody CreateGroupRequest request) {
@@ -35,12 +37,14 @@ class GroupRestController {
                 .getUuid();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{groupId}/attenders/{attenderId}")
     @ResponseStatus(HttpStatus.OK)
     void addAttender(@PathVariable UUID groupId, @PathVariable UUID attenderId) {
         groupService.addAttender(GroupId.of(groupId), UserId.of(attenderId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     Page<GroupDTO> getAllGroups(
             @RequestParam(defaultValue = "0") int page,

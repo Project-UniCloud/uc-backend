@@ -1,6 +1,6 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
-import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
+import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.common.domain.user.UserId;
 import lombok.RequiredArgsConstructor;

@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":cloud-managment"))
     implementation(project(":commons"))
     implementation(project(":groups"))
+    implementation(project(":auth"))
 
     compileOnly("org.projectlombok:lombok:1.18.38")
 }

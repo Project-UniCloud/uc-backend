@@ -5,15 +5,14 @@ import com.unicloudapp.user.application.UserDTO;
 import com.unicloudapp.user.application.UserDomainDtoMapper;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.ports.in.CreateLecturerUseCase;
-import com.unicloudapp.user.application.ports.in.CreateStudentUseCase;
-import com.unicloudapp.user.application.ports.in.FindUserUseCase;
-import com.unicloudapp.user.application.ports.out.AuthenticationPort;
+import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.port.in.FindUserUseCase;
 import com.unicloudapp.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -23,21 +22,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 class UserRestController {
 
-    private final AuthenticationPort authenticationPort;
     private final CreateLecturerUseCase createLecturerUseCase;
     private final CreateStudentUseCase createStudentUseCase;
     private final FindUserUseCase findUserUseCase;
     private final UserDomainDtoMapper userDomainDtoMapper;
 
-    @PostMapping("/auth")
-    ResponseEntity<Void> authenticate(@Valid @RequestBody AuthenticateRequest authenticateRequest) {
-        authenticationPort.authenticate(authenticateRequest.login(),
-                authenticateRequest.password()
-        );
-        return ResponseEntity.status(200)
-                .build();
-    }
-
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lecturers")
     @ResponseStatus(HttpStatus.CREATED)
     CreatedLecturerResponse createStudent(
@@ -56,6 +46,7 @@ class UserRestController {
                 .build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/students")
     @ResponseStatus(HttpStatus.CREATED)
     CreatedStudentResponse createStudent(
@@ -74,6 +65,7 @@ class UserRestController {
                 .build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     UserDTO getUserById(@PathVariable("userId") UUID userId) {

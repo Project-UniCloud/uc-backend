@@ -1,4 +1,4 @@
-package com.unicloudapp.user.application.ports.in;
+package com.unicloudapp.user.application.port.in;
 
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.user.domain.User;

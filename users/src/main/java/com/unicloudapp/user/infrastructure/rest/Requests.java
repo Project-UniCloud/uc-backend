@@ -2,15 +2,6 @@ package com.unicloudapp.user.infrastructure.rest;
 
 import jakarta.validation.constraints.NotEmpty;
 
-record AuthenticateRequest(
-        @NotEmpty(message = "login cannot be empty")
-        String login,
-        @NotEmpty(message = "password cannot be mepty")
-        String password
-) {
-
-}
-
 record CreateLecturerRequest(
         @NotEmpty(message = "userIndexNumber cannot be empty")
         String userIndexNumber,

@@ -1,7 +1,7 @@
-package com.unicloudapp.user.infrastructure.ldap;
+package com.unicloudapp.auth.infrastructure.ldap;
 
 import com.unicloudapp.common.exception.UnauthorizedAccessException;
-import com.unicloudapp.user.application.ports.out.AuthenticationPort;
+import com.unicloudapp.auth.application.port.out.AuthenticationPort;
 import org.springframework.stereotype.Component;
 
 import javax.naming.Context;
@@ -18,7 +18,7 @@ class LdapAuthenticationAdapter implements AuthenticationPort {
     private static final String DOMAIN_SUFFIX = "labs.wmi.amu.edu.pl";
 
     @Override
-    public void authenticate(String username,
+    public boolean authenticate(String username,
                              String password
     ) {
         try {
@@ -32,8 +32,9 @@ class LdapAuthenticationAdapter implements AuthenticationPort {
 
             DirContext ctx = new InitialDirContext(env);
             ctx.close();
+            return true;
         } catch (Exception e) {
-            throw new UnauthorizedAccessException(e.getMessage());
+            return false;
         }
     }
 }

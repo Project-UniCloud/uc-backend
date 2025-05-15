@@ -7,13 +7,11 @@ import com.unicloudapp.user.application.UserDTO;
 import com.unicloudapp.user.application.UserDomainDtoMapper;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.ports.in.CreateLecturerUseCase;
-import com.unicloudapp.user.application.ports.in.CreateStudentUseCase;
-import com.unicloudapp.user.application.ports.in.FindUserUseCase;
-import com.unicloudapp.user.application.ports.out.AuthenticationPort;
-import com.unicloudapp.user.application.ports.out.UserRepositoryPort;
+import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.port.in.FindUserUseCase;
+import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
-import com.unicloudapp.user.domain.UserFactory;
 import com.unicloudapp.user.domain.UserRole;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -52,9 +50,6 @@ class UserRestControllerDiffblueTest {
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @MockitoBean
-    private AuthenticationPort authenticationPort;
-
-    @MockitoBean
     private UserDomainDtoMapper userDomainDtoMapper;
 
     @Autowired
@@ -68,36 +63,6 @@ class UserRestControllerDiffblueTest {
 
     @MockitoBean
     private FindUserUseCase findUserUseCase;
-
-    /**
-     * Test {@link UserRestController#authenticate(AuthenticateRequest)}.
-     * <p>
-     * Method under test: {@link UserRestController#authenticate(AuthenticateRequest)}
-     */
-    @Test
-    @DisplayName("Test authenticate(AuthenticateRequest)")
-    @MethodsUnderTest({"org.springframework.http.ResponseEntity UserRestController.authenticate(AuthenticateRequest)"})
-    void testAuthenticate() throws Exception {
-        // Arrange
-        doNothing().when(authenticationPort)
-                .authenticate(Mockito.any(),
-                        Mockito.any()
-                );
-        MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/auth")
-                .contentType(MediaType.APPLICATION_JSON);
-        ObjectMapper objectMapper = new ObjectMapper();
-        MockHttpServletRequestBuilder requestBuilder = contentTypeResult
-                .content(objectMapper.writeValueAsString(new AuthenticateRequest("Login",
-                        "iloveyou"
-                )));
-
-        // Act and Assert
-        MockMvcBuilders.standaloneSetup(userRestController)
-                .build()
-                .perform(requestBuilder)
-                .andExpect(MockMvcResultMatchers.status()
-                        .isOk());
-    }
 
     /**
      * Test {@link UserRestController#createStudent(CreateLecturerRequest)} with {@code createLecturerRequest}.
@@ -165,7 +130,7 @@ class UserRestControllerDiffblueTest {
         User user = mock(User.class);
         when(user.getUserId()).thenReturn(userId);
         when(createLecturerUseCase.createLecturer(Mockito.any())).thenReturn(user);
-        UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
+        UserRestController userRestController = new UserRestController(
                 createLecturerUseCase,
                 createStudentUseCase,
                 findUserUseCase,
@@ -254,7 +219,7 @@ class UserRestControllerDiffblueTest {
         User user = mock(User.class);
         when(user.getUserId()).thenReturn(userId);
         when(createStudentUseCase.createStudent(Mockito.any())).thenReturn(user);
-        UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
+        UserRestController userRestController = new UserRestController(
                 createLecturerUseCase,
                 createStudentUseCase,
                 findUserUseCase,
@@ -364,7 +329,7 @@ class UserRestControllerDiffblueTest {
                 .userRole(UserRole.Type.ADMIN)
                 .build();
         when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
-        UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
+        UserRestController userRestController = new UserRestController(
                 createLecturerUseCase,
                 createStudentUseCase,
                 findUserUseCase,
@@ -436,7 +401,7 @@ class UserRestControllerDiffblueTest {
                 .userRole(UserRole.Type.ADMIN)
                 .build();
         when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
-        UserRestController userRestController = new UserRestController(mock(AuthenticationPort.class),
+        UserRestController userRestController = new UserRestController(
                 createLecturerUseCase,
                 createStudentUseCase,
                 findUserUseCase,
