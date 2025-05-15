@@ -1,6 +1,5 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
-import com.unicloudapp.common.exception.UnauthorizedAccessException;
 import com.unicloudapp.auth.application.port.out.AuthenticationPort;
 import org.springframework.stereotype.Component;
 
