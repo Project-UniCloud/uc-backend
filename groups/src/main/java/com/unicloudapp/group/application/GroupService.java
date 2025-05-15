@@ -5,6 +5,7 @@ import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
 import com.unicloudapp.group.domain.GroupId;
+import com.unicloudapp.group.domain.GroupStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -56,6 +57,21 @@ public class GroupService {
                 .map(groupMapper::toDto)
                 .toList();
 
+        return new PageImpl<>(groupDTOList, PageRequest.of(page, size), total);
+    }
+
+    public Page<GroupDTO> getAllGroupsByStatus(
+            Pageable pageable,
+            GroupStatus.Type status
+    ) {
+        int size = pageable.getPageSize();
+        int page = pageable.getPageNumber();
+        int offset = page * size;
+        List<Group> groups = groupRepository.findAllByStatus(offset, size, status);
+        long total = groupRepository.countByStatus(status);
+        List<GroupDTO> groupDTOList = groups.stream()
+                .map(groupMapper::toDto)
+                .toList();
         return new PageImpl<>(groupDTOList, PageRequest.of(page, size), total);
     }
 }

@@ -4,6 +4,7 @@ import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.domain.GroupId;
+import com.unicloudapp.group.domain.GroupStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,9 +49,20 @@ class GroupRestController {
     @GetMapping
     Page<GroupDTO> getAllGroups(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int pageSize
     ) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, pageSize);
         return groupService.getAllGroups(pageable);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{status}")
+    Page<GroupDTO> getAllGroupsByStatus(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @PathVariable GroupStatus.Type status
+    ) {
+        Pageable pageable = PageRequest.of(page, pageSize);
+        return groupService.getAllGroupsByStatus(pageable, status);
     }
 }

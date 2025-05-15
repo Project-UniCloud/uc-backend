@@ -1,6 +1,7 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.group.domain.Group;
+import com.unicloudapp.group.domain.GroupStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,4 +16,11 @@ public interface GroupRepositoryPort {
     List<Group> findAll(int offset, int size);
 
     long count();
+
+    List<Group> findAllByStatus(int offset,
+                                int size,
+                                GroupStatus.Type status
+    );
+
+    long countByStatus(GroupStatus.Type status);
 }

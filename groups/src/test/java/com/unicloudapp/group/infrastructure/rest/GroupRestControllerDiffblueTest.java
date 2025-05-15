@@ -170,12 +170,12 @@ class GroupRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link GroupRestController#getAllGroups(int, int)}.
+     * Test {@link GroupRestController#getAllGroupsByStatus(int, int)}.
      * <ul>
      *   <li>Then return {@link PageImpl}.</li>
      * </ul>
      * <p>
-     * Method under test: {@link GroupRestController#getAllGroups(int, int)}
+     * Method under test: {@link GroupRestController#getAllGroupsByStatus(int, int)}
      */
     @Test
     @DisplayName("Test getAllGroups(int, int); then return PageImpl")
