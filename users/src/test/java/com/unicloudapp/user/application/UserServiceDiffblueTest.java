@@ -144,7 +144,7 @@ class UserServiceDiffblueTest {
 
         // Act
         CreateStudentCommand createStudentCommand = CreateStudentCommand.builder()
-                .login("42")
+                .login("login")
                 .firstName("Jane")
                 .lastName("Doe")
                 .build();

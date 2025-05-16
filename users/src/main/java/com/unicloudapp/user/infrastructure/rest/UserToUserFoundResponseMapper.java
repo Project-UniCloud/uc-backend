@@ -1,11 +1,11 @@
-package com.unicloudapp.user.application;
+package com.unicloudapp.user.infrastructure.rest;
 
 import com.unicloudapp.user.domain.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
-public interface UserDomainDtoMapper {
+interface UserToUserFoundResponseMapper {
 
     @Mapping(source = "userId.value", target = "userId")
     @Mapping(source = "userLogin.value", target = "login")
@@ -14,5 +14,5 @@ public interface UserDomainDtoMapper {
     @Mapping(source = "userRole.value", target = "userRole")
     @Mapping(source = "email.value", target = "email")
     @Mapping(source = "lastLoginAt.value", target = "lastLoginAt")
-    UserDTO toDto(User user);
+    UserFoundResponse toUserFoundResponse(User user);
 }

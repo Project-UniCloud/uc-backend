@@ -1,14 +1,12 @@
 package com.unicloudapp.user.domain;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Getter
+@Value
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserRole {
 
-    private final Type value;
+    Type value;
 
     public static UserRole of(Type userType) {
         if (userType == null) {

@@ -1,8 +1,6 @@
 package com.unicloudapp.user.infrastructure.rest;
 
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.user.application.UserDTO;
-import com.unicloudapp.user.application.UserDomainDtoMapper;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
@@ -25,12 +23,12 @@ class UserRestController {
     private final CreateLecturerUseCase createLecturerUseCase;
     private final CreateStudentUseCase createStudentUseCase;
     private final FindUserUseCase findUserUseCase;
-    private final UserDomainDtoMapper userDomainDtoMapper;
+    private final UserToUserFoundResponseMapper userDomainDtoMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lecturers")
     @ResponseStatus(HttpStatus.CREATED)
-    CreatedLecturerResponse createStudent(
+    LecturerCreatedResponse createStudent(
             @Valid
             @RequestBody
             CreateLecturerRequest createLecturerRequest
@@ -41,7 +39,7 @@ class UserRestController {
                 .lastName(createLecturerRequest.lastName())
                 .build();
         User createdLecturer = createLecturerUseCase.createLecturer(createLecturerCommand);
-        return CreatedLecturerResponse.builder()
+        return LecturerCreatedResponse.builder()
                 .lecturerId(createdLecturer.getUserId().getValue())
                 .build();
     }
@@ -49,7 +47,7 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/students")
     @ResponseStatus(HttpStatus.CREATED)
-    CreatedStudentResponse createStudent(
+    StudentCreatedResponse createStudent(
             @Valid
             @RequestBody
             CreateStudentRequest request
@@ -60,7 +58,7 @@ class UserRestController {
                 .lastName(request.lastName())
                 .build();
         User createdLecturer = createStudentUseCase.createStudent(createStudentCommand);
-        return CreatedStudentResponse.builder()
+        return StudentCreatedResponse.builder()
                 .studentId(createdLecturer.getUserId().getValue())
                 .build();
     }
@@ -68,9 +66,9 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
-    UserDTO getUserById(@PathVariable("userId") UUID userId) {
+    UserFoundResponse getUserById(@PathVariable("userId") UUID userId) {
         User user = findUserUseCase.findUserById(UserId.of(userId));
-        return userDomainDtoMapper.toDto(user);
+        return userDomainDtoMapper.toUserFoundResponse(user);
     }
 }
 

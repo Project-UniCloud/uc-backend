@@ -1,6 +1,6 @@
-package com.unicloudapp.user.application;
+package com.unicloudapp.user.infrastructure.rest;
 
-import com.unicloudapp.user.domain.UserRole; // Dostosuj import
+import com.unicloudapp.user.domain.UserRole;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -19,8 +19,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-class UserDTOTest {
-
+class UserToUserFoundResponseTest {
     private static Validator validator;
 
     @BeforeAll
@@ -33,10 +32,10 @@ class UserDTOTest {
     @DisplayName("Should detect all violations when all required fields are missing (built with empty builder)")
     void testValidation_whenAllRequiredFieldsAreNullOrBlank() {
         // Arrange
-        UserDTO user = UserDTO.builder().build();
+        UserFoundResponse user = UserFoundResponse.builder().build();
 
         // Act
-        Set<ConstraintViolation<UserDTO>> violations = validator.validate(user);
+        Set<ConstraintViolation<UserFoundResponse>> violations = validator.validate(user);
 
         // Assert
         assertThat(violations)
@@ -57,9 +56,9 @@ class UserDTOTest {
     @ParameterizedTest(name = "[{index}] {0} - expected violation on '{2}'")
     @MethodSource("singleFieldViolationProvider")
     @DisplayName("Should detect single violation for invalid field")
-    void testValidation_forSingleInvalidField(String testCaseName, UserDTO userDtoToValidate, String expectedInvalidPropertyName, String expectedMessageTemplate) {
+    void testValidation_forSingleInvalidField(String testCaseName, UserFoundResponse userDtoToValidate, String expectedInvalidPropertyName, String expectedMessageTemplate) {
         // Act
-        Set<ConstraintViolation<UserDTO>> violations = validator.validate(userDtoToValidate);
+        Set<ConstraintViolation<UserFoundResponse>> violations = validator.validate(userDtoToValidate);
 
         // Assert
         assertThat(violations)
@@ -83,19 +82,19 @@ class UserDTOTest {
         return Stream.of(
                 Arguments.of(
                         "Login is missing (null)",
-                        UserDTO.builder().userId(defaultUserId).firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole)/*.login(null) jest domyślne*/.build(),
+                        UserFoundResponse.builder().userId(defaultUserId).firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole)/*.login(null) jest domyślne*/.build(),
                         "login",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
                 Arguments.of(
                         "Login is empty string",
-                        UserDTO.builder().userId(defaultUserId).login("").firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login("").firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole).build(),
                         "login",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
                 Arguments.of(
                         "Login is whitespace only",
-                        UserDTO.builder().userId(defaultUserId).login("   ").firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login("   ").firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole).build(),
                         "login",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
@@ -103,19 +102,19 @@ class UserDTOTest {
                 // Przypadki dla pola 'firstName'
                 Arguments.of(
                         "FirstName is missing (null)",
-                        UserDTO.builder().userId(defaultUserId).login(defaultLogin).lastName(defaultLastName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login(defaultLogin).lastName(defaultLastName).userRole(defaultUserRole).build(),
                         "firstName",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
                 Arguments.of(
                         "FirstName is empty string",
-                        UserDTO.builder().userId(defaultUserId).login(defaultLogin).firstName("").lastName(defaultLastName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login(defaultLogin).firstName("").lastName(defaultLastName).userRole(defaultUserRole).build(),
                         "firstName",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
                 Arguments.of(
                         "FirstName is whitespace only",
-                        UserDTO.builder().userId(defaultUserId).login(defaultLogin).firstName("   ").lastName(defaultLastName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login(defaultLogin).firstName("   ").lastName(defaultLastName).userRole(defaultUserRole).build(),
                         "firstName",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
@@ -123,13 +122,13 @@ class UserDTOTest {
                 // Przypadki dla pola 'lastName' (dodaj, jeśli potrzebne)
                 Arguments.of(
                         "LastName is missing (null)",
-                        UserDTO.builder().userId(defaultUserId).login(defaultLogin).firstName(defaultFirstName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login(defaultLogin).firstName(defaultFirstName).userRole(defaultUserRole).build(),
                         "lastName",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
                 Arguments.of(
                         "LastName is empty string",
-                        UserDTO.builder().userId(defaultUserId).login(defaultLogin).firstName(defaultFirstName).lastName("").userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login(defaultLogin).firstName(defaultFirstName).lastName("").userRole(defaultUserRole).build(),
                         "lastName",
                         "{jakarta.validation.constraints.NotBlank.message}"
                 ),
@@ -138,7 +137,7 @@ class UserDTOTest {
                 // Przypadki dla pola 'userId'
                 Arguments.of(
                         "UserId is missing (null)",
-                        UserDTO.builder().login(defaultLogin).firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole).build(),
+                        UserFoundResponse.builder().login(defaultLogin).firstName(defaultFirstName).lastName(defaultLastName).userRole(defaultUserRole).build(),
                         "userId",
                         "{jakarta.validation.constraints.NotNull.message}"
                 ),
@@ -146,7 +145,7 @@ class UserDTOTest {
                 // Przypadki dla pola 'userRole'
                 Arguments.of(
                         "UserRole is missing (null)",
-                        UserDTO.builder().userId(defaultUserId).login(defaultLogin).firstName(defaultFirstName).lastName(defaultLastName).build(),
+                        UserFoundResponse.builder().userId(defaultUserId).login(defaultLogin).firstName(defaultFirstName).lastName(defaultLastName).build(),
                         "userRole",
                         "{jakarta.validation.constraints.NotNull.message}"
                 )
@@ -157,7 +156,7 @@ class UserDTOTest {
     @DisplayName("Should have no violations when all required fields are present and valid")
     void testValidation_whenAllRequiredFieldsAreValid() {
         // Arrange
-        UserDTO user = UserDTO.builder()
+        UserFoundResponse user = UserFoundResponse.builder()
                 .userId(UUID.randomUUID())
                 .login("validLogin")
                 .firstName("ValidFirstName")
@@ -167,7 +166,7 @@ class UserDTOTest {
                 .build();
 
         // Act
-        Set<ConstraintViolation<UserDTO>> violations = validator.validate(user);
+        Set<ConstraintViolation<UserFoundResponse>> violations = validator.validate(user);
 
         // Assert
         assertThat(violations).isEmpty();

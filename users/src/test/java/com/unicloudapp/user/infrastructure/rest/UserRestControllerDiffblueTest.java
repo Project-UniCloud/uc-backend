@@ -3,8 +3,6 @@ package com.unicloudapp.user.infrastructure.rest;
 import com.diffblue.cover.annotations.MethodsUnderTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.user.application.UserDTO;
-import com.unicloudapp.user.application.UserDomainDtoMapper;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
@@ -47,10 +45,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(SpringExtension.class)
 class UserRestControllerDiffblueTest {
 
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-
     @MockitoBean
-    private UserDomainDtoMapper userDomainDtoMapper;
+    private UserToUserFoundResponseMapper userDomainDtoMapper;
 
     @Autowired
     private UserRestController userRestController;
@@ -134,11 +130,11 @@ class UserRestControllerDiffblueTest {
                 createLecturerUseCase,
                 createStudentUseCase,
                 findUserUseCase,
-                mock(UserDomainDtoMapper.class)
+                userDomainDtoMapper
         );
 
         // Act
-        CreatedLecturerResponse actualCreateLecturerResult = userRestController
+        LecturerCreatedResponse actualCreateLecturerResult = userRestController
                 .createStudent(new CreateLecturerRequest("42",
                         "Jane",
                         "Doe"
@@ -208,10 +204,6 @@ class UserRestControllerDiffblueTest {
     @Tag("MaintainedByDiffblue")
     @MethodsUnderTest({"CreatedStudentResponse UserRestController.createLecturer(CreateStudentRequest)"})
     void testCreateLecturerWithRequest_thenReturnStudentIdIsRandomUUID() {
-        //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-        //   Run dcover create --keep-partial-tests to gain insights into why
-        //   a non-Spring test was created.
-
         // Arrange
         UserId userId = mock(UserId.class);
         UUID randomUUIDResult = UUID.randomUUID();
@@ -223,11 +215,11 @@ class UserRestControllerDiffblueTest {
                 createLecturerUseCase,
                 createStudentUseCase,
                 findUserUseCase,
-                mock(UserDomainDtoMapper.class)
+                userDomainDtoMapper
         );
 
         // Act
-        CreatedStudentResponse actualCreateLecturerResult = userRestController
+        StudentCreatedResponse studentCreatedResponse = userRestController
                 .createStudent(new CreateStudentRequest("42",
                         "Jane",
                         "Doe"
@@ -238,7 +230,7 @@ class UserRestControllerDiffblueTest {
         verify(createStudentUseCase).createStudent(isA(CreateStudentCommand.class));
         verify(user).getUserId();
         assertSame(randomUUIDResult,
-                actualCreateLecturerResult.studentId()
+                studentCreatedResponse.studentId()
         );
     }
 
@@ -252,26 +244,20 @@ class UserRestControllerDiffblueTest {
     @Tag("MaintainedByDiffblue")
     @MethodsUnderTest({"UserDTO UserRestController.getUserById(UUID)"})
     void testGetUserById() throws Exception {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Diffblue AI was unable to find a test
-
         // Arrange
         var randomUUIDResult = UUID.randomUUID();
         when(findUserUseCase.findUserById(Mockito.any())).thenReturn(mock(User.class));
-        UserDTO.UserDTOBuilder firstNameResult = UserDTO.builder()
-                .email("jane.doe@example.org")
-                .firstName("Jane");
-        UserDTO.UserDTOBuilder loginResult = firstNameResult.lastLoginAt(LocalDate.of(1970,
-                                1,
-                                1
-                        )
-                        .atStartOfDay())
+        UserFoundResponse buildResult = UserFoundResponse.builder()
+                .userId(randomUUIDResult)
+                .userRole(UserRole.Type.ADMIN)
+                .login("Login")
+                .firstName("Jane")
                 .lastName("Doe")
-                .login("Login");
-        UserDTO buildResult = loginResult.userId(randomUUIDResult)
+                .email("jane.doe@example.org")
+                .lastLoginAt(LocalDateTime.of(1970, 1, 1, 0, 0))
                 .userRole(UserRole.Type.ADMIN)
                 .build();
-        when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
+        when(userDomainDtoMapper.toUserFoundResponse(Mockito.any())).thenReturn(buildResult);
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/users/{userId}",
                 randomUUIDResult
         );
@@ -287,8 +273,8 @@ class UserRestControllerDiffblueTest {
                 .andExpect(MockMvcResultMatchers.content()
                         .string(String.format(
                                 "{\"userId\":\"%s\",\"login\":\"Login\",\"firstName\":\"Jane\",\"lastName\":\"Doe\""
-                                        + ",\"userRole\":\"ADMIN\",\"email\":\"jane.doe@example.org\"," +
-                                        "\"lastLoginAt\":[1970,1,1,0,0]}", randomUUIDResult)));
+                                        + ",\"email\":\"jane.doe@example.org\"," +
+                                        "\"lastLoginAt\":[1970,1,1,0,0],\"userRole\":\"ADMIN\"}", randomUUIDResult)));
     }
 
     /**
@@ -305,73 +291,37 @@ class UserRestControllerDiffblueTest {
     @Tag("MaintainedByDiffblue")
     @MethodsUnderTest({"UserDTO UserRestController.getUserById(UUID)"})
     void testGetUserById_givenUserRepositoryPortFindByIdReturnOfUser_thenCallsFindById() {
-        //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-        //   Run dcover create --keep-partial-tests to gain insights into why
-        //   a non-Spring test was created.
-
         // Arrange
         UserRepositoryPort userRepository = mock(UserRepositoryPort.class);
         Optional<User> ofResult = Optional.of(mock(User.class));
         when(userRepository.findById(Mockito.any())).thenReturn(ofResult);
-        UserDomainDtoMapper userDomainDtoMapper = mock(UserDomainDtoMapper.class);
-        UserDTO.UserDTOBuilder firstNameResult = UserDTO.builder()
-                .email("jane.doe@example.org")
-                .firstName("Jane");
-        LocalDate ofResult2 = LocalDate.of(1970,
-                1,
-                1
-        );
-        UserDTO.UserDTOBuilder loginResult = firstNameResult.lastLoginAt(ofResult2.atStartOfDay())
-                .lastName("Doe")
-                .login("Login");
         UUID userId = UUID.randomUUID();
-        UserDTO buildResult = loginResult.userId(userId)
+        var lastLogin = LocalDateTime.now();
+        UserFoundResponse buildResult = UserFoundResponse.builder()
+                .userId(userId)
                 .userRole(UserRole.Type.ADMIN)
+                .lastLoginAt(lastLogin)
+                .firstName("Jane")
+                .lastName("Doe")
+                .login("Login")
+                .email("jane.doe@example.org")
                 .build();
-        when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
-        UserRestController userRestController = new UserRestController(
-                createLecturerUseCase,
-                createStudentUseCase,
-                findUserUseCase,
-                userDomainDtoMapper
-        );
+        when(userDomainDtoMapper.toUserFoundResponse(Mockito.any())).thenReturn(buildResult);
+        when(findUserUseCase.findUserById(Mockito.any())).thenReturn(mock(User.class));
 
         // Act
-        UserDTO actualUserById = userRestController.getUserById(UUID.randomUUID());
+        UserFoundResponse actualUserById = userRestController.getUserById(UUID.randomUUID());
 
         // Assert
-        verify(userDomainDtoMapper).toDto(isA(User.class));
-        verify(userRepository).findById(isA(UserId.class));
+        verify(userDomainDtoMapper).toUserFoundResponse(isA(User.class));
         LocalDateTime lastLoginAt = actualUserById.lastLoginAt();
-        assertEquals("00:00",
-                lastLoginAt.toLocalTime()
-                        .toString()
-        );
-        LocalDate toLocalDateResult = lastLoginAt.toLocalDate();
-        assertEquals("1970-01-01",
-                toLocalDateResult.toString()
-        );
-        assertEquals("Doe",
-                actualUserById.lastName()
-        );
-        assertEquals("Jane",
-                actualUserById.firstName()
-        );
-        assertEquals("Login",
-                actualUserById.login()
-        );
-        assertEquals("jane.doe@example.org",
-                actualUserById.email()
-        );
-        assertEquals(UserRole.Type.ADMIN,
-                actualUserById.userRole()
-        );
-        assertSame(ofResult2,
-                toLocalDateResult
-        );
-        assertSame(userId,
-                actualUserById.userId()
-        );
+        assertEquals(lastLogin, lastLoginAt);
+        assertEquals("Doe", actualUserById.lastName());
+        assertEquals("Jane", actualUserById.firstName());
+        assertEquals("Login", actualUserById.login());
+        assertEquals("jane.doe@example.org", actualUserById.email());
+        assertEquals(UserRole.Type.ADMIN, actualUserById.userRole());
+        assertSame(userId, actualUserById.userId());
     }
 
     @Test
@@ -379,71 +329,36 @@ class UserRestControllerDiffblueTest {
     @Tag("MaintainedByDiffblue")
     @MethodsUnderTest({"UserDTO UserRestController.getUserById(UUID)"})
     void testGetUserById_givenUserServiceFindUserByIdReturnNull_thenCallsFindUserById() {
-        //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-        //   Run dcover create --keep-partial-tests to gain insights into why
-        //   a non-Spring test was created.
-
         // Arrange
         when(findUserUseCase.findUserById(Mockito.any())).thenReturn(null);
-        UserDomainDtoMapper userDomainDtoMapper = mock(UserDomainDtoMapper.class);
-        UserDTO.UserDTOBuilder firstNameResult = UserDTO.builder()
-                .email("jane.doe@example.org")
-                .firstName("Jane");
-        LocalDate ofResult = LocalDate.of(1970,
-                1,
-                1
-        );
-        UserDTO.UserDTOBuilder loginResult = firstNameResult.lastLoginAt(ofResult.atStartOfDay())
-                .lastName("Doe")
-                .login("Login");
         UUID userId = UUID.randomUUID();
-        UserDTO buildResult = loginResult.userId(userId)
+        var lastLogin = LocalDateTime.now();
+        UserFoundResponse buildResult = UserFoundResponse.builder()
+                .userId(userId)
                 .userRole(UserRole.Type.ADMIN)
+                .lastLoginAt(lastLogin)
+                .firstName("Jane")
+                .lastName("Doe")
+                .login("Login")
+                .email("jane.doe@example.org")
                 .build();
-        when(userDomainDtoMapper.toDto(Mockito.any())).thenReturn(buildResult);
-        UserRestController userRestController = new UserRestController(
-                createLecturerUseCase,
-                createStudentUseCase,
-                findUserUseCase,
-                userDomainDtoMapper
-        );
+        when(userDomainDtoMapper.toUserFoundResponse(Mockito.any())).thenReturn(buildResult);
 
         // Act
-        UserDTO actualUserById = userRestController.getUserById(UUID.randomUUID());
+        UserFoundResponse actualUserById = userRestController.getUserById(UUID.randomUUID());
 
         // Assert
-        verify(userDomainDtoMapper).toDto(isNull());
+        verify(userDomainDtoMapper).toUserFoundResponse(isNull());
         verify(findUserUseCase).findUserById(isA(UserId.class));
         LocalDateTime lastLoginAt = actualUserById.lastLoginAt();
-        assertEquals("00:00",
-                lastLoginAt.toLocalTime()
-                        .toString()
-        );
-        LocalDate toLocalDateResult = lastLoginAt.toLocalDate();
-        assertEquals("1970-01-01",
-                toLocalDateResult.toString()
-        );
-        assertEquals("Doe",
-                actualUserById.lastName()
-        );
-        assertEquals("Jane",
-                actualUserById.firstName()
-        );
-        assertEquals("Login",
-                actualUserById.login()
-        );
-        assertEquals("jane.doe@example.org",
-                actualUserById.email()
-        );
-        assertEquals(UserRole.Type.ADMIN,
-                actualUserById.userRole()
-        );
-        assertSame(ofResult,
-                toLocalDateResult
-        );
-        assertSame(userId,
-                actualUserById.userId()
-        );
+        assertEquals(lastLogin, actualUserById.lastLoginAt());
+        assertEquals(lastLogin, lastLoginAt);
+        assertEquals("Doe", actualUserById.lastName());
+        assertEquals("Jane", actualUserById.firstName());
+        assertEquals("Login", actualUserById.login());
+        assertEquals("jane.doe@example.org", actualUserById.email());
+        assertEquals(UserRole.Type.ADMIN, actualUserById.userRole());
+        assertSame(userId, actualUserById.userId());
     }
 }
 

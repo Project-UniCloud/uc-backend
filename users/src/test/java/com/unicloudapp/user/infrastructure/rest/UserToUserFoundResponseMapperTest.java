@@ -1,4 +1,4 @@
-package com.unicloudapp.user.application;
+package com.unicloudapp.user.infrastructure.rest;
 
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.FirstName;
@@ -19,18 +19,18 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-class UserDomainDtoMapperTest {
+class UserToUserFoundResponseMapperTest {
 
-    private UserDomainDtoMapperImpl mapper;
+    private UserToUserFoundResponseMapperImpl mapper;
 
     @BeforeEach
     void setUp() {
-        mapper = new UserDomainDtoMapperImpl();
+        mapper = new UserToUserFoundResponseMapperImpl();
     }
 
     @Test
     @DisplayName("Powinien poprawnie zmapować User na UserDTO, gdy wszystkie pola są obecne")
-    void toDto_whenUserHasAllFields_shouldMapCorrectly() {
+    void toUserFoundResponse_whenUserHasAllFields_shouldMapCorrectly() {
         // Given
         UUID userIdVal = UUID.randomUUID();
         String loginVal = "testuser";
@@ -50,7 +50,7 @@ class UserDomainDtoMapperTest {
         when(user.getLastLoginAt()).thenReturn(LastLoginAt.of(lastLoginVal));
 
         // When
-        UserDTO result = mapper.toDto(user);
+        UserFoundResponse result = mapper.toUserFoundResponse(user);
 
         // Then
         assertThat(result).isNotNull();
