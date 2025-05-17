@@ -4,9 +4,15 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
+import java.util.regex.Pattern;
+
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Email {
+
+    private static final Pattern emailPattern = Pattern.compile(
+            "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    );
 
     String value;
 
@@ -14,7 +20,9 @@ public class Email {
         if (value == null || value.isBlank()) {
             return new Email("");
         }
-        //TODO check email regex
+        if (!emailPattern.matcher(value).matches()) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
         return new Email(value);
     }
 

@@ -1,13 +1,8 @@
 package com.unicloudapp.user.infrastructure.rest;
 
 import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.FirstName;
-import com.unicloudapp.common.domain.LastLoginAt;
-import com.unicloudapp.common.domain.LastName;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.*;
 import com.unicloudapp.user.domain.User;
-import com.unicloudapp.user.domain.UserLogin;
-import com.unicloudapp.user.domain.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

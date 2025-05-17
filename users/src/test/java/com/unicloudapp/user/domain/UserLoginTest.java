@@ -1,5 +1,6 @@
 package com.unicloudapp.user.domain;
 
+import com.unicloudapp.common.domain.user.UserLogin;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

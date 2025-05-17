@@ -1,7 +1,9 @@
 package com.unicloudapp.user.application;
 
-import com.unicloudapp.common.domain.FirstName;
+import com.unicloudapp.common.domain.user.FirstName;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
+import com.unicloudapp.common.exception.user.UserNotFoundException;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
@@ -11,7 +13,7 @@ import com.unicloudapp.user.application.port.in.FindUserUseCase;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
-import com.unicloudapp.user.domain.UserRole;
+import com.unicloudapp.common.domain.user.UserRole;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,9 @@ implements UserValidationService,
 
     @Override
     public User createLecturer(@Valid CreateLecturerCommand command) {
+        if (userRepository.existsByLogin(command.login())) {
+            throw new UserAlreadyExistsException(command.login());
+        }
         User user = userFactory.create(
                 UUID.randomUUID(),
                 command.login(),
@@ -63,20 +68,21 @@ implements UserValidationService,
     @Override
     public User findUserById(UserId userId) {
         return userRepository.findById(userId)
-                .orElseThrow();
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     @Override
     public boolean isUserExists(UserId userId) {
-        return userRepository.findById(userId).isPresent();
+        return userRepository.existsById(userId);
     }
 
     @Transactional
     public void updateFirstName(UserId id,
                                 FirstName newFirstName
     ) {
-        userRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException(""))
-                .updateFirstName(newFirstName);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+        user.updateFirstName(newFirstName);
+        userRepository.save(user);
     }
 }

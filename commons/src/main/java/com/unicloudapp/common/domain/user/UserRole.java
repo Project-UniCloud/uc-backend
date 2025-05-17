@@ -1,4 +1,4 @@
-package com.unicloudapp.user.domain;
+package com.unicloudapp.common.domain.user;
 
 import lombok.*;
 

@@ -1,12 +1,7 @@
 package com.unicloudapp.user.domain;
 
-import com.diffblue.cover.annotations.MethodsUnderTest;
 import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.FirstName;
-import com.unicloudapp.common.domain.LastLoginAt;
-import com.unicloudapp.common.domain.LastName;
-import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.user.domain.UserRole.Type;
+import com.unicloudapp.common.domain.user.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +25,6 @@ class UserTest {
      */
     @Test
     @DisplayName("Test getters and setters")
-    @MethodsUnderTest({"void User.logIn(LastLoginAt)", "void User.updateEmail(Email)",
-            "void User.updateFirstName(FirstName)", "void User.updateLastName(LastName)"})
     void testGettersAndSetters() throws IllegalArgumentException {
         // Arrange
         UUID randomUUID = UUID.randomUUID();
@@ -42,7 +35,7 @@ class UserTest {
                 .lastName(LastName.of("lastName"))
                 .email(Email.empty())
                 .lastLoginAt(LastLoginAt.neverBeenLoggedIn())
-                .userRole(UserRole.of(Type.ADMIN))
+                .userRole(UserRole.of(UserRole.Type.ADMIN))
                 .build();
         LastLoginAt lastLoginAt = LastLoginAt.of(LocalDateTime.now());
         Email newEmail = Email.of("test@example.pl");

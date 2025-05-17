@@ -1,8 +1,8 @@
 package com.unicloudapp.user.infrastructure.rest;
 
-import com.diffblue.cover.annotations.MethodsUnderTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
@@ -10,9 +10,6 @@ import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
 import com.unicloudapp.user.application.port.in.FindUserUseCase;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
-import com.unicloudapp.user.domain.UserRole;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -29,7 +26,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -68,7 +64,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test createLecturer(CreateLecturerRequest) with 'createLecturerRequest'")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"CreatedLecturerResponse UserRestController.createLecturer(CreateLecturerRequest)"})
     void testCreateLecturerWithCreateLecturerRequest() throws Exception {
         // Arrange
         User user = mock(User.class);
@@ -113,7 +108,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test createLecturer(CreateLecturerRequest) with 'createLecturerRequest'; then return lecturerId is randomUUID")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"CreatedLecturerResponse UserRestController.createLecturer(CreateLecturerRequest)"})
     void testCreateLecturerWithCreateLecturerRequest_thenReturnLecturerIdIsRandomUUID() {
         //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
         //   Run dcover create --keep-partial-tests to gain insights into why
@@ -157,7 +151,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"CreatedStudentResponse UserRestController.createLecturer(CreateStudentRequest)"})
     void testCreateLecturerWithRequest() throws Exception {
         // TODO: Diffblue Cover was only able to create a partial test for this method:
         //   Diffblue AI was unable to find a test
@@ -202,7 +195,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'; then return studentId is randomUUID")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"CreatedStudentResponse UserRestController.createLecturer(CreateStudentRequest)"})
     void testCreateLecturerWithRequest_thenReturnStudentIdIsRandomUUID() {
         // Arrange
         UserId userId = mock(UserId.class);
@@ -242,7 +234,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test getUserById(UUID)")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"UserDTO UserRestController.getUserById(UUID)"})
     void testGetUserById() throws Exception {
         // Arrange
         var randomUUIDResult = UUID.randomUUID();
@@ -289,7 +280,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test getUserById(UUID); given UserRepositoryPort findById(UserId) return of User; then calls findById(UserId)")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"UserDTO UserRestController.getUserById(UUID)"})
     void testGetUserById_givenUserRepositoryPortFindByIdReturnOfUser_thenCallsFindById() {
         // Arrange
         UserRepositoryPort userRepository = mock(UserRepositoryPort.class);
@@ -327,7 +317,6 @@ class UserRestControllerDiffblueTest {
     @Test
     @DisplayName("Test getUserById(UUID); given UserService findUserById(UserId) return 'null'; then calls findUserById(UserId)")
     @Tag("MaintainedByDiffblue")
-    @MethodsUnderTest({"UserDTO UserRestController.getUserById(UUID)"})
     void testGetUserById_givenUserServiceFindUserByIdReturnNull_thenCallsFindUserById() {
         // Arrange
         when(findUserUseCase.findUserById(Mockito.any())).thenReturn(null);

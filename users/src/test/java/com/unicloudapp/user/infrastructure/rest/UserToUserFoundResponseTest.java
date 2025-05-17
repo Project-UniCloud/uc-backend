@@ -1,6 +1,6 @@
 package com.unicloudapp.user.infrastructure.rest;
 
-import com.unicloudapp.user.domain.UserRole;
+import com.unicloudapp.common.domain.user.UserRole;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

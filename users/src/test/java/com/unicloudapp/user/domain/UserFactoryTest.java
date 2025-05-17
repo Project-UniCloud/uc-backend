@@ -1,5 +1,6 @@
 package com.unicloudapp.user.domain;
 
+import com.unicloudapp.common.domain.user.UserRole;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

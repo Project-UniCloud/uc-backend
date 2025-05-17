@@ -1,5 +1,6 @@
 package com.unicloudapp.user.domain;
 
+import com.unicloudapp.common.domain.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;

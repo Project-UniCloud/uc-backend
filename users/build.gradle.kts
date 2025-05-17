@@ -1,5 +1,6 @@
 plugins {
-    id("java")
+    java
+    id("groovy")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
 }
@@ -19,15 +20,16 @@ val assertJVersion = "3.27.3"
 val mapStructVersion = "1.5.5.Final"
 
 dependencies {
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core:$assertJVersion")
     testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
-    testImplementation("org.springframework:spring-test:6.2.5")
-    testImplementation("org.springframework.boot:spring-boot-test:3.4.4")
-    testImplementation("com.diffblue.cover:cover-annotations:1.3.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
-    testImplementation("org.hamcrest:hamcrest:3.0")
+
+    testImplementation("org.spockframework:spock-core:2.4-M6-groovy-4.0")
+    testImplementation("org.spockframework:spock-spring:2.4-M6-groovy-4.0")
 
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
@@ -41,7 +43,6 @@ dependencies {
     implementation(project(":commons"))
     implementation("jakarta.validation:jakarta.validation-api:$jakartaValidationVersion")
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
-    compileOnly("com.diffblue.cover:cover-annotations:1.3.0")
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
     implementation("org.apache.commons:commons-lang3:3.17.0")

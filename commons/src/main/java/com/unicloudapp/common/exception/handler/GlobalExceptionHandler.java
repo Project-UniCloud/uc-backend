@@ -1,5 +1,6 @@
 package com.unicloudapp.common.exception.handler;
 
+import com.unicloudapp.common.exception.user.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -12,28 +13,29 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
+public abstract class GlobalExceptionHandler {
 
     @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
-    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problemDetail.setTitle("Bad Request");
-        problemDetail.setDetail(ex.getMessage());
-        return ResponseEntity.of(problemDetail).build();
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ProblemDetail> handle(IllegalArgumentException ex) {
+        return defaultHandleMethod(ex.getMessage(), "Bad request", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public ResponseEntity<ProblemDetail> handleAccessDeniedException(AccessDeniedException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.FORBIDDEN);
-        problemDetail.setTitle("Forbidden");
-        problemDetail.setDetail(ex.getMessage());
-        return ResponseEntity.of(problemDetail).build();
+    public ResponseEntity<ProblemDetail> handle(AccessDeniedException ex) {
+        return defaultHandleMethod(ex.getMessage(), "Forbidden", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ProblemDetail> handle(UserNotFoundException ex) {
+        return defaultHandleMethod(ex.getMessage(), "User not found", HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ProblemDetail> handle(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
         StringBuilder errorMessage = new StringBuilder();
         for (FieldError error : result.getFieldErrors()) {
@@ -45,6 +47,13 @@ class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Bad request");
         problemDetail.setDetail(errorMessage.toString());
+        return ResponseEntity.of(problemDetail).build();
+    }
+
+    protected ResponseEntity<ProblemDetail> defaultHandleMethod(String details, String title, HttpStatus status) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(status);
+        problemDetail.setTitle(title);
+        problemDetail.setDetail(details);
         return ResponseEntity.of(problemDetail).build();
     }
 }

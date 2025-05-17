@@ -14,7 +14,7 @@ class UserMapper {
                 .uuid(user.getUserId().getValue())
                 .firstName(user.getFirstName().getValue())
                 .lastName(user.getLastName().getValue())
-                .indexNumber(user.getUserLogin().getValue())
+                .login(user.getUserLogin().getValue())
                 .email(user.getEmail().getValue())
                 .role(user.getUserRole().getValue())
                 .lastLogin(user.getLastLoginAt().getValue())
@@ -24,7 +24,7 @@ class UserMapper {
     User entityToUser(UserEntity userEntity) {
         return userFactory.restore(
                 userEntity.getUuid(),
-                userEntity.getIndexNumber(),
+                userEntity.getLogin(),
                 userEntity.getFirstName(),
                 userEntity.getLastName(),
                 userEntity.getRole(),

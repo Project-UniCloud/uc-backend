@@ -19,7 +19,9 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public User save(User user) {
-        return userMapper.entityToUser(userRepositoryJpa.save(userMapper.userToEntity(user)));
+        UserEntity entityToSave = userMapper.userToEntity(user);
+        UserEntity userEntity = userRepositoryJpa.save(entityToSave);
+        return userMapper.entityToUser(userEntity);
     }
 
     @Override
@@ -27,9 +29,20 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
         return userRepositoryJpa.findById(userId.getValue())
                 .map(userMapper::entityToUser);
     }
+
+    @Override
+    public boolean existsById(UserId userId) {
+        return userRepositoryJpa.existsById(userId.getValue());
+    }
+
+    @Override
+    public boolean existsByLogin(String login) {
+        return userRepositoryJpa.existsByLogin(login);
+    }
 }
 
 @Repository
 interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
 
+    boolean existsByLogin(String login);
 }

@@ -1,6 +1,6 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
-import com.unicloudapp.user.domain.UserRole;
+import com.unicloudapp.common.domain.user.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,7 +20,7 @@ class UserEntity {
     private UUID uuid;
 
     @Column(nullable = false)
-    private String indexNumber;
+    private String login;
 
     @Column(nullable = false)
     private String firstName;
