@@ -2,13 +2,13 @@ package com.unicloudapp.user.application
 
 import com.unicloudapp.common.domain.user.FirstName
 import com.unicloudapp.common.domain.user.UserId
+import com.unicloudapp.common.domain.user.UserRole
 import com.unicloudapp.common.exception.user.UserNotFoundException
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
 import com.unicloudapp.user.application.port.out.UserRepositoryPort
 import com.unicloudapp.user.domain.User
 import com.unicloudapp.user.domain.UserFactory
-import com.unicloudapp.common.domain.user.UserRole
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Title
@@ -41,6 +41,26 @@ class UserServiceSpec extends Specification {
                 command.firstName(),
                 command.lastName(),
                 UserRole.Type.LECTURER
+        ) >> user
+        1 * userRepositoryPort.save(user) >> user
+        result == user
+    }
+
+    def "createStudent should create Student"() {
+        given:
+        def command = createStudentCommand()
+        def user = Mock(User.class)
+
+        when:
+        def result = userService.createStudent(command)
+
+        then:
+        1 * userFactory.create(
+                _,
+                command.login(),
+                command.firstName(),
+                command.lastName(),
+                UserRole.Type.STUDENT
         ) >> user
         1 * userRepositoryPort.save(user) >> user
         result == user
