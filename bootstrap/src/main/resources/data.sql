@@ -1,5 +1,5 @@
 -- Users
-INSERT INTO users (uuid, index_number, first_name, last_name, email, last_login, role)
+INSERT INTO users (uuid, login, first_name, last_name, email, last_login, role)
 VALUES ('03a021bd-6b89-4aea-8fee-14e5e32aaf1e', 's12345', 'Jan', 'Kowalski', 'jan.kowalski@example.com', null, 'STUDENT'),
        ('dd978dc3-661d-4a72-a210-51bfcecb33e3', 'bikol', 'Patryk', 'Żywica', 'bikol@amu.edu.pl', null, 'LECTURER');
 
