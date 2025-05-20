@@ -2,12 +2,14 @@ package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.in.AuthenticationUseCase;
 import com.unicloudapp.auth.application.port.out.AuthenticationPort;
+import com.unicloudapp.common.domain.user.UserRole;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
@@ -25,14 +27,21 @@ class AuthorizationService implements AuthenticationUseCase {
     private final JwtConfigurationProperties properties;
 
     @Override
-    public String authenticate(String username,
-                             String password
-    ) {
+    public AuthenticatedResult authenticate(String username, String password) {
         Authentication authenticated = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
-        return buildToken((User) authenticated.getPrincipal());
+        User user = (User) authenticated.getPrincipal();
+        String token = buildToken(user);
+        String role = authenticated.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .map(r -> r.replace("ROLE_", ""))
+                .findFirst()
+                .orElseThrow();
+        return new AuthenticatedResult(token, UserRole.of(UserRole.Type.valueOf(role)));
     }
+
 
     private String buildToken(User user) {
         Instant now = clock.instant();

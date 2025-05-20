@@ -1,6 +1,8 @@
 package com.unicloudapp.auth.application.port.in;
 
+import com.unicloudapp.auth.application.AuthenticatedResult;
+
 public interface AuthenticationUseCase {
 
-    String authenticate(String username, String password);
+    AuthenticatedResult authenticate(String username, String password);
 }
