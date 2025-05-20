@@ -5,7 +5,7 @@ spring:
     password: password
     driverClassName: org.postgresql.Driver
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: true
     hibernate:
       ddl-auto: create
     show-sql: true
