@@ -14,7 +14,8 @@ public class GroupFactory {
             String semester,
             Set<UUID> lecturers,
             LocalDate startDate,
-            LocalDate endDate
+            LocalDate endDate,
+            String description
     ) {
         return Group.builder()
                 .groupId(GroupId.of(UUID.randomUUID()))
@@ -28,6 +29,7 @@ public class GroupFactory {
                 .semester(Semester.of(semester))
                 .startDate(StartDate.of(startDate))
                 .endDate(EndDate.of(endDate))
+                .description(Description.of(description))
                 .build();
     }
 
@@ -39,7 +41,9 @@ public class GroupFactory {
                          LocalDate endDate,
                          Set<UUID> lecturers,
                          Set<UUID> attenders,
-                         Set<String> cloudAccesses) {
+                         Set<String> cloudAccesses,
+                         String description
+    ) {
         return Group.builder()
                 .groupId(GroupId.of(groupId))
                 .name(GroupName.of(name))
@@ -56,6 +60,7 @@ public class GroupFactory {
                 .cloudAccesses(cloudAccesses.stream()
                         .map(CloudAccessClientId::of)
                         .collect(Collectors.toSet()))
+                .description(Description.of(description))
                 .build();
     }
 }

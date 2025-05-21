@@ -50,4 +50,6 @@ class GroupEntity {
     @CollectionTable(name = "group_attenders", joinColumns = @JoinColumn(name = "group_id"))
     //@Column(name = "cloudAccess_id") TODO
     private Set<String> cloudAccesses;
+
+    private String description;
 }

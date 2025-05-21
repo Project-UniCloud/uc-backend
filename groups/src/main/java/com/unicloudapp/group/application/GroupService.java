@@ -29,7 +29,8 @@ public class GroupService {
                 groupDTO.semester(),
                 groupDTO.lecturers(),
                 groupDTO.startDate(),
-                groupDTO.endDate()
+                groupDTO.endDate(),
+                groupDTO.description()
         );
         return groupRepository.save(group);
     }

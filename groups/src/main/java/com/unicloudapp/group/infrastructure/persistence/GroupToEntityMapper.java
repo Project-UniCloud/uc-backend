@@ -29,6 +29,7 @@ class GroupToEntityMapper {
                 .cloudAccesses(group.getCloudAccesses().stream()
                         .map(CloudAccessClientId::getValue)
                         .collect(Collectors.toSet()))
+                .description(group.getDescription().getValue())
                 .build();
     }
 
@@ -42,7 +43,8 @@ class GroupToEntityMapper {
                 groupEntity.getEndDate(),
                 groupEntity.getLecturers(),
                 groupEntity.getAttenders(),
-                groupEntity.getCloudAccesses()
+                groupEntity.getCloudAccesses(),
+                groupEntity.getDescription()
         );
     }
 }

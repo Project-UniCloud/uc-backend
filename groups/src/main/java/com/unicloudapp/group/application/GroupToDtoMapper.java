@@ -24,6 +24,7 @@ interface GroupToDtoMapper {
     @Mapping(source = "lecturers", target = "lecturers")
     @Mapping(source = "attenders", target = "attenders")
     @Mapping(source = "cloudAccesses", target = "cloudAccesses")
+    @Mapping(source = "description.value", target = "description")
     GroupDTO toDto(Group group);
 
     default Set<String> toStringSet(Set<CloudAccessClientId> ids) {

@@ -22,6 +22,7 @@ public class Group {
     private final Set<UserId> lecturers;
     private final Set<UserId> attenders;
     private final Set<CloudAccessClientId> cloudAccesses;
+    private Description description;
 
     public void addAttender(UserId attenderId) {
         attenders.add(attenderId);

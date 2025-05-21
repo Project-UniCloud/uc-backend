@@ -19,6 +19,6 @@ public class GroupStatus {
     }
 
     public enum Type {
-        ACTIVE, INACTIVE
+        ACTIVE, INACTIVE, ARCHIVED
     }
 }
