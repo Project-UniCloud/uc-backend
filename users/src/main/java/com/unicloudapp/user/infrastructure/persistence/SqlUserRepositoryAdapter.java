@@ -1,5 +1,6 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
+import com.unicloudapp.user.application.UserFullNameProjection;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.common.domain.user.UserId;
@@ -7,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,10 +42,21 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     public boolean existsByLogin(String login) {
         return userRepositoryJpa.existsByLogin(login);
     }
+
+    @Override
+    public List<UserFullNameProjection> findByIds(List<UserId> userIds) {
+        return userRepositoryJpa.findAllByUuidIn(
+                userIds.stream()
+                        .map(UserId::getValue)
+                        .toList()
+        );
+    }
 }
 
 @Repository
 interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
 
     boolean existsByLogin(String login);
+
+    List<UserFullNameProjection> findAllByUuidIn(Collection<UUID> uuids);
 }

@@ -1,6 +1,7 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
 import com.unicloudapp.group.application.GroupRepositoryPort;
+import com.unicloudapp.group.application.GroupRowProjection;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupStatus;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -53,15 +55,12 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     }
 
     @Override
-    public List<Group> findAllByStatus(int offset,
-                                       int size,
-                                       GroupStatus.Type status
+    public List<GroupRowProjection> findAllByStatus(int offset,
+                                                    int size,
+                                                    GroupStatus.Type status
     ) {
         Pageable pageable = PageRequest.of(offset / size, size);
-        return groupJpaRepository.findAllByGroupStatus(status, pageable)
-                .stream()
-                .map(groupToEntityMapper::toDomain)
-                .toList();
+        return groupJpaRepository.findAllByGroupStatus(status, pageable);
     }
 
     @Override
@@ -77,7 +76,8 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
 @Repository
 interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
 
-    List<GroupEntity> findAllByGroupStatus(GroupStatus.Type groupStatus,
-                                     Pageable pageable
+    List<GroupRowProjection> findAllByGroupStatus(
+            GroupStatus.Type groupStatus,
+            Pageable pageable
     );
 }

@@ -47,8 +47,8 @@ class GroupEntity {
     private Set<UUID> attenders;
 
     @ElementCollection
-    @CollectionTable(name = "group_attenders", joinColumns = @JoinColumn(name = "group_id"))
-    //@Column(name = "cloudAccess_id") TODO
+    @CollectionTable(name = "group_cloud_accesses", joinColumns = @JoinColumn(name = "group_id"))
+    @Column(name = "cloud_access_id")
     private Set<String> cloudAccesses;
 
     private String description;

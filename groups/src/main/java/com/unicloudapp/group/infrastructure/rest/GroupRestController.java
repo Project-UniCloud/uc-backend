@@ -2,6 +2,8 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.application.GroupDTO;
+import com.unicloudapp.group.application.GroupRowProjection;
+import com.unicloudapp.group.application.GroupRowView;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.domain.GroupId;
 import com.unicloudapp.group.domain.GroupStatus;
@@ -57,12 +59,14 @@ class GroupRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{status}")
-    Page<GroupDTO> getAllGroupsByStatus(
+    Page<GroupRowView> getAllGroupsByStatus(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @PathVariable GroupStatus.Type status
     ) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        return groupService.getAllGroupsByStatus(pageable, status);
+        return groupService.getAllGroupsByStatus(
+                pageable, status
+        );
     }
 }

@@ -31,6 +31,7 @@ class CloudAccessServiceConfig {
                                         entry.getValue().port()
                                 )).cronExpression(CronExpression.parse(entry.getValue().cronExpression()))
                                 .costLimit(CostLimit.of(entry.getValue().costLimit()))
+                                .name(entry.getValue().name())
                                 .build()
                         )
                 );

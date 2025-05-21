@@ -17,7 +17,7 @@ public interface GroupRepositoryPort {
 
     long count();
 
-    List<Group> findAllByStatus(int offset,
+    List<GroupRowProjection> findAllByStatus(int offset,
                                 int size,
                                 GroupStatus.Type status
     );

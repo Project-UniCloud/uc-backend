@@ -1,6 +1,9 @@
 package com.unicloudapp.group.application;
 
+import com.unicloudapp.common.cloud.CloudAccessQueryService;
+import com.unicloudapp.common.domain.user.FullName;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
@@ -13,7 +16,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class GroupService {
@@ -22,6 +26,8 @@ public class GroupService {
     private final GroupFactory groupFactory;
     private final GroupToDtoMapper groupMapper;
     private final UserValidationService userValidationService;
+    private final UserQueryService userQueryService;
+    private final CloudAccessQueryService cloudAccessQueryService;
 
     public Group createGroup(GroupDTO groupDTO) {
         Group group = groupFactory.create(
@@ -61,18 +67,50 @@ public class GroupService {
         return new PageImpl<>(groupDTOList, PageRequest.of(page, size), total);
     }
 
-    public Page<GroupDTO> getAllGroupsByStatus(
+    public Page<GroupRowView> getAllGroupsByStatus(
             Pageable pageable,
             GroupStatus.Type status
     ) {
         int size = pageable.getPageSize();
         int page = pageable.getPageNumber();
         int offset = page * size;
-        List<Group> groups = groupRepository.findAllByStatus(offset, size, status);
-        long total = groupRepository.countByStatus(status);
-        List<GroupDTO> groupDTOList = groups.stream()
-                .map(groupMapper::toDto)
+        List<GroupRowProjection> groups = groupRepository.findAllByStatus(offset, size, status);
+        Map<UUID, FullName> userFullNames = userQueryService.getFullNameForUserIds(
+                groups.stream()
+                        .flatMap(g -> g.getLecturers().stream().map(UserId::of))
+                        .toList()
+        );
+        Map<String, String> cloudAccessesNames = cloudAccessQueryService.getCloudAccessNames(
+                groups.stream()
+                        .flatMap(g -> g.getCloudAccesses().stream())
+                        .collect(Collectors.toSet())
+        );
+        List<GroupRowView> groupViews = groups.stream()
+                .map(group -> {
+                    String joinedLecturers = group.getLecturers()
+                            .stream()
+                            .map(userFullNames::get)
+                            .filter(Objects::nonNull)
+                            .map(FullName::getFullName)
+                            .collect(Collectors.joining(", "));
+
+                    String joinedAccessList = group.getCloudAccesses()
+                            .stream()
+                            .map(cloudAccessesNames::get)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.joining(", "));
+
+                    return new GroupRowView(
+                            group.getUuid(),
+                            group.getName(),
+                            group.getSemester(),
+                            group.getEndDate(),
+                            joinedLecturers,
+                            joinedAccessList
+                    );
+                })
                 .toList();
-        return new PageImpl<>(groupDTOList, PageRequest.of(page, size), total);
+        long total = groupRepository.countByStatus(status);
+        return new PageImpl<>(groupViews, PageRequest.of(page, size), total);
     }
 }

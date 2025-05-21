@@ -14,6 +14,7 @@ public class CloudAccessClient {
     private final CloudAccessClientController controller;
     private CostLimit costLimit;
     private CronExpression cronExpression;
+    private String name;
 
     public CloudAccess giveCloudAccess(UserId userId,
                                        CloudAccessClientId cloudAccessClientId
