@@ -10,6 +10,7 @@ import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
 import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
 import com.unicloudapp.user.application.port.in.FindUserUseCase;
+import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -30,7 +31,8 @@ implements UserValidationService,
         CreateStudentUseCase, 
         CreateLecturerUseCase,
         FindUserUseCase,
-        UserQueryService {
+        UserQueryService,
+        SearchLecturerUserCase {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
@@ -99,5 +101,10 @@ implements UserValidationService,
                                 FirstName.of(projection.getFirstName()),
                                 LastName.of(projection.getLastName())
                         )));
+    }
+
+    @Override
+    public List<UserFullNameProjection> searchLecturers(String containsQuery) {
+        return userRepository.searchUserByName(containsQuery, UserRole.Type.LECTURER);
     }
 }

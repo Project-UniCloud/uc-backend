@@ -31,3 +31,10 @@ record UserFoundResponse(
 ) {
 
 }
+
+record LecturerFullNameResponse(
+        @NotNull UUID userId,
+        @NotBlank String firstName,
+        @NotBlank String lastName
+) {
+}

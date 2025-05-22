@@ -1,6 +1,7 @@
 package com.unicloudapp.user.application.port.out;
 
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.UserFullNameProjection;
 import com.unicloudapp.user.domain.User;
 
@@ -18,4 +19,6 @@ public interface UserRepositoryPort {
     boolean existsByLogin(String login);
 
     List<UserFullNameProjection> findByIds(List<UserId> userIds);
+
+    List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role);
 }

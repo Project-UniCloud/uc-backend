@@ -6,6 +6,7 @@ import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
 import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
 import com.unicloudapp.user.application.port.in.FindUserUseCase;
+import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
 import com.unicloudapp.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,6 +25,7 @@ class UserRestController {
     private final CreateLecturerUseCase createLecturerUseCase;
     private final CreateStudentUseCase createStudentUseCase;
     private final FindUserUseCase findUserUseCase;
+    private final SearchLecturerUserCase searchLecturerUserCase;
     private final UserToUserFoundResponseMapper userDomainDtoMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -69,6 +72,19 @@ class UserRestController {
     UserFoundResponse getUserById(@PathVariable("userId") UUID userId) {
         User user = findUserUseCase.findUserById(UserId.of(userId));
         return userDomainDtoMapper.toUserFoundResponse(user);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/lecturers/search")
+    @ResponseStatus(HttpStatus.OK)
+    List<LecturerFullNameResponse> getLecturersByIds(
+            @RequestParam String containsQuery
+    ) {
+        return searchLecturerUserCase.searchLecturers(containsQuery)
+                .stream()
+                .map(user -> new LecturerFullNameResponse(
+                        user.getUuid(), user.getFirstName(), user.getLastName())
+                ).toList();
     }
 }
 
