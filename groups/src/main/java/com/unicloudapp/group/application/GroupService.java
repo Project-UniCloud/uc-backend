@@ -113,4 +113,23 @@ public class GroupService {
         long total = groupRepository.countByStatus(status);
         return new PageImpl<>(groupViews, PageRequest.of(page, size), total);
     }
+
+    public GroupDetailsView findById(UUID groupId) {
+        GroupDetailsProjection details = groupRepository.findGroupDetailsByUuid(groupId);
+        Set<String> lecturers = new HashSet<>(userQueryService.getFullNameForUserIds(
+                        details.getLecturers()
+                                .stream()
+                                .map(UserId::of)
+                                .collect(Collectors.toList())
+                ).values()).stream().map(FullName::getFullName).collect(Collectors.toSet());
+        return GroupDetailsView.builder()
+                .groupId(details.getUuid())
+                .lecturerFullNames(lecturers)
+                .status(details.getGroupStatus().getDisplayName())
+                .description(details.getDescription())
+                .endDate(details.getEndDate())
+                .startDate(details.getStartDate())
+                .semester(details.getSemester())
+                .build();
+    }
 }

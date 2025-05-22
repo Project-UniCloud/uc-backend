@@ -1,8 +1,6 @@
 package com.unicloudapp.group.domain;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
+import lombok.*;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -14,11 +12,12 @@ public class GroupStatus {
         return new GroupStatus(status);
     }
 
-    public boolean isActive() {
-        return status == Type.ACTIVE;
-    }
-
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    @Getter
     public enum Type {
-        ACTIVE, INACTIVE, ARCHIVED
+
+        ACTIVE("Aktywna"), INACTIVE("Nieaktywna"), ARCHIVED("Zarchiwizowana");
+
+        private final String displayName;
     }
 }

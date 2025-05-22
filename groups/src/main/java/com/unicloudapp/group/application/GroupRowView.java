@@ -15,7 +15,7 @@ public record GroupRowView(
         @NotNull UUID groupId,
         @NotBlank String name,
         @NotBlank String semester,
-        @JsonFormat(pattern = "yyyy-MM-dd") @NotNull LocalDate endDate,
+        @JsonFormat(pattern = "dd-MM-yyyy") @NotNull LocalDate endDate,
         @NotNull String lecturers,
         @NotNull String cloudAccesses
 ) { }

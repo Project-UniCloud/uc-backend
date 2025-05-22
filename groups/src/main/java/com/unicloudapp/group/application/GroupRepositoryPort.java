@@ -23,4 +23,6 @@ public interface GroupRepositoryPort {
     );
 
     long countByStatus(GroupStatus.Type status);
+
+    GroupDetailsProjection findGroupDetailsByUuid(UUID uuid);
 }

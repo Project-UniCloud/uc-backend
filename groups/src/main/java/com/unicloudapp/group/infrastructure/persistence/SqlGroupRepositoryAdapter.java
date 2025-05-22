@@ -1,5 +1,6 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
+import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupRepositoryPort;
 import com.unicloudapp.group.application.GroupRowProjection;
 import com.unicloudapp.group.domain.Group;
@@ -9,7 +10,6 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -71,6 +71,11 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
         Example<GroupEntity> example = Example.of(groupEntity);
         return groupJpaRepository.count(example);
     }
+
+    @Override
+    public GroupDetailsProjection findGroupDetailsByUuid(UUID uuid) {
+        return groupJpaRepository.findGroupDetailsByUuid(uuid);
+    }
 }
 
 @Repository
@@ -80,4 +85,6 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
             GroupStatus.Type groupStatus,
             Pageable pageable
     );
+
+    GroupDetailsProjection findGroupDetailsByUuid(UUID uuid);
 }

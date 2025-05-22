@@ -2,7 +2,7 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.application.GroupDTO;
-import com.unicloudapp.group.application.GroupRowProjection;
+import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupRowView;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.domain.GroupId;
@@ -49,6 +49,7 @@ class GroupRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     Page<GroupDTO> getAllGroups(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize
@@ -58,15 +59,25 @@ class GroupRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{status}")
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/filter")
     Page<GroupRowView> getAllGroupsByStatus(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @PathVariable GroupStatus.Type status
+            @RequestParam GroupStatus.Type status
     ) {
         Pageable pageable = PageRequest.of(page, pageSize);
         return groupService.getAllGroupsByStatus(
                 pageable, status
         );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{groupId}")
+    @ResponseStatus(HttpStatus.OK)
+    GroupDetailsView getGroupById(
+            @PathVariable UUID groupId
+    ) {
+        return groupService.findById(groupId);
     }
 }
