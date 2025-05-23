@@ -79,7 +79,8 @@ class GroupRestControllerDiffblueTest {
                         LocalDate.of(1970,
                                 1,
                                 1
-                        )
+                        ),
+                        "Description"
                 )));
         Group group = mock(Group.class);
         UUID uuid = UUID.randomUUID();
@@ -130,7 +131,8 @@ class GroupRestControllerDiffblueTest {
                         LocalDate.of(1970,
                                 1,
                                 1
-                        )
+                        ),
+                        "Description"
                 ));
 
         // Assert
@@ -169,14 +171,6 @@ class GroupRestControllerDiffblueTest {
                         .isOk());
     }
 
-    /**
-     * Test {@link GroupRestController#getAllGroupsByStatus(int, int)}.
-     * <ul>
-     *   <li>Then return {@link PageImpl}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link GroupRestController#getAllGroupsByStatus(int, int)}
-     */
     @Test
     @DisplayName("Test getAllGroups(int, int); then return PageImpl")
     @Tag("MaintainedByDiffblue")

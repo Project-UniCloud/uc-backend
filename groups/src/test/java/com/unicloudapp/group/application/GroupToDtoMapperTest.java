@@ -43,7 +43,8 @@ class GroupToDtoMapperTest {
                         endDate,
                         Set.of(lecturerId),
                         Set.of(attenderId),
-                        Set.of("aws")
+                        Set.of("aws"),
+                        "Test description"
                 );
 
         GroupDTO dto = groupToDtoMapper.toDto(group);

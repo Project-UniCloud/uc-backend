@@ -1,6 +1,8 @@
 package com.unicloudapp.group.application;
 
+import com.unicloudapp.common.cloud.CloudAccessQueryService;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
@@ -43,6 +45,12 @@ class GroupServiceDiffblueTest {
     @MockitoBean
     private UserValidationService userValidationService;
 
+    @MockitoBean
+    private UserQueryService userQueryService;
+
+    @MockitoBean
+    private CloudAccessQueryService cloudAccessQueryService;
+
     @Autowired
     private GroupService groupService;
 
@@ -68,7 +76,8 @@ class GroupServiceDiffblueTest {
                 Mockito.<String>any(),
                 Mockito.<Set<UUID>>any(),
                 Mockito.<LocalDate>any(),
-                Mockito.<LocalDate>any()
+                Mockito.<LocalDate>any(),
+                Mockito.any()
         )).thenReturn(null);
         UUID groupId = UUID.randomUUID();
         LocalDate startDate = LocalDate.of(1970,
@@ -91,7 +100,8 @@ class GroupServiceDiffblueTest {
                 endDate,
                 lecturers,
                 attenders,
-                new HashSet<>()
+                new HashSet<>(),
+                "Description"
         ));
 
         // Assert
@@ -100,7 +110,8 @@ class GroupServiceDiffblueTest {
                 eq("Semester"),
                 isA(Set.class),
                 isA(LocalDate.class),
-                isA(LocalDate.class)
+                isA(LocalDate.class),
+                isA(String.class)
         );
         assertNull(actualCreateGroupResult);
     }
