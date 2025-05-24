@@ -14,9 +14,23 @@ public class LastLoginAt {
     @Nullable
     LocalDateTime value;
 
+    public boolean isEmpty() {
+        return value == null;
+    }
+
+    public boolean isAfter(LastLoginAt lastLoginAt) {
+        if (lastLoginAt == null) {
+            return false;
+        }
+        if (this.value == null) {
+            return false;
+        }
+        return this.value.isAfter(lastLoginAt.value);
+    }
+
     public static LastLoginAt of(LocalDateTime lastLogin) {
         if (lastLogin == null) {
-            return neverBeenLoggedIn();
+            return empty();
         }
         if (lastLogin.isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("Last login time is after now");
@@ -24,7 +38,7 @@ public class LastLoginAt {
         return new LastLoginAt(lastLogin);
     }
 
-    public static LastLoginAt neverBeenLoggedIn() {
+    public static LastLoginAt empty() {
         return new LastLoginAt(null);
     }
 }

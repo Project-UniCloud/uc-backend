@@ -58,16 +58,16 @@ class LastLoginAtDiffblueTest {
     }
 
     /**
-     * Test {@link LastLoginAt#neverBeenLoggedIn()}.
+     * Test {@link LastLoginAt#empty()}.
      * <p>
-     * Method under test: {@link LastLoginAt#neverBeenLoggedIn()}
+     * Method under test: {@link LastLoginAt#empty()}
      */
     @Test
     @DisplayName("Test neverBeenLoggedIn()")
     @Tag("MaintainedByDiffblue")
-    void testNeverBeenLoggedIn() {
+    void testEmpty() {
         // Arrange, Act and Assert
-        assertNull(LastLoginAt.neverBeenLoggedIn()
+        assertNull(LastLoginAt.empty()
                 .getValue());
     }
 }

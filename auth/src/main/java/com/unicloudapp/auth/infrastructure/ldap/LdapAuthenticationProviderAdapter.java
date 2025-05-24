@@ -1,6 +1,6 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
-import com.unicloudapp.auth.application.port.out.AuthenticationPort;
+import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import org.springframework.stereotype.Component;
 
 import javax.naming.Context;
@@ -10,7 +10,7 @@ import java.util.Hashtable;
 
 //TODO generate token and auth in spring security
 @Component
-class LdapAuthenticationAdapter implements AuthenticationPort {
+class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort {
 
     //TODO .env albo do docker-compose
     private static final String LDAP_URL = "ldaps://dc1-2016.labs.wmi.amu.edu.pl:636";

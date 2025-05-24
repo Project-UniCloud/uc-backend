@@ -18,19 +18,10 @@ public class User {
     private LastLoginAt lastLoginAt;
     private final UserRole userRole;
 
-    public void updateLastName(LastName newLastName) {
-        this.lastName = newLastName;
-    }
-
-    public void updateFirstName(FirstName newFirstName) {
-        this.firstName = newFirstName;
-    }
-
-    public void updateEmail(Email newEmail) {
-        this.email = newEmail;
-    }
-
     public void logIn(LastLoginAt lastLoginAt) {
+        if (this.lastLoginAt.isAfter(lastLoginAt)) {
+            throw new IllegalArgumentException("Last login time cannot be null");
+        }
         this.lastLoginAt = lastLoginAt;
     }
 }

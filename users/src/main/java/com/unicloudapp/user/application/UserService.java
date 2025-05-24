@@ -16,7 +16,6 @@ import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -79,16 +78,6 @@ implements UserValidationService,
     @Override
     public boolean isUserExists(UserId userId) {
         return userRepository.existsById(userId);
-    }
-
-    @Transactional
-    public void updateFirstName(UserId id,
-                                FirstName newFirstName
-    ) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-        user.updateFirstName(newFirstName);
-        userRepository.save(user);
     }
 
     @Override
