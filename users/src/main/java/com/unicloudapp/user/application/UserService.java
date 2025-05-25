@@ -65,8 +65,9 @@ implements UserValidationService,
 
     @Override
     public boolean isUserStudent(UserId userId) {
-        return findUserById(userId).getUserRole()
-                .getValue() == UserRole.Type.STUDENT;
+        return userRepository.findById(userId)
+                .map(user -> user.getUserRole().getValue().equals(UserRole.Type.STUDENT))
+                .orElse(false);
     }
 
     @Override

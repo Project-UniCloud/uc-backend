@@ -5,8 +5,6 @@ plugins {
     id("jacoco")
 }
 
-// val springBootVersion = "3.4.4"
-
 allprojects {
     repositories {
         mavenCentral()
@@ -88,6 +86,11 @@ tasks.register<JacocoReport>("jacocoRootReport") {
     }
     classDirectories.from(files(classDirectoriesFromSubprojects).asFileTree.matching {
         include("com/unicloudapp/**/*.class")
+        exclude(
+            "**/*Config.class",
+            "**/config/**",
+            "**/*Configuration.class"
+        )
     })
 
     reports {

@@ -1,10 +1,11 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
+import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.UserFullNameProjection;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.user.domain.UserFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,24 +18,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
 @RequiredArgsConstructor
 class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     private final UserRepositoryJpa userRepositoryJpa;
     private final UserMapper userMapper;
+    private final UserFactory userFactory;
 
     @Override
     public User save(User user) {
         UserEntity entityToSave = userMapper.userToEntity(user);
         UserEntity userEntity = userRepositoryJpa.save(entityToSave);
-        return userMapper.entityToUser(userEntity);
+        return userMapper.entityToUser(userEntity, userFactory);
     }
 
     @Override
     public Optional<User> findById(UserId userId) {
         return userRepositoryJpa.findById(userId.getValue())
-                .map(userMapper::entityToUser);
+                .map(foundUser -> userMapper.entityToUser(foundUser, userFactory));
     }
 
     @Override

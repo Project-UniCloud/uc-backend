@@ -2,26 +2,27 @@ package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
-import lombok.RequiredArgsConstructor;
+import org.mapstruct.Context;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@RequiredArgsConstructor
-class UserMapper {
+@Mapper(componentModel = "spring", uses = UserFactory.class)
+interface UserMapper {
 
-    private final UserFactory userFactory;
+    @Mapping(source = "userId.value", target = "uuid")
+    @Mapping(source = "userLogin.value", target = "login")
+    @Mapping(source = "firstName.value", target = "firstName")
+    @Mapping(source = "lastName.value", target = "lastName")
+    @Mapping(source = "userRole.value", target = "role")
+    @Mapping(source = "email.value", target = "email")
+    @Mapping(source = "lastLoginAt.value", target = "lastLogin")
+    UserEntity userToEntity(User user);
 
-    UserEntity userToEntity(User user) {
-        return UserEntity.builder()
-                .uuid(user.getUserId().getValue())
-                .firstName(user.getFirstName().getValue())
-                .lastName(user.getLastName().getValue())
-                .login(user.getUserLogin().getValue())
-                .email(user.getEmail().getValue())
-                .role(user.getUserRole().getValue())
-                .lastLogin(user.getLastLoginAt().getValue())
-                .build();
-    }
-
-    User entityToUser(UserEntity userEntity) {
+    @Mapping(target = "user", ignore = true)
+    default User entityToUser(UserEntity userEntity, @Context UserFactory userFactory) {
+        if (userEntity == null) {
+            return null;
+        }
         return userFactory.restore(
                 userEntity.getUuid(),
                 userEntity.getLogin(),
