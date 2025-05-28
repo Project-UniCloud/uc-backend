@@ -2,7 +2,6 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupRowView;
@@ -17,7 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
