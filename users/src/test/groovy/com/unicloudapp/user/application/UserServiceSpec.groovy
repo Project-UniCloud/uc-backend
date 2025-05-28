@@ -186,8 +186,10 @@ class UserServiceSpec extends Specification {
         then:
         1 * userRepository.findFullNamesByIds(userIds) >> [projection1, projection2]
         result.size() == 2
-        result[id1].firstName.value == "John"
-        result[id2].lastName.value == "Smith"
+        result[userIds[0]].firstName.value == "John"
+        result[userIds[0]].lastName.value == "Doe"
+        result[userIds[1]].firstName.value == "Alice"
+        result[userIds[1]].lastName.value == "Smith"
     }
 
     def "should return list of lecturer projections matching query"() {
