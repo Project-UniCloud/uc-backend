@@ -3,6 +3,7 @@ package com.unicloudapp.user.application;
 import com.unicloudapp.common.domain.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
+import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
@@ -12,6 +13,7 @@ import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
 import com.unicloudapp.user.application.port.in.FindUserUseCase;
 import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
+import com.unicloudapp.user.application.projection.UserFullNameProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import jakarta.validation.Valid;
@@ -20,6 +22,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -82,15 +85,33 @@ implements UserValidationService,
     }
 
     @Override
-    public Map<UUID, FullName> getFullNameForUserIds(List<UserId> userIds) {
-        return userRepository.findByIds(userIds)
+    public Map<UserId, FullName> getFullNameForUserIds(List<UserId> userIds) {
+        return userRepository.findFullNamesByIds(userIds)
                 .stream()
                 .collect(Collectors.toMap(
-                        UserFullNameProjection::getUuid,
+                        projection -> UserId.of(projection.getUuid()),
                         projection -> FullName.of(
                                 FirstName.of(projection.getFirstName()),
                                 LastName.of(projection.getLastName())
                         )));
+    }
+
+    @Override
+    public List<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size) {
+        return userRepository.findUserRowByIds(userIds, offset, size)
+                .stream()
+                .map(userRowProjection -> UserDetails.builder()
+                        .userId(UserId.of(userRowProjection.getUuid()))
+                        .login(UserLogin.of(userRowProjection.getLogin()))
+                        .firstName(FirstName.of(userRowProjection.getFirstName()))
+                        .lastName(LastName.of(userRowProjection.getLastName()))
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public long countUsersByIds(Set<UserId> userIds) {
+        return userRepository.countByUuidIn(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()));
     }
 
     @Override

@@ -33,4 +33,9 @@ public class Email {
     public boolean isEmpty() {
         return value.isBlank();
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

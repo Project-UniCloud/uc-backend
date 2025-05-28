@@ -3,6 +3,7 @@ package com.unicloudapp.group.application;
 import com.unicloudapp.common.cloud.CloudAccessQueryService;
 import com.unicloudapp.common.domain.user.FullName;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
@@ -75,7 +76,7 @@ public class GroupService {
         int page = pageable.getPageNumber();
         int offset = page * size;
         List<GroupRowProjection> groups = groupRepository.findAllByStatus(offset, size, status);
-        Map<UUID, FullName> userFullNames = userQueryService.getFullNameForUserIds(
+        Map<UserId, FullName> userFullNames = userQueryService.getFullNameForUserIds(
                 groups.stream()
                         .flatMap(g -> g.getLecturers().stream().map(UserId::of))
                         .toList()
@@ -89,7 +90,7 @@ public class GroupService {
                 .map(group -> {
                     String joinedLecturers = group.getLecturers()
                             .stream()
-                            .map(userFullNames::get)
+                            .map(uuid -> userFullNames.get(UserId.of(uuid)))
                             .filter(Objects::nonNull)
                             .map(FullName::getFullName)
                             .collect(Collectors.joining(", "));
@@ -120,7 +121,7 @@ public class GroupService {
                         details.getLecturers()
                                 .stream()
                                 .map(UserId::of)
-                                .collect(Collectors.toList())
+                                .toList()
                 ).values()).stream().map(FullName::getFullName).collect(Collectors.toSet());
         return GroupDetailsView.builder()
                 .groupId(details.getUuid())
@@ -131,5 +132,22 @@ public class GroupService {
                 .startDate(details.getStartDate())
                 .semester(details.getSemester())
                 .build();
+    }
+
+    public Page<UserDetails> getAttendersDetailsByGroupId(GroupId groupId, Pageable pageable) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        int size = pageable.getPageSize();
+        int page = pageable.getPageNumber();
+        int offset = page * size;
+        List<UserDetails> userDetailsByIds = userQueryService.getUserDetailsByIds(
+                group.getLecturers(), offset, size
+        );
+        return new PageImpl<>(userDetailsByIds,
+                PageRequest.of(page,
+                        size
+                ),
+                userQueryService.countUsersByIds(group.getLecturers())
+        );
     }
 }

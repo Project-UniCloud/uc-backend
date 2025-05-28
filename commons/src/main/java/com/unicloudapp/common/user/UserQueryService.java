@@ -5,9 +5,13 @@ import com.unicloudapp.common.domain.user.UserId;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
 
 public interface UserQueryService {
 
-    Map<UUID, FullName> getFullNameForUserIds(List<UserId> userIds);
+    Map<UserId, FullName> getFullNameForUserIds(List<UserId> userIds);
+
+    List<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
+
+    long countUsersByIds(Set<UserId> userIds);
 }

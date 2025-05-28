@@ -8,6 +8,7 @@ import com.unicloudapp.common.exception.user.UserNotFoundException
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
 import com.unicloudapp.user.application.port.out.UserRepositoryPort
+import com.unicloudapp.user.application.projection.UserFullNameProjection
 import com.unicloudapp.user.domain.User
 import com.unicloudapp.user.domain.UserFactory
 import spock.lang.Specification
@@ -183,7 +184,7 @@ class UserServiceSpec extends Specification {
         def result = userService.getFullNameForUserIds(userIds)
 
         then:
-        1 * userRepository.findByIds(userIds) >> [projection1, projection2]
+        1 * userRepository.findFullNamesByIds(userIds) >> [projection1, projection2]
         result.size() == 2
         result[id1].firstName.value == "John"
         result[id2].lastName.value == "Smith"

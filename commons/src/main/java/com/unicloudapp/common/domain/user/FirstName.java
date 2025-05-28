@@ -16,4 +16,9 @@ public class FirstName {
         }
         return new FirstName(value);
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

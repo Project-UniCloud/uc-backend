@@ -15,7 +15,6 @@ public record GroupDetailsView(
         String semester,
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
-        //TODO students
         String status,
         String description
 ) {

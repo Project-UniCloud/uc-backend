@@ -16,4 +16,9 @@ public class UserLogin {
         }
         return new UserLogin(value);
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

@@ -1,7 +1,7 @@
 package com.unicloudapp.user.infrastructure.rest
 
 import com.unicloudapp.common.domain.user.UserId
-import com.unicloudapp.user.application.UserFullNameProjection
+import com.unicloudapp.user.application.projection.UserFullNameProjection
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase

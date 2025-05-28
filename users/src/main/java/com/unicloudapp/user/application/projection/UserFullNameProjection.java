@@ -1,4 +1,4 @@
-package com.unicloudapp.user.application;
+package com.unicloudapp.user.application.projection;
 
 import java.util.UUID;
 

@@ -1,7 +1,7 @@
 package com.unicloudapp.user.infrastructure.persistence
 
 import com.unicloudapp.common.domain.user.UserRole
-import com.unicloudapp.user.application.UserFullNameProjection
+import com.unicloudapp.user.application.projection.UserFullNameProjection
 import com.unicloudapp.user.domain.User
 import com.unicloudapp.common.domain.user.UserId
 import com.unicloudapp.user.domain.UserFactory
@@ -105,7 +105,7 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         1 * userRepositoryJpa.findAllByUuidIn(uuids) >> projections
 
         when:
-        def result = adapter.findByIds(userIds)
+        def result = adapter.findFullNamesByIds(userIds)
 
         then:
         result == projections

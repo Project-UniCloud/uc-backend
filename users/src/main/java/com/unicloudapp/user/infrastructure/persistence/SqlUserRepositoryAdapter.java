@@ -2,8 +2,9 @@ package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserRole;
-import com.unicloudapp.user.application.UserFullNameProjection;
+import com.unicloudapp.user.application.projection.UserFullNameProjection;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
+import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class SqlUserRepositoryAdapter implements UserRepositoryPort {
@@ -49,7 +48,7 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public List<UserFullNameProjection> findByIds(List<UserId> userIds) {
+    public List<UserFullNameProjection> findFullNamesByIds(List<UserId> userIds) {
         return userRepositoryJpa.findAllByUuidIn(
                 userIds.stream()
                         .map(UserId::getValue)
@@ -58,8 +57,25 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public List<UserRowProjection> findUserRowByIds(Collection<UserId> userIds,
+                                                    int offset,
+                                                    int size
+    ) {
+        Set<UUID> userUUIDs = userIds.stream()
+                .map(UserId::getValue)
+                .collect(Collectors.toSet());
+        Pageable pageable = PageRequest.of(offset / size, size);
+        return userRepositoryJpa.getUserEntitiesByUuidIn(userUUIDs, pageable);
+    }
+
+    @Override
     public List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role) {
         return userRepositoryJpa.searchUserByName(query, role, PageRequest.of(0, 10));
+    }
+
+    @Override
+    public long countByUuidIn(Collection<UUID> uuids) {
+        return userRepositoryJpa.countByUuidIn(uuids);
     }
 }
 
@@ -78,4 +94,8 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
        ) AND u.role = :role
        """)
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role, Pageable pageable);
+
+    List<UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
+
+    long countByUuidIn(Collection<UUID> uuids);
 }
