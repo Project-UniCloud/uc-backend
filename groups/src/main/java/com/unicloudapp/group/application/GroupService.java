@@ -1,7 +1,7 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudAccessQueryService;
-import com.unicloudapp.common.domain.user.FullName;
+import com.unicloudapp.common.user.UserFullName;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
@@ -76,7 +76,7 @@ public class GroupService {
         int page = pageable.getPageNumber();
         int offset = page * size;
         List<GroupRowProjection> groups = groupRepository.findAllByStatus(offset, size, status);
-        Map<UserId, FullName> userFullNames = userQueryService.getFullNameForUserIds(
+        Map<UserId, UserFullName> userFullNames = userQueryService.getFullNameForUserIds(
                 groups.stream()
                         .flatMap(g -> g.getLecturers().stream().map(UserId::of))
                         .toList()
@@ -92,7 +92,7 @@ public class GroupService {
                             .stream()
                             .map(uuid -> userFullNames.get(UserId.of(uuid)))
                             .filter(Objects::nonNull)
-                            .map(FullName::getFullName)
+                            .map(UserFullName::getFullName)
                             .collect(Collectors.joining(", "));
 
                     String joinedAccessList = group.getCloudAccesses()
@@ -122,7 +122,7 @@ public class GroupService {
                                 .stream()
                                 .map(UserId::of)
                                 .toList()
-                ).values()).stream().map(FullName::getFullName).collect(Collectors.toSet());
+                ).values()).stream().map(UserFullName::getFullName).collect(Collectors.toSet());
         return GroupDetailsView.builder()
                 .groupId(details.getUuid())
                 .lecturerFullNames(lecturers)
@@ -141,7 +141,7 @@ public class GroupService {
         int page = pageable.getPageNumber();
         int offset = page * size;
         List<UserDetails> userDetailsByIds = userQueryService.getUserDetailsByIds(
-                group.getLecturers(), offset, size
+                group.getAttenders(), offset, size
         );
         return new PageImpl<>(userDetailsByIds,
                 PageRequest.of(page,

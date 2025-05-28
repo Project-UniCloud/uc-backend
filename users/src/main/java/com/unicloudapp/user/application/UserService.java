@@ -3,6 +3,7 @@ package com.unicloudapp.user.application;
 import com.unicloudapp.common.domain.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
+import com.unicloudapp.common.user.UserFullName;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
@@ -85,12 +86,12 @@ implements UserValidationService,
     }
 
     @Override
-    public Map<UserId, FullName> getFullNameForUserIds(List<UserId> userIds) {
+    public Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds) {
         return userRepository.findFullNamesByIds(userIds)
                 .stream()
                 .collect(Collectors.toMap(
                         projection -> UserId.of(projection.getUuid()),
-                        projection -> FullName.of(
+                        projection -> UserFullName.of(
                                 FirstName.of(projection.getFirstName()),
                                 LastName.of(projection.getLastName())
                         )));
