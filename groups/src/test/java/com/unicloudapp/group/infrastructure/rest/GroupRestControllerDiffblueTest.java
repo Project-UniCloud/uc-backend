@@ -3,9 +3,11 @@ package com.unicloudapp.group.infrastructure.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
+import com.unicloudapp.group.application.StudentImporterPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupId;
 import org.junit.jupiter.api.DisplayName;
@@ -50,6 +52,9 @@ class GroupRestControllerDiffblueTest {
 
     @MockitoBean
     private UserValidationService userValidationService;
+
+    @MockitoBean
+    private StudentImporterPort studentImporterPort;
 
     /**
      * Test {@link GroupRestController#createGroup(CreateGroupRequest)}.
@@ -114,8 +119,9 @@ class GroupRestControllerDiffblueTest {
         UUID uuid = UUID.randomUUID();
         when(group.getGroupId()).thenReturn(GroupId.of(uuid));
         GroupService groupService = mock(GroupService.class);
+        StudentImporterPort studentBasicData = mock(StudentImporterPort.class);
         when(groupService.createGroup(Mockito.<GroupDTO>any())).thenReturn(group);
-        GroupRestController groupRestController = new GroupRestController(groupService);
+        GroupRestController groupRestController = new GroupRestController(groupService, studentBasicData);
         HashSet<UUID> lecturers = new HashSet<>();
         LocalDate startDate = LocalDate.of(1970,
                 1,
@@ -181,11 +187,12 @@ class GroupRestControllerDiffblueTest {
 
         // Arrange
         GroupService groupService = mock(GroupService.class);
+        StudentImporterPort studentImporterPort = mock(StudentImporterPort.class);
         PageImpl<GroupDTO> pageImpl = new PageImpl<>(new ArrayList<>());
         when(groupService.getAllGroups(Mockito.<Pageable>any())).thenReturn(pageImpl);
 
         // Act
-        Page<GroupDTO> actualAllGroups = (new GroupRestController(groupService)).getAllGroups(1,
+        Page<GroupDTO> actualAllGroups = (new GroupRestController(groupService, studentImporterPort)).getAllGroups(1,
                 3
         );
 

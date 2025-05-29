@@ -77,6 +77,14 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     public long countByUuidIn(Collection<UUID> uuids) {
         return userRepositoryJpa.countByUuidIn(uuids);
     }
+
+    @Override
+    public List<UserId> saveAll(List<User> students) {
+        return userRepositoryJpa.saveAll(students.stream().map(userMapper::userToEntity).toList())
+                .stream()
+                .map(userEntity -> UserId.of(userEntity.getUuid()))
+                .toList();
+    }
 }
 
 @Repository

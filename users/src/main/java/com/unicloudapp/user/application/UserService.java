@@ -3,10 +3,7 @@ package com.unicloudapp.user.application;
 import com.unicloudapp.common.domain.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
-import com.unicloudapp.common.user.UserFullName;
-import com.unicloudapp.common.user.UserDetails;
-import com.unicloudapp.common.user.UserQueryService;
-import com.unicloudapp.common.user.UserValidationService;
+import com.unicloudapp.common.user.*;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
@@ -35,7 +32,8 @@ implements UserValidationService,
         CreateLecturerUseCase,
         FindUserUseCase,
         UserQueryService,
-        SearchLecturerUserCase {
+        SearchLecturerUserCase,
+        UserCommandService {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
@@ -46,11 +44,11 @@ implements UserValidationService,
             throw new UserAlreadyExistsException(command.login());
         }
         User user = userFactory.create(
-                UUID.randomUUID(),
-                command.login(),
-                command.firstName(),
-                command.lastName(),
-                UserRole.Type.LECTURER
+                UserId.of(UUID.randomUUID()),
+                UserLogin.of(command.login()),
+                FirstName.of(command.firstName()),
+                LastName.of(command.lastName()),
+                UserRole.of(UserRole.Type.LECTURER)
         );
         return userRepository.save(user);
     }
@@ -58,11 +56,11 @@ implements UserValidationService,
     @Override
     public User createStudent(@Valid CreateStudentCommand command) {
         User user = userFactory.create(
-                UUID.randomUUID(),
-                command.login(),
-                command.firstName(),
-                command.lastName(),
-                UserRole.Type.STUDENT
+                UserId.of(UUID.randomUUID()),
+                UserLogin.of(command.login()),
+                FirstName.of(command.firstName()),
+                LastName.of(command.lastName()),
+                UserRole.of(UserRole.Type.STUDENT)
         );
         return userRepository.save(user);
     }
@@ -118,5 +116,19 @@ implements UserValidationService,
     @Override
     public List<UserFullNameProjection> searchLecturers(String containsQuery) {
         return userRepository.searchUserByName(containsQuery, UserRole.Type.LECTURER);
+    }
+
+    @Override
+    public List<UserId> importStudents(List<StudentBasicData> studentBasicData) {
+        List<User> students = studentBasicData.stream()
+                .map(data -> userFactory.create(
+                        UserId.of(UUID.randomUUID()),
+                        UserLogin.of(data.getLogin()),
+                        FirstName.of(data.getFirstName()),
+                        LastName.of(data.getLastName()),
+                        UserRole.of(UserRole.Type.STUDENT)
+                ))
+                .toList();
+        return userRepository.saveAll(students);
     }
 }

@@ -2,10 +2,8 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.group.application.GroupDTO;
-import com.unicloudapp.group.application.GroupDetailsView;
-import com.unicloudapp.group.application.GroupRowView;
-import com.unicloudapp.group.application.GroupService;
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.group.application.*;
 import com.unicloudapp.group.domain.GroupId;
 import com.unicloudapp.group.domain.GroupStatus;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ import java.util.UUID;
 class GroupRestController {
 
     private final GroupService groupService;
+    private final StudentImporterPort csvUserImporter;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
@@ -47,6 +49,14 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.OK)
     void addAttender(@PathVariable UUID groupId, @PathVariable UUID attenderId) {
         groupService.addAttender(GroupId.of(groupId), UserId.of(attenderId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{groupId}/attenders")
+    @ResponseStatus(HttpStatus.OK)
+    void addAttenders(@PathVariable UUID groupId, @RequestParam("file") MultipartFile file) throws IOException {
+        List<StudentBasicData> parsedStudentBasicData = csvUserImporter.parseCsv(file);
+        groupService.addAttenders(GroupId.of(groupId), parsedStudentBasicData);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

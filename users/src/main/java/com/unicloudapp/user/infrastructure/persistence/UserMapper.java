@@ -1,5 +1,7 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
+import com.unicloudapp.common.domain.Email;
+import com.unicloudapp.common.domain.user.*;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import org.mapstruct.Context;
@@ -24,13 +26,13 @@ interface UserMapper {
             return null;
         }
         return userFactory.restore(
-                userEntity.getUuid(),
-                userEntity.getLogin(),
-                userEntity.getFirstName(),
-                userEntity.getLastName(),
-                userEntity.getRole(),
-                userEntity.getEmail(),
-                userEntity.getLastLogin()
+                UserId.of(userEntity.getUuid()),
+                UserLogin.of(userEntity.getLogin()),
+                FirstName.of(userEntity.getFirstName()),
+                LastName.of(userEntity.getLastName()),
+                UserRole.of(userEntity.getRole()),
+                Email.of(userEntity.getEmail()),
+                LastLoginAt.of(userEntity.getLastLogin())
         );
     }
 }

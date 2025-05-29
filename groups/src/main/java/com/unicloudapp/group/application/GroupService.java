@@ -1,11 +1,8 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudAccessQueryService;
-import com.unicloudapp.common.user.UserFullName;
+import com.unicloudapp.common.user.*;
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.user.UserDetails;
-import com.unicloudapp.common.user.UserQueryService;
-import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
 import com.unicloudapp.group.domain.GroupId;
@@ -29,6 +26,7 @@ public class GroupService {
     private final UserValidationService userValidationService;
     private final UserQueryService userQueryService;
     private final CloudAccessQueryService cloudAccessQueryService;
+    private final UserCommandService userCommandService;
 
     public Group createGroup(GroupDTO groupDTO) {
         Group group = groupFactory.create(
@@ -149,5 +147,14 @@ public class GroupService {
                 ),
                 userQueryService.countUsersByIds(group.getLecturers())
         );
+    }
+
+    @Transactional
+    public void addAttenders(GroupId groupId, List<StudentBasicData> studentBasicData) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        List<UserId> importedStudents = userCommandService.importStudents(studentBasicData);
+        importedStudents.forEach(group::addAttender);
+        groupRepository.save(group);
     }
 }

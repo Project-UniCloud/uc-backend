@@ -2,6 +2,8 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudAccessQueryService;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
@@ -50,6 +52,9 @@ class GroupServiceDiffblueTest {
 
     @MockitoBean
     private CloudAccessQueryService cloudAccessQueryService;
+
+    @MockitoBean
+    private UserCommandService userCommandService;
 
     @Autowired
     private GroupService groupService;

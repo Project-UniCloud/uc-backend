@@ -31,4 +31,6 @@ public interface UserRepositoryPort {
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role);
 
     long countByUuidIn(Collection<UUID> uuids);
+
+    List<UserId> saveAll(List<User> students);
 }

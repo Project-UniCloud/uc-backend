@@ -1,6 +1,7 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudAccessQueryService;
+import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.GroupFactory;
@@ -16,7 +17,8 @@ class GroupConfig {
             GroupToDtoMapper groupToDtoMapper,
             UserValidationService userValidationService,
             UserQueryService userQueryService,
-            CloudAccessQueryService cloudAccessQueryService
+            CloudAccessQueryService cloudAccessQueryService,
+            UserCommandService userCommandService
     ) {
         return new GroupService(
                 groupRepository,
@@ -24,7 +26,8 @@ class GroupConfig {
                 groupToDtoMapper,
                 userValidationService,
                 userQueryService,
-                cloudAccessQueryService
+                cloudAccessQueryService,
+                userCommandService
         );
     }
 }
