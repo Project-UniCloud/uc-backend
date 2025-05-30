@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:5432/unicloud
-    username: user
-    password: password
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:unicloud}
+    username: ${POSTGRES_USER:user}
+    password: ${POSTGRES_PASSWORD:password}
     driverClassName: org.postgresql.Driver
   jpa:
     open-in-view: true
@@ -25,7 +25,7 @@ adapters:
   clients:
     aws:
       name: AWS adapter
-      host: localhost
-      port: 50051
+      host: ${ADAPTER_AWS_HOST:localhost}
+      port: ${ADAPTER_AWS_PORT:50051}
       costLimit: 3000.00
       cronExpression: 0 0 3 * * *
