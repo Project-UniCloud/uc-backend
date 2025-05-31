@@ -29,6 +29,6 @@ adapters:
       port: ${ADAPTER_AWS_PORT:50051}
       costLimit: 3000.00
       cronExpression: 0 0 3 * * *
-app:
-  cors:
-    allowedOrigins: ${ORIGIN:http://localhost:3000}
+server:
+  servlet:
+    context-path: /api
