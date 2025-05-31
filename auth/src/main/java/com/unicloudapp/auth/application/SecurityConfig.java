@@ -1,6 +1,7 @@
 package com.unicloudapp.auth.application;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -68,21 +69,25 @@ class SecurityConfig {
     }
     
     @Bean
-    UserDetailsService userDetailsService() {
+    UserDetailsService userDetailsService(
+            @Value("${auth.users.defaultAdminPassword}") String defaultAdminPassword,
+            @Value("${auth.users.defaultStudentPassword}") String defaultStudentPassword,
+            @Value("${auth.users.defaultLecturerPassword}") String defaultLecturerPassword
+    ) {
         InMemoryUserDetailsManager inMemoryUserDetailsManager = new InMemoryUserDetailsManager();
         UserDetails admin = User.builder()
                 .username("admin")
-                .password(passwordEncoder().encode("password"))
+                .password(passwordEncoder().encode(defaultAdminPassword))
                 .roles("ADMIN")
                 .build();
         UserDetails student = User.builder()
                 .username("student")
-                .password(passwordEncoder().encode("password"))
+                .password(passwordEncoder().encode(defaultStudentPassword))
                 .roles("STUDENT")
                 .build();
         UserDetails lecturer = User.builder()
                 .username("lecturer")
-                .password(passwordEncoder().encode("password"))
+                .password(passwordEncoder().encode(defaultLecturerPassword))
                 .roles("LECTURER")
                 .build();
         inMemoryUserDetailsManager.createUser(admin);
