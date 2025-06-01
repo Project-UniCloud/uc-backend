@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -15,17 +16,17 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class CloudAccessEntity {
+class CloudResourceAccessEntity {
 
     @Id
-    private UUID cloudAccessId;
+    private UUID cloudResourceAccessId;
 
     @Column(nullable = false)
     private String cloudAccessClientId;
 
     @Column(nullable = false)
-    private String externalUserId;
+    private String resourceType;
 
     @Column(nullable = false)
-    private UUID userId;
+    private BigDecimal costLimit;
 }

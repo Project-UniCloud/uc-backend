@@ -1,5 +1,7 @@
 package com.unicloudapp.group.application;
 
+import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupStatus;
 
@@ -25,4 +27,10 @@ public interface GroupRepositoryPort {
     long countByStatus(GroupStatus.Type status);
 
     GroupDetailsProjection findGroupDetailsByUuid(UUID uuid);
+
+    boolean existsByNameAndSemester(GroupName name,
+                                    Semester semester
+    );
+
+    boolean existsById(UUID id);
 }

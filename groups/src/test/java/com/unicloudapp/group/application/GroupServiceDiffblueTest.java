@@ -1,14 +1,14 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.cloud.CloudAccessQueryService;
+import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
+import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupId;
+import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.group.domain.GroupStatus.Type;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -51,7 +51,10 @@ class GroupServiceDiffblueTest {
     private UserQueryService userQueryService;
 
     @MockitoBean
-    private CloudAccessQueryService cloudAccessQueryService;
+    private CloudResourceAccessQueryService cloudResourceAccessQueryService;
+
+    @MockitoBean
+    private CloudResourceAccessCommandService cloudResourceAccessCommandService;
 
     @MockitoBean
     private UserCommandService userCommandService;
@@ -100,7 +103,7 @@ class GroupServiceDiffblueTest {
         Group actualCreateGroupResult = groupService.createGroup(new GroupDTO(groupId,
                 "Name",
                 Type.ACTIVE,
-                "Semester",
+                "2024L",
                 startDate,
                 endDate,
                 lecturers,
@@ -112,7 +115,7 @@ class GroupServiceDiffblueTest {
         // Assert
         verify(groupRepositoryPort).save(isNull());
         verify(groupFactory).create(eq("Name"),
-                eq("Semester"),
+                eq("2024L"),
                 isA(Set.class),
                 isA(LocalDate.class),
                 isA(LocalDate.class),

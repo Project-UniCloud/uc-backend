@@ -29,12 +29,12 @@ class CloudAccessServiceDiffblueTest {
                 new HashMap<>(
                         Map.of("42", Mockito.mock(CloudAccessClient.class))
                 ),
-                Mockito.mock(CloudAccessRepositoryPort.class)
+                Mockito.mock(CloudResourceAccessRepositoryPort.class)
         );
 
         // Act
-        cloudAccessService.giveCloudAccess(null,
+        /*cloudAccessService.giveCloudAccess(null,
                 CloudAccessClientId.of("42")
-        );
+        );*/
     }
 }

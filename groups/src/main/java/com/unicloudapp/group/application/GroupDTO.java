@@ -17,7 +17,7 @@ public record GroupDTO(UUID groupId,
                        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
                        Set<UUID> lecturers,
                        Set<UUID> attenders,
-                       Set<String> cloudAccesses,
+                       Set<UUID> cloudResourceAccesses,
                        String description
 ) {
 

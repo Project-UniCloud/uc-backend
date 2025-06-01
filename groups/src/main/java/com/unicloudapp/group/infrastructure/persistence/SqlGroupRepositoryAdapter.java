@@ -1,5 +1,7 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
+import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupRepositoryPort;
 import com.unicloudapp.group.application.GroupRowProjection;
@@ -76,6 +78,18 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     public GroupDetailsProjection findGroupDetailsByUuid(UUID uuid) {
         return groupJpaRepository.findGroupDetailsByUuid(uuid);
     }
+
+    @Override
+    public boolean existsByNameAndSemester(GroupName name,
+                                           Semester semester
+    ) {
+        return groupJpaRepository.existsByNameAndSemester(name.getName(), semester.toString());
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return groupJpaRepository.existsById(id);
+    }
 }
 
 @Repository
@@ -87,4 +101,11 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
     );
 
     GroupDetailsProjection findGroupDetailsByUuid(UUID uuid);
+
+    boolean existsByNameAndSemester(
+            String name,
+            String semester
+    );
+
+    boolean existsById(UUID uuid);
 }

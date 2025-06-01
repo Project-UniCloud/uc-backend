@@ -3,6 +3,7 @@ package com.unicloudapp.cloudmanagment.application;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @ConfigurationProperties("adapters")
@@ -13,6 +14,7 @@ public record CloudAccessClientProperties(Map<String, SingleCloudAccessClientPro
             String host,
             int port,
             BigDecimal costLimit,
-            String cronExpression
+            String cronExpression,
+            List<String> resourceTypes
     ) {}
 }

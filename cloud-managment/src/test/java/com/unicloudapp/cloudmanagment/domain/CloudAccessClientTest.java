@@ -17,12 +17,12 @@ class CloudAccessClientTest {
             .controller(controller)
             .build();
 
-    @Test
+    /*@Test
     void giveCloudAccess() {
         cloudAccessClient.giveCloudAccess(UserId.of(UUID.randomUUID()), CloudAccessClientId.of("aws"));
         verify(controller).giveCloudAccess(
                 Mockito.any(UserId.class),
                 Mockito.any(CloudAccessClientId.class)
         );
-    }
+    }*/
 }

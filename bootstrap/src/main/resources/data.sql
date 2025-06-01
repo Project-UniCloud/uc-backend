@@ -16,5 +16,5 @@ INSERT INTO group_attenders (group_id, user_id)
 VALUES ('387a914e-2f8b-4d0b-9248-f72f05e1c73b', '03a021bd-6b89-4aea-8fee-14e5e32aaf1e');
 
 -- Cloud accesses
-INSERT INTO cloud_access_entity (cloud_access_id, cloud_access_client_id, external_user_id, user_id)
-VALUES ('387a914e-2f8b-4d0b-9248-f72f05e1c73b', 'aws', 'boto3-generated-user', '03a021bd-6b89-4aea-8fee-14e5e32aaf1e');
+--INSERT INTO cloud_access_entity (cloud_access_id, cloud_access_client_id, external_user_id, user_id)
+--VALUES ('387a914e-2f8b-4d0b-9248-f72f05e1c73b', 'aws', 'boto3-generated-user', '03a021bd-6b89-4aea-8fee-14e5e32aaf1e');

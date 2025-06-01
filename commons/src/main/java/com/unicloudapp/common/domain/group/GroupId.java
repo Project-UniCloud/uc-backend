@@ -1,4 +1,4 @@
-package com.unicloudapp.group.domain;
+package com.unicloudapp.common.domain.group;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

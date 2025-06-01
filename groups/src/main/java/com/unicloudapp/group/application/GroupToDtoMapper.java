@@ -1,9 +1,10 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.group.domain.Group;
-import com.unicloudapp.group.domain.Semester;
+import com.unicloudapp.common.domain.group.Semester;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -23,14 +24,14 @@ interface GroupToDtoMapper {
     @Mapping(source = "endDate.value", target = "endDate")
     @Mapping(source = "lecturers", target = "lecturers")
     @Mapping(source = "attenders", target = "attenders")
-    @Mapping(source = "cloudAccesses", target = "cloudAccesses")
+    @Mapping(source = "cloudResourceAccesses", target = "cloudResourceAccesses")
     @Mapping(source = "description.value", target = "description")
     GroupDTO toDto(Group group);
 
-    default Set<String> toStringSet(Set<CloudAccessClientId> ids) {
+    default Set<UUID> toStringSet(Set<CloudResourceAccessId> ids) {
         if (ids == null) return Collections.emptySet();
         return ids.stream()
-                .map(CloudAccessClientId::getValue)
+                .map(CloudResourceAccessId::getValue)
                 .collect(Collectors.toSet());
     }
 

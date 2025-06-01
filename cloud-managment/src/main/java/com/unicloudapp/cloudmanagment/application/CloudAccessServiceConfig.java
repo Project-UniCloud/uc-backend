@@ -1,6 +1,8 @@
 package com.unicloudapp.cloudmanagment.application;
 
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
+import com.unicloudapp.cloudmanagment.domain.CloudResourceAccessFactory;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.cloudmanagment.domain.CostLimit;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +17,7 @@ class CloudAccessServiceConfig {
 
     @Bean
     CloudAccessService cloudAccessService(
-            CloudAccessRepositoryPort repository,
+            CloudResourceAccessRepositoryPort repository,
             CloudAccessClientProperties cloudAccessClientProperties,
             CloudAccessClientControllerFactoryPort cloudAccessClientControllerFactory
     ) {
@@ -30,9 +32,15 @@ class CloudAccessServiceConfig {
                                         entry.getValue().host(),
                                         entry.getValue().port()
                                 )).cronExpression(CronExpression.parse(entry.getValue().cronExpression()))
-                                .costLimit(CostLimit.of(entry.getValue().costLimit()))
+                                .defaultCostLimit(CostLimit.of(entry.getValue().costLimit()))
                                 .name(entry.getValue().name())
-                                .build()
+                                .cloudResourceAccessFactory(new CloudResourceAccessFactory())
+                                .resourceTypes(entry.getValue()
+                                        .resourceTypes()
+                                        .stream()
+                                        .map(CloudResourceType::of)
+                                        .toList()
+                                ).build()
                         )
                 );
         return new CloudAccessService(clients, repository);

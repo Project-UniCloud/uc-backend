@@ -33,6 +33,7 @@ class GroupToDtoMapperTest {
                 1,
                 1
         );
+        UUID uuid = UUID.randomUUID();
         Group group = new GroupFactory()
                 .restore(
                         groupId,
@@ -43,7 +44,7 @@ class GroupToDtoMapperTest {
                         endDate,
                         Set.of(lecturerId),
                         Set.of(attenderId),
-                        Set.of("aws"),
+                        Set.of(uuid),
                         "Test description"
                 );
 
@@ -58,7 +59,7 @@ class GroupToDtoMapperTest {
         assertThat(dto.endDate()).isEqualTo(endDate);
         assertThat(dto.lecturers()).containsExactly(lecturerId);
         assertThat(dto.attenders()).containsExactly(attenderId);
-        assertThat(dto.cloudAccesses()).containsExactly("aws");
+        assertThat(dto.cloudResourceAccesses()).containsExactly(uuid);
     }
 
 }

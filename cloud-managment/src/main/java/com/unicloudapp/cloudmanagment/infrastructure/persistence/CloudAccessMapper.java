@@ -1,30 +1,31 @@
 package com.unicloudapp.cloudmanagment.infrastructure.persistence;
 
-import com.unicloudapp.cloudmanagment.domain.CloudAccess;
-import com.unicloudapp.cloudmanagment.domain.CloudAccessId;
-import com.unicloudapp.cloudmanagment.domain.ExternalUserId;
+import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
+import com.unicloudapp.cloudmanagment.domain.CostLimit;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import org.springframework.stereotype.Component;
 
 @Component
 class CloudAccessMapper {
 
-    CloudAccess toDomain(CloudAccessEntity entity) {
-        return CloudAccess.builder()
-                .cloudAccessId(CloudAccessId.of(entity.getCloudAccessId()))
+    CloudResourceAccess toDomain(CloudResourceAccessEntity entity) {
+        return CloudResourceAccess.builder()
+                .cloudResourceAccessId(CloudResourceAccessId.of(entity.getCloudResourceAccessId()))
                 .cloudAccessClientId(CloudAccessClientId.of(entity.getCloudAccessClientId()))
-                .userId(UserId.of(entity.getUserId()))
-                .externalUserId(ExternalUserId.of(entity.getExternalUserId()))
+                .cloudResourceType(CloudResourceType.of(entity.getResourceType()))
+                .costLimit(CostLimit.of(entity.getCostLimit()))
                 .build();
     }
 
-    CloudAccessEntity toEntity(CloudAccess domain) {
-        return CloudAccessEntity.builder()
-                .cloudAccessId(domain.getCloudAccessId().getValue())
+    CloudResourceAccessEntity toEntity(CloudResourceAccess domain) {
+        return CloudResourceAccessEntity.builder()
+                .cloudResourceAccessId(domain.getCloudResourceAccessId()
+                        .getValue())
                 .cloudAccessClientId(domain.getCloudAccessClientId().getValue())
-                .userId(domain.getUserId().getValue())
-                .externalUserId(domain.getExternalUserId().getUserId())
+                .resourceType(domain.getCloudResourceType().getName())
+                .costLimit(domain.getCostLimit().getCost())
                 .build();
     }
 

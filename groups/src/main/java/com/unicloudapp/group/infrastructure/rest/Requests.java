@@ -16,3 +16,10 @@ record CreateGroupRequest(
 ) {
 
 }
+
+record GiveCloudResourceAccessRequest(
+        String cloudAccessClientId,
+        String cloudResourceType
+) {
+
+}

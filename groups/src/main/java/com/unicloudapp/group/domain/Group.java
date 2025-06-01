@@ -1,6 +1,9 @@
 package com.unicloudapp.group.domain;
 
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.group.GroupId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.domain.user.UserId;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,11 +24,15 @@ public class Group {
     private EndDate endDate;
     private final Set<UserId> lecturers;
     private final Set<UserId> attenders;
-    private final Set<CloudAccessClientId> cloudAccesses;
+    private final Set<CloudResourceAccessId> cloudResourceAccesses;
     private Description description;
 
     public void addAttender(UserId attenderId) {
         attenders.add(attenderId);
+    }
+
+    public void giveCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
+        cloudResourceAccesses.add(cloudResourceAccessId);
     }
 
     static class GroupBuilder {

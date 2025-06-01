@@ -2,18 +2,16 @@ package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
-import com.unicloudapp.cloudmanagment.domain.CloudAccess;
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
-import com.unicloudapp.cloudmanagment.domain.CloudAccessId;
-import com.unicloudapp.cloudmanagment.domain.ExternalUserId;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.UserLogin;
+import com.unicloudapp.common.group.GroupUniqueName;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 
-import java.util.UUID;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class GrpcCloudAccessClientController implements CloudAccessClientController {
@@ -37,19 +35,16 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
     }
 
     @Override
-    public CloudAccess giveCloudAccess(UserId userId,
-                                       CloudAccessClientId cloudAccessClientId
+    public GroupUniqueName createGroup(GroupUniqueName groupUniqueName,
+                              List<UserLogin> lecturerLogins
     ) {
         try {
-            AdapterInterface.CreateUserRequest request = AdapterInterface.CreateUserRequest.newBuilder()
+            AdapterInterface.CreateGroupWithLeadersRequest request = AdapterInterface.CreateGroupWithLeadersRequest.newBuilder()
+                    .setGroupName(groupUniqueName.toString())
+                    .addAllLeaders(lecturerLogins.stream().map(UserLogin::toString).collect(Collectors.toList()))
                     .build();
-            AdapterInterface.UserCreatedResponse response = stub.createUser(request);
-            return CloudAccess.builder()
-                    .cloudAccessId(CloudAccessId.of(UUID.randomUUID()))
-                    .cloudAccessClientId(cloudAccessClientId)
-                    .externalUserId(ExternalUserId.of(response.getId()))
-                    .userId(userId)
-                    .build();
+            AdapterInterface.GroupCreatedResponse response = stub.createGroupWithLeaders(request);
+            return GroupUniqueName.fromString(response.getGroupName());
         } catch (StatusRuntimeException e) {
             return null;
         }
@@ -61,6 +56,19 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
             AdapterInterface.StatusRequest request = AdapterInterface.StatusRequest.newBuilder().build();
             AdapterInterface.StatusResponse response = stub.getStatus(request);
             return response.getIsHealthy();
+        } catch (StatusRuntimeException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isCloudGroupExists(GroupUniqueName groupUniqueName) {
+        try {
+            AdapterInterface.GroupExistsRequest request = AdapterInterface.GroupExistsRequest.newBuilder()
+                    .setGroupName(groupUniqueName.toString())
+                    .build();
+            AdapterInterface.GroupExistsResponse response = stub.groupExists(request);
+            return response.getExists();
         } catch (StatusRuntimeException e) {
             return false;
         }

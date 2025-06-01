@@ -1,11 +1,19 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.cloud.CloudAccessQueryService;
-import com.unicloudapp.common.user.*;
+import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
+import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
+import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.group.GroupId;
+import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.UserLogin;
+import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.user.*;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupId;
 import com.unicloudapp.group.domain.GroupStatus;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +33,23 @@ public class GroupService {
     private final GroupToDtoMapper groupMapper;
     private final UserValidationService userValidationService;
     private final UserQueryService userQueryService;
-    private final CloudAccessQueryService cloudAccessQueryService;
+    private final CloudResourceAccessQueryService cloudResourceAccessQueryService;
+    private final CloudResourceAccessCommandService cloudResourceAccessCommandService;
     private final UserCommandService userCommandService;
 
+    @Transactional
     public Group createGroup(GroupDTO groupDTO) {
+        boolean isGroupWithSameNameAndSemesterExists = groupRepository.existsByNameAndSemester(
+                GroupName.of(groupDTO.name()),
+                Semester.of(groupDTO.semester())
+        );
+        boolean isGroupWithSameIdExists = groupRepository.existsById(groupDTO.groupId());
+        if (isGroupWithSameNameAndSemesterExists) {
+            throw new RuntimeException("Group with name " + groupDTO.name() + " and semester " + groupDTO.semester() + " already exists.");
+        }
+        if (isGroupWithSameIdExists) {
+            throw new RuntimeException("Group with id " + groupDTO.groupId() + " already exists.");
+        }
         Group group = groupFactory.create(
                 groupDTO.name(),
                 groupDTO.semester(),
@@ -79,11 +100,18 @@ public class GroupService {
                         .flatMap(g -> g.getLecturers().stream().map(UserId::of))
                         .toList()
         );
-        Map<String, String> cloudAccessesNames = cloudAccessQueryService.getCloudAccessNames(
-                groups.stream()
-                        .flatMap(g -> g.getCloudAccesses().stream())
-                        .collect(Collectors.toSet())
-        );
+        Map<UUID, Set<CloudResourceType>> cloudResourceTypes = groups.stream()
+                .collect(Collectors.toMap(
+                        GroupRowProjection::getUuid,
+                        group ->
+                                cloudResourceAccessQueryService.getCloudResourceTypes(
+                                        group.getCloudResourceAccesses()
+                                                .stream()
+                                                .map(CloudResourceAccessId::of)
+                                                .collect(Collectors.toSet())
+                                )
+                ));
+
         List<GroupRowView> groupViews = groups.stream()
                 .map(group -> {
                     String joinedLecturers = group.getLecturers()
@@ -93,10 +121,10 @@ public class GroupService {
                             .map(UserFullName::getFullName)
                             .collect(Collectors.joining(", "));
 
-                    String joinedAccessList = group.getCloudAccesses()
+                    String joinedAccessList = cloudResourceTypes.entrySet()
                             .stream()
-                            .map(cloudAccessesNames::get)
-                            .filter(Objects::nonNull)
+                            .filter(entry -> entry.getKey().equals(group.getUuid()))
+                            .flatMap(entry -> entry.getValue().stream().map(CloudResourceType::getName))
                             .collect(Collectors.joining(", "));
 
                     return new GroupRowView(
@@ -156,5 +184,29 @@ public class GroupService {
         List<UserId> importedStudents = userCommandService.importStudents(studentBasicData);
         importedStudents.forEach(group::addAttender);
         groupRepository.save(group);
+    }
+
+    public CloudResourceAccessId giveCloudResourceAccess(
+            GroupId groupId,
+            CloudAccessClientId cloudAccessClientId,
+            CloudResourceType cloudResourceType
+    ) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .groupName(group.getName())
+                .semester(group.getSemester())
+                .build();
+        List<UserLogin> lecturerLogins = userQueryService.getUserLoginsByIds(
+                group.getLecturers()
+        );
+        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudAccessClientId)) {
+            cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudAccessClientId, lecturerLogins);
+        }
+        return cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
+                cloudAccessClientId,
+                cloudResourceType,
+                groupUniqueName
+        );
     }
 }

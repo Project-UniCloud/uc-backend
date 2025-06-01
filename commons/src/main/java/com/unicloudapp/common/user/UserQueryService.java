@@ -1,6 +1,7 @@
 package com.unicloudapp.common.user;
 
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.UserLogin;
 
 import java.util.List;
 import java.util.Map;
@@ -13,4 +14,6 @@ public interface UserQueryService {
     List<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
 
     long countUsersByIds(Set<UserId> userIds);
+
+    List<UserLogin> getUserLoginsByIds(Set<UserId> userIds);
 }

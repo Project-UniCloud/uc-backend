@@ -11,5 +11,5 @@ public interface GroupRowProjection {
     String getSemester();
     LocalDate getEndDate();
     Set<UUID> getLecturers();
-    Set<String> getCloudAccesses();
+    Set<UUID> getCloudResourceAccesses();
 }

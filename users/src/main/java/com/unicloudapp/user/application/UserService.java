@@ -114,6 +114,11 @@ implements UserValidationService,
     }
 
     @Override
+    public List<UserLogin> getUserLoginsByIds(Set<UserId> userIds) {
+        return userRepository.findAllLoginsByIds(userIds);
+    }
+
+    @Override
     public List<UserFullNameProjection> searchLecturers(String containsQuery) {
         return userRepository.searchUserByName(containsQuery, UserRole.Type.LECTURER);
     }

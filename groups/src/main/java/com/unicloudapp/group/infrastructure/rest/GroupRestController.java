@@ -1,10 +1,13 @@
 package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.domain.Email;
+import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.*;
-import com.unicloudapp.group.domain.GroupId;
+import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.group.domain.GroupStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -110,5 +113,19 @@ class GroupRestController {
                         .email(Objects.requireNonNullElse(userDetails.email(), Email.empty()).getValue())
                         .build()
                 );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{groupId}/cloud-access")
+    @ResponseStatus(HttpStatus.CREATED)
+    CloudResourceAccessId giveCloudResourceAccess(
+            @PathVariable UUID groupId,
+            @RequestBody GiveCloudResourceAccessRequest request
+    ) {
+        return groupService.giveCloudResourceAccess(
+                GroupId.of(groupId),
+                CloudAccessClientId.of(request.cloudAccessClientId()),
+                CloudResourceType.of(request.cloudResourceType())
+        );
     }
 }

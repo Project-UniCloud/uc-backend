@@ -12,7 +12,10 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "groups")
+@Table(
+        name = "groups",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"name", "semester"})
+)
 @RequiredArgsConstructor
 @Getter
 @Builder
@@ -47,9 +50,9 @@ class GroupEntity {
     private Set<UUID> attenders;
 
     @ElementCollection
-    @CollectionTable(name = "group_cloud_accesses", joinColumns = @JoinColumn(name = "group_id"))
-    @Column(name = "cloud_access_id")
-    private Set<String> cloudAccesses;
+    @CollectionTable(name = "group_cloud_resource_accesses", joinColumns = @JoinColumn(name = "group_id"))
+    @Column(name = "cloud_resource_accesse_id")
+    private Set<UUID> cloudResourceAccesses;
 
     private String description;
 }

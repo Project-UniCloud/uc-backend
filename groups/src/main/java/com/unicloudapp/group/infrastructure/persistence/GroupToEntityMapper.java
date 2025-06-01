@@ -1,8 +1,9 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.group.domain.*;
+import com.unicloudapp.group.domain.Group;
+import com.unicloudapp.group.domain.GroupFactory;
 import lombok.RequiredArgsConstructor;
 
 import java.util.stream.Collectors;
@@ -26,8 +27,8 @@ class GroupToEntityMapper {
                 .attenders(group.getAttenders().stream()
                         .map(UserId::getValue)
                         .collect(Collectors.toSet()))
-                .cloudAccesses(group.getCloudAccesses().stream()
-                        .map(CloudAccessClientId::getValue)
+                .cloudResourceAccesses(group.getCloudResourceAccesses().stream()
+                        .map(CloudResourceAccessId::getValue)
                         .collect(Collectors.toSet()))
                 .description(group.getDescription().getValue())
                 .build();
@@ -43,7 +44,7 @@ class GroupToEntityMapper {
                 groupEntity.getEndDate(),
                 groupEntity.getLecturers(),
                 groupEntity.getAttenders(),
-                groupEntity.getCloudAccesses(),
+                groupEntity.getCloudResourceAccesses(),
                 groupEntity.getDescription()
         );
     }

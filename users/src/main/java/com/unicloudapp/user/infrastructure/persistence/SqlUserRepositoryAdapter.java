@@ -1,6 +1,7 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.projection.UserFullNameProjection;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
@@ -83,6 +84,14 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
         return userRepositoryJpa.saveAll(students.stream().map(userMapper::userToEntity).toList())
                 .stream()
                 .map(userEntity -> UserId.of(userEntity.getUuid()))
+                .toList();
+    }
+
+    @Override
+    public List<UserLogin> findAllLoginsByIds(Set<UserId> userIds) {
+        return userRepositoryJpa.findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
+                .stream()
+                .map(entity -> UserLogin.of(entity.getLogin()))
                 .toList();
     }
 }

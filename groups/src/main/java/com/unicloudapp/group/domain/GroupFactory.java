@@ -1,6 +1,10 @@
 package com.unicloudapp.group.domain;
 
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.domain.user.UserId;
 
 import java.time.LocalDate;
@@ -24,7 +28,7 @@ public class GroupFactory {
                         .map(UserId::of)
                         .collect(Collectors.toSet()))
                 .attenders(new HashSet<>())
-                .cloudAccesses(new HashSet<>())
+                .cloudResourceAccesses(new HashSet<>())
                 .name(GroupName.of(groupName))
                 .semester(Semester.of(semester))
                 .startDate(StartDate.of(startDate))
@@ -41,7 +45,7 @@ public class GroupFactory {
                          LocalDate endDate,
                          Set<UUID> lecturers,
                          Set<UUID> attenders,
-                         Set<String> cloudAccesses,
+                         Set<UUID> cloudResourceAccesses,
                          String description
     ) {
         return Group.builder()
@@ -57,8 +61,8 @@ public class GroupFactory {
                 .attenders(attenders.stream()
                         .map(UserId::of)
                         .collect(Collectors.toSet()))
-                .cloudAccesses(cloudAccesses.stream()
-                        .map(CloudAccessClientId::of)
+                .cloudResourceAccesses(cloudResourceAccesses.stream()
+                        .map(CloudResourceAccessId::of)
                         .collect(Collectors.toSet()))
                 .description(Description.of(description))
                 .build();

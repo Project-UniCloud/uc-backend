@@ -1,6 +1,7 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.cloud.CloudAccessQueryService;
+import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
+import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
@@ -17,7 +18,8 @@ class GroupConfig {
             GroupToDtoMapper groupToDtoMapper,
             UserValidationService userValidationService,
             UserQueryService userQueryService,
-            CloudAccessQueryService cloudAccessQueryService,
+            CloudResourceAccessQueryService cloudResourceAccessQueryService,
+            CloudResourceAccessCommandService cloudResourceAccessCommandService,
             UserCommandService userCommandService
     ) {
         return new GroupService(
@@ -26,7 +28,8 @@ class GroupConfig {
                 groupToDtoMapper,
                 userValidationService,
                 userQueryService,
-                cloudAccessQueryService,
+                cloudResourceAccessQueryService,
+                cloudResourceAccessCommandService,
                 userCommandService
         );
     }

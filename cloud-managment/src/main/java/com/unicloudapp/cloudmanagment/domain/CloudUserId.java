@@ -4,15 +4,13 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 
-import java.util.UUID;
-
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class CloudAccessId {
+public class CloudUserId {
 
-    UUID value;
+    String userId;
 
-    public static CloudAccessId of(UUID value) {
-        return new CloudAccessId(value);
+    public static CloudUserId of(String id) {
+        return new CloudUserId(id);
     }
 }

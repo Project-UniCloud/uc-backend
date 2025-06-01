@@ -34,6 +34,8 @@ adapters:
       port: ${ADAPTER_AWS_PORT:50051}
       costLimit: 3000.00
       cronExpression: 0 0 3 * * *
+      resourceTypes:
+        - ec2
 server:
   servlet:
     context-path: /api
