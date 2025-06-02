@@ -3,6 +3,7 @@ package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import io.grpc.ManagedChannel;
@@ -35,11 +36,15 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
     }
 
     @Override
-    public GroupUniqueName createGroup(GroupUniqueName groupUniqueName,
-                              List<UserLogin> lecturerLogins
+    public GroupUniqueName createGroup(
+            GroupUniqueName groupUniqueName,
+            List<UserLogin> lecturerLogins,
+            CloudResourceType resourceType
     ) {
         try {
-            AdapterInterface.CreateGroupWithLeadersRequest request = AdapterInterface.CreateGroupWithLeadersRequest.newBuilder()
+            AdapterInterface.CreateGroupWithLeadersRequest request = AdapterInterface.CreateGroupWithLeadersRequest
+                    .newBuilder()
+                    .setResourceType(resourceType.getName())
                     .setGroupName(groupUniqueName.toString())
                     .addAllLeaders(lecturerLogins.stream().map(UserLogin::toString).collect(Collectors.toList()))
                     .build();

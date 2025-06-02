@@ -18,6 +18,7 @@ public interface CloudResourceAccessCommandService {
 
     void createGroup(GroupUniqueName groupUniqueName,
                      CloudAccessClientId cloudAccessClientId,
-                     List<UserLogin> lecturerLogins
+                     List<UserLogin> lecturerLogins,
+                     CloudResourceType resourceType
     );
 }

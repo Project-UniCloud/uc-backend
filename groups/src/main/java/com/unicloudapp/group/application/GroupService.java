@@ -201,7 +201,7 @@ public class GroupService {
                 group.getLecturers()
         );
         if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudAccessClientId)) {
-            cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudAccessClientId, lecturerLogins);
+            cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudAccessClientId, lecturerLogins, cloudResourceType);
         }
         return cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
                 cloudAccessClientId,

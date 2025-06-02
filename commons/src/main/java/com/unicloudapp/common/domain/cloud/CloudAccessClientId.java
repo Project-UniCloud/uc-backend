@@ -16,4 +16,9 @@ public class CloudAccessClientId {
         }
         return new CloudAccessClientId(accessId);
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

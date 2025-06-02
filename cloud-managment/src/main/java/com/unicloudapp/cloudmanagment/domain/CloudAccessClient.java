@@ -26,9 +26,12 @@ public class CloudAccessClient {
         return resourceTypes.contains(resourceType);
     }
 
-    public GroupUniqueName createGroup(GroupUniqueName groupUniqueName,
-                                           List<UserLogin> lecturerLogins) {
-        return controller.createGroup(groupUniqueName, lecturerLogins);
+    public GroupUniqueName createGroup(
+            GroupUniqueName groupUniqueName,
+            List<UserLogin> lecturerLogins,
+            CloudResourceType resourceType
+    ) {
+        return controller.createGroup(groupUniqueName, lecturerLogins, resourceType);
     }
 
     public boolean isCloudGroupExists(GroupUniqueName groupUniqueName) {

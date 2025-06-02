@@ -13,4 +13,9 @@ public class CloudResourceType {
     public static CloudResourceType of(String name) {
         return new CloudResourceType(name);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

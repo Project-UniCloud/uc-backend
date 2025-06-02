@@ -36,6 +36,16 @@ public class CloudAccessService
         return clients.containsKey(cloudAccessClientId.getValue());
     }
 
+    public List<CloudResourceType> getCloudResourceTypesForCloudAccessClient(
+            CloudAccessClientId cloudAccessClientId
+    ) {
+        if (!isCloudClientExists(cloudAccessClientId)) {
+            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
+        }
+        CloudAccessClient cloudAccessClient = clients.get(cloudAccessClientId.getValue());
+        return cloudAccessClient.getResourceTypes();
+    }
+
     @Override
     public Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds) {
         return cloudAccessRepository.getCloudResourceAccesses(cloudResourceAccessIds)
@@ -82,11 +92,19 @@ public class CloudAccessService
     @Override
     public void createGroup(GroupUniqueName groupUniqueName,
                             CloudAccessClientId cloudAccessClientId,
-                            List<UserLogin> lecturerLogins
+                            List<UserLogin> lecturerLogins,
+                            CloudResourceType resourceType
     ) {
         if (!isCloudClientExists(cloudAccessClientId)) {
             throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
         }
-        clients.get(cloudAccessClientId.getValue()).createGroup(groupUniqueName, lecturerLogins);
+        clients.get(cloudAccessClientId.getValue()).createGroup(groupUniqueName, lecturerLogins, resourceType);
+    }
+
+    public List<CloudAccessClientId> getCloudAccessClients() {
+        return clients.keySet()
+                .stream()
+                .map(CloudAccessClientId::of)
+                .toList();
     }
 }
