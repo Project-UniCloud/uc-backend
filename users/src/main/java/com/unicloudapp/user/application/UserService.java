@@ -1,5 +1,6 @@
 package com.unicloudapp.user.application;
 
+import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
@@ -104,6 +105,7 @@ implements UserValidationService,
                         .login(UserLogin.of(userRowProjection.getLogin()))
                         .firstName(FirstName.of(userRowProjection.getFirstName()))
                         .lastName(LastName.of(userRowProjection.getLastName()))
+                        .email(Email.of(userRowProjection.getEmail()))
                         .build())
                 .toList();
     }
