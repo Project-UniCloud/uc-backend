@@ -3,6 +3,7 @@ package com.unicloudapp.group.application;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
@@ -124,15 +125,6 @@ class GroupServiceDiffblueTest {
         assertNull(actualCreateGroupResult);
     }
 
-    /**
-     * Test {@link GroupService#addAttender(GroupId, UserId)}.
-     * <ul>
-     *   <li>Given {@link Group} {@link Group#addAttender(UserId)} does nothing.</li>
-     *   <li>Then calls {@link GroupRepositoryPort#findById(UUID)}.</li>
-     * </ul>
-     * <p>
-     * Method under test: {@link GroupService#addAttender(GroupId, UserId)}
-     */
     @Test
     @DisplayName("Test addAttender(GroupId, UserId); given Group addAttender(UserId) does nothing; then calls findById(UUID)")
     void testAddAttender_givenGroupAddAttenderDoesNothing_thenCallsFindById() {
@@ -147,7 +139,8 @@ class GroupServiceDiffblueTest {
 
         // Act
         groupService.addAttender(GroupId.of(UUID.randomUUID()),
-                UserId.of(UUID.randomUUID())
+                StudentBasicData.builder()
+                        .build()
         );
 
         // Assert

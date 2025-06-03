@@ -6,6 +6,7 @@ import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.group.application.*;
 import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.group.domain.GroupStatus;
@@ -48,14 +49,14 @@ class GroupRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{groupId}/attenders/{attenderId}")
+    @PostMapping("/{groupId}/attenders")
     @ResponseStatus(HttpStatus.OK)
-    void addAttender(@PathVariable UUID groupId, @PathVariable UUID attenderId) {
-        groupService.addAttender(GroupId.of(groupId), UserId.of(attenderId));
+    void addAttender(@PathVariable UUID groupId, @RequestBody StudentBasicData request) {
+        groupService.addAttender(GroupId.of(groupId), request);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{groupId}/attenders")
+    @PostMapping("/{groupId}/attenders/import")
     @ResponseStatus(HttpStatus.OK)
     void addAttenders(@PathVariable UUID groupId, @RequestParam("file") MultipartFile file) throws IOException {
         List<StudentBasicData> parsedStudentBasicData = csvUserImporter.parseCsv(file);

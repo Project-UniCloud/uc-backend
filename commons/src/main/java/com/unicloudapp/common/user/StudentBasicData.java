@@ -1,15 +1,16 @@
 package com.unicloudapp.common.user;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 public class StudentBasicData {
 
     private String firstName;
     private String lastName;
     private String login;
+    private String email;
 }

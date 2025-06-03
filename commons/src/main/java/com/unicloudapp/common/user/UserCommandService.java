@@ -7,4 +7,6 @@ import java.util.List;
 public interface UserCommandService {
 
     List<UserId> importStudents(List<StudentBasicData> studentBasicData);
+
+    UserId createStudent(StudentBasicData studentBasicData);
 }

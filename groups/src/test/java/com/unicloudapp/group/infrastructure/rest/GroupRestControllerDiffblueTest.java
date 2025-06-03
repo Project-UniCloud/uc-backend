@@ -3,6 +3,7 @@ package com.unicloudapp.group.infrastructure.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
@@ -148,32 +149,28 @@ class GroupRestControllerDiffblueTest {
         );
     }
 
-    /**
-     * Test {@link GroupRestController#addAttender(UUID, UUID)}.
-     * <p>
-     * Method under test: {@link GroupRestController#addAttender(UUID, UUID)}
-     */
     @Test
-    @DisplayName("Test addAttender(UUID, UUID)")
+    @DisplayName("Test addAttender(UUID, StudentBasicData)")
     void testAddAttender() throws Exception {
         // Arrange
+        UUID groupId = UUID.randomUUID();
+        StudentBasicData requestData = StudentBasicData.builder().build();
+
         doNothing().when(groupService)
-                .addAttender(Mockito.<GroupId>any(),
-                        Mockito.<UserId>any()
-                );
-        UUID randomUUIDResult = UUID.randomUUID();
+                .addAttender(Mockito.any(), Mockito.any());
+
+        String json = new ObjectMapper().writeValueAsString(requestData);
+
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-                .post("/groups/{groupId}/attenders/{attenderId}",
-                        randomUUIDResult,
-                        UUID.randomUUID()
-                );
+                .post("/groups/{groupId}/attenders", groupId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
 
         // Act and Assert
         MockMvcBuilders.standaloneSetup(groupRestController)
                 .build()
                 .perform(requestBuilder)
-                .andExpect(MockMvcResultMatchers.status()
-                        .isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 
     @Test

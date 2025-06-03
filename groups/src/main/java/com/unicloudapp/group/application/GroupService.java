@@ -62,14 +62,11 @@ public class GroupService {
     }
 
     @Transactional
-    public void addAttender(GroupId groupId, UserId attenderId) {
-        boolean isStudent = userValidationService.isUserStudent(attenderId);
-        if (!isStudent) {
-            throw new RuntimeException("User " + attenderId.getValue() + " is not a student or does not exist.");
-        }
+    public void addAttender(GroupId groupId, StudentBasicData studentBasicData) {
+        UserId userId = userCommandService.createStudent(studentBasicData);
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow();
-        group.addAttender(attenderId);
+        group.addAttender(userId);
         groupRepository.save(group);
     }
 

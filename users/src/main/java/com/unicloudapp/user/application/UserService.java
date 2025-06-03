@@ -136,4 +136,16 @@ implements UserValidationService,
                 .toList();
         return userRepository.saveAll(students);
     }
+
+    @Override
+    public UserId createStudent(StudentBasicData studentBasicData) {
+        User user = userFactory.create(
+                UserId.of(UUID.randomUUID()),
+                UserLogin.of(studentBasicData.getLogin()),
+                FirstName.of(studentBasicData.getFirstName()),
+                LastName.of(studentBasicData.getLastName()),
+                UserRole.of(UserRole.Type.STUDENT)
+        );
+        return userRepository.save(user).getUserId();
+    }
 }
