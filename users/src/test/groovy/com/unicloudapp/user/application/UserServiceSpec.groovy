@@ -24,6 +24,7 @@ class UserServiceSpec extends Specification {
     def login = "jane.doe"
     def firstName = "Jane"
     def lastName = "Doe"
+    def email = "test@email.com"
 
     @Subject
     UserService userService = new UserService(userRepository, userFactory)
@@ -199,6 +200,7 @@ class UserServiceSpec extends Specification {
                 .firstName(firstName)
                 .lastName(lastName)
                 .login(login)
+                .email(email)
                 .build()
     }
 
@@ -207,6 +209,7 @@ class UserServiceSpec extends Specification {
                 .firstName(firstName)
                 .lastName(lastName)
                 .login(login)
+                .email(email)
                 .build()
     }
 }
