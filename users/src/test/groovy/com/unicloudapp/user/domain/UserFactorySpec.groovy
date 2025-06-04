@@ -27,7 +27,7 @@ class UserFactorySpec extends Specification {
         user.userLogin == indexNumber
         user.firstName == firstName
         user.lastName == lastName
-        user.email == Email.empty()
+        user.email == email
         user.lastLoginAt == LastLoginAt.empty()
         user.userRole == roleType
     }
