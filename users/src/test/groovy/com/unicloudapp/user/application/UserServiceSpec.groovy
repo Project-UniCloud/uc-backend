@@ -38,7 +38,7 @@ class UserServiceSpec extends Specification {
         def result = userService.createLecturer(command)
 
         then:
-        1 * userFactory.create(_, _, _, _, _) >> user
+        1 * userFactory.create(_, _, _, _, _, _) >> user
         1 * userRepository.save(user) >> user
         result == user
     }
@@ -52,7 +52,7 @@ class UserServiceSpec extends Specification {
         def result = userService.createStudent(command)
 
         then:
-        1 * userFactory.create(_, _, _, _, _) >> user
+        1 * userFactory.create(_, _, _, _, _, _) >> user
         1 * userRepository.save(user) >> user
         result == user
     }
