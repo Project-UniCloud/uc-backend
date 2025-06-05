@@ -151,6 +151,7 @@ public class GroupService {
                 ).values()).stream().map(UserFullName::getFullName).collect(Collectors.toSet());
         return GroupDetailsView.builder()
                 .groupId(details.getUuid())
+                .name(details.getName())
                 .lecturerFullNames(lecturers)
                 .status(details.getGroupStatus().getDisplayName())
                 .description(details.getDescription())
