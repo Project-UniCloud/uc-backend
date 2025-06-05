@@ -5,6 +5,7 @@ import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.group.GroupUniqueName;
 
+import java.util.List;
 import java.util.Set;
 
 public interface CloudResourceAccessQueryService {
@@ -13,5 +14,5 @@ public interface CloudResourceAccessQueryService {
 
     boolean isCloudGroupExists(GroupUniqueName groupId, CloudAccessClientId cloudAccessClientId);
 
-    void getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
+    List<CloudResourceTypeRowView> getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
 }

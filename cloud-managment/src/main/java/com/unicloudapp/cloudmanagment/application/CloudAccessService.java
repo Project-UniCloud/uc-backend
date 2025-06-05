@@ -4,6 +4,7 @@ import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
+import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -11,6 +12,9 @@ import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,8 +71,20 @@ public class CloudAccessService
     }
 
     @Override
-    public void getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccesses) {
-
+    public List<CloudResourceTypeRowView> getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
+        List<CloudResourceAccess> cloudResourceAccesses = cloudAccessRepository.findAllById(cloudResourceAccessIds);
+        return cloudResourceAccesses.stream()
+                .map(cloudResourceAccess -> CloudResourceTypeRowView.builder()
+                        .name(cloudResourceAccess.getCloudResourceType().getName())
+                        .costLimit(cloudResourceAccess.getCostLimit().getCost())
+                        .clientId(cloudResourceAccess.getCloudAccessClientId().getValue())
+                        .status("ACTIVE") //TODO
+                        .cronCleanupSchedule("0 2 */2 * *")//TODO
+                        .lastUsedAt(LocalDateTime.now())//TODO
+                        .expiresAt(LocalDate.now().plusDays(30))//TODO
+                        .limitUsed(BigDecimal.ZERO)//TODO
+                        .build())
+                .toList();
     }
 
     @Override

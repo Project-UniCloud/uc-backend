@@ -1,5 +1,6 @@
 package com.unicloudapp.group.infrastructure.rest;
 
+import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
@@ -129,7 +130,7 @@ class GroupRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping(value = "/{groupId}", consumes = "application/json")
+    @PatchMapping(value = "/{groupId}")
     @ResponseStatus(HttpStatus.OK)
     void updateGroup(
             @PathVariable UUID groupId,
@@ -146,5 +147,12 @@ class GroupRestController {
                         .description(request.description())
                         .build()
         );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/{groupId}/cloud-access")
+    @ResponseStatus(HttpStatus.OK)
+    List<CloudResourceTypeRowView> getCloudResourceAccesses(@PathVariable UUID groupId) {
+        return groupService.getCloudResourceAccesses(GroupId.of(groupId));
     }
 }

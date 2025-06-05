@@ -2,6 +2,7 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
+import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -212,11 +213,11 @@ public class GroupService {
         return cloudResourceAccessId;
     }
 
-    public void getCloudResourceAccesses(GroupId groupId) {
+    public List<CloudResourceTypeRowView> getCloudResourceAccesses(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
-        cloudResourceAccessQueryService.getCloudResourceTypesDetails(cloudResourceAccesses);
+        return cloudResourceAccessQueryService.getCloudResourceTypesDetails(cloudResourceAccesses);
     }
 
     public void updateGroup(GroupId groupId, GroupDTO groupDTO) {

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,6 +30,14 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
                 .stream()
                 .map(cloudAccessMapper::toDomain)
                 .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<CloudResourceAccess> findAllById(Set<CloudResourceAccessId> cloudResourceAccessIds) {
+        return repository.findAllById(cloudResourceAccessIds.stream().map(CloudResourceAccessId::getValue).toList())
+                .stream()
+                .map(cloudAccessMapper::toDomain)
+                .toList();
     }
 }
 
