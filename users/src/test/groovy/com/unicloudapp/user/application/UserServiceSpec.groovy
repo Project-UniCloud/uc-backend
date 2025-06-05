@@ -24,6 +24,7 @@ class UserServiceSpec extends Specification {
     def login = "jane.doe"
     def firstName = "Jane"
     def lastName = "Doe"
+    def email = "test@email.com"
 
     @Subject
     UserService userService = new UserService(userRepository, userFactory)
@@ -37,7 +38,7 @@ class UserServiceSpec extends Specification {
         def result = userService.createLecturer(command)
 
         then:
-        1 * userFactory.create(_, _, _, _, _) >> user
+        1 * userFactory.create(_, _, _, _, _, _) >> user
         1 * userRepository.save(user) >> user
         result == user
     }
@@ -51,7 +52,7 @@ class UserServiceSpec extends Specification {
         def result = userService.createStudent(command)
 
         then:
-        1 * userFactory.create(_, _, _, _, _) >> user
+        1 * userFactory.create(_, _, _, _, _, _) >> user
         1 * userRepository.save(user) >> user
         result == user
     }
@@ -199,6 +200,7 @@ class UserServiceSpec extends Specification {
                 .firstName(firstName)
                 .lastName(lastName)
                 .login(login)
+                .email(email)
                 .build()
     }
 
@@ -207,6 +209,7 @@ class UserServiceSpec extends Specification {
                 .firstName(firstName)
                 .lastName(lastName)
                 .login(login)
+                .email(email)
                 .build()
     }
 }

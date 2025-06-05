@@ -9,6 +9,7 @@ public class UserFactory {
                        UserLogin userLogin,
                        FirstName firstName,
                        LastName lastName,
+                       Email email,
                        UserRole userRole
     ) {
         return buildUser(
@@ -17,7 +18,7 @@ public class UserFactory {
                 firstName,
                 lastName,
                 userRole,
-                Email.empty(),
+                email,
                 LastLoginAt.empty()
         );
     }

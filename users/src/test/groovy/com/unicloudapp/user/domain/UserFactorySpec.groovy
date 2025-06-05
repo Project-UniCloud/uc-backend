@@ -1,6 +1,5 @@
 package com.unicloudapp.user.domain
 
-import com.jayway.jsonpath.internal.function.sequence.First
 import com.unicloudapp.common.domain.Email
 import com.unicloudapp.common.domain.user.*
 import spock.lang.Specification
@@ -17,17 +16,18 @@ class UserFactorySpec extends Specification {
         UserLogin indexNumber = UserLogin.of("12345")
         FirstName firstName = FirstName.of("Jan")
         LastName lastName = LastName.of("Kowalski")
+        Email email = Email.of("test@email.com")
         UserRole roleType = UserRole.of(UserRole.Type.STUDENT)
 
         when:
-        User user = factory.create(userId, indexNumber, firstName, lastName, roleType)
+        User user = factory.create(userId, indexNumber, firstName, lastName, email, roleType)
 
         then:
         user.userId == userId
         user.userLogin == indexNumber
         user.firstName == firstName
         user.lastName == lastName
-        user.email == Email.empty()
+        user.email == email
         user.lastLoginAt == LastLoginAt.empty()
         user.userRole == roleType
     }

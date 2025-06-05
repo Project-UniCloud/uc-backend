@@ -49,6 +49,7 @@ implements UserValidationService,
                 UserLogin.of(command.login()),
                 FirstName.of(command.firstName()),
                 LastName.of(command.lastName()),
+                Email.of(command.email()),
                 UserRole.of(UserRole.Type.LECTURER)
         );
         return userRepository.save(user);
@@ -61,6 +62,7 @@ implements UserValidationService,
                 UserLogin.of(command.login()),
                 FirstName.of(command.firstName()),
                 LastName.of(command.lastName()),
+                Email.of(command.email()),
                 UserRole.of(UserRole.Type.STUDENT)
         );
         return userRepository.save(user);
@@ -133,6 +135,7 @@ implements UserValidationService,
                         UserLogin.of(data.getLogin()),
                         FirstName.of(data.getFirstName()),
                         LastName.of(data.getLastName()),
+                        Email.of(data.getEmail()),
                         UserRole.of(UserRole.Type.STUDENT)
                 ))
                 .toList();
@@ -146,6 +149,7 @@ implements UserValidationService,
                 UserLogin.of(studentBasicData.getLogin()),
                 FirstName.of(studentBasicData.getFirstName()),
                 LastName.of(studentBasicData.getLastName()),
+                Email.of(studentBasicData.getEmail()),
                 UserRole.of(UserRole.Type.STUDENT)
         );
         return userRepository.save(user).getUserId();
