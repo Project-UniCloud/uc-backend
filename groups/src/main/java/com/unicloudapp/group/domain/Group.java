@@ -35,6 +35,19 @@ public class Group {
         cloudResourceAccesses.add(cloudResourceAccessId);
     }
 
+    public void update(GroupName name,
+                       Set<UserId> lecturers,
+                       StartDate startDate,
+                       EndDate endDate,
+                       Description description
+    ) {
+        this.name = name;
+        this.lecturers.addAll(lecturers);
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description;
+    }
+
     static class GroupBuilder {
 
         GroupBuilder attenders(Set<UserId> attenders) {

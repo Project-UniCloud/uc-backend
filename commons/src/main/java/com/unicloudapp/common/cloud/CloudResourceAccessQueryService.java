@@ -12,4 +12,6 @@ public interface CloudResourceAccessQueryService {
     Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds);
 
     boolean isCloudGroupExists(GroupUniqueName groupId, CloudAccessClientId cloudAccessClientId);
+
+    void getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
 }

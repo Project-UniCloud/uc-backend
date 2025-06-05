@@ -1,9 +1,11 @@
 package com.unicloudapp.group.infrastructure.rest;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.unicloudapp.common.domain.user.FirstName;
+import lombok.Builder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,9 +23,10 @@ record GiveCloudResourceAccessRequest(
         String cloudResourceType
 ) {}
 
-record CreateStudentInGroupRequest(
-        String firstName,
-        String lastName,
-        String login,
-        String email
+record UpdateGroupDetailsRequest(
+        String name,
+        Set<UUID> lecturers,
+        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
+        String description
 ) {}

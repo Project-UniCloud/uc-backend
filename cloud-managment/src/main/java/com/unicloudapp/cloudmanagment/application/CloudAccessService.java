@@ -67,6 +67,11 @@ public class CloudAccessService
     }
 
     @Override
+    public void getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccesses) {
+
+    }
+
+    @Override
     public CloudResourceAccessId giveGroupCloudResourceAccess(CloudAccessClientId cloudAccessClientId,
                                                               CloudResourceType cloudResourceType,
                                                               GroupUniqueName groupUniqueName

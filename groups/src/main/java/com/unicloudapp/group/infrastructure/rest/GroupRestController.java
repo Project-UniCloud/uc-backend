@@ -4,11 +4,9 @@ import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
-import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.common.user.UserCommandService;
-import com.unicloudapp.group.application.*;
 import com.unicloudapp.common.domain.group.GroupId;
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.group.application.*;
 import com.unicloudapp.group.domain.GroupStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -127,6 +125,26 @@ class GroupRestController {
                 GroupId.of(groupId),
                 CloudAccessClientId.of(request.cloudAccessClientId()),
                 CloudResourceType.of(request.cloudResourceType())
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping(value = "/{groupId}", consumes = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    void updateGroup(
+            @PathVariable UUID groupId,
+            @RequestBody UpdateGroupDetailsRequest request
+    ) {
+        groupService.updateGroup(
+                GroupId.of(groupId),
+                GroupDTO.builder()
+                        .groupId(groupId)
+                        .name(request.name())
+                        .lecturers(request.lecturers())
+                        .startDate(request.startDate())
+                        .endDate(request.endDate())
+                        .description(request.description())
+                        .build()
         );
     }
 }

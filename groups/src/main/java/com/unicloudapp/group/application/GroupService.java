@@ -12,9 +12,7 @@ import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.user.*;
-import com.unicloudapp.group.domain.Group;
-import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -203,10 +201,33 @@ public class GroupService {
         if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudAccessClientId)) {
             cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudAccessClientId, lecturerLogins, cloudResourceType);
         }
-        return cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
+        CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
                 cloudAccessClientId,
                 cloudResourceType,
                 groupUniqueName
         );
+        group.giveCloudResourceAccess(cloudResourceAccessId);
+        groupRepository.save(group);
+        return cloudResourceAccessId;
+    }
+
+    public void getCloudResourceAccesses(GroupId groupId) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
+        cloudResourceAccessQueryService.getCloudResourceTypesDetails(cloudResourceAccesses);
+    }
+
+    public void updateGroup(GroupId groupId, GroupDTO groupDTO) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        group.update(
+                GroupName.of(groupDTO.name()),
+                groupDTO.lecturers().stream().map(UserId::of).collect(Collectors.toSet()),
+                StartDate.of(groupDTO.startDate()),
+                EndDate.of(groupDTO.endDate()),
+                Description.of(groupDTO.description())
+        );
+        groupRepository.save(group);
     }
 }
