@@ -16,9 +16,6 @@ val lombokVersion = "1.18.38"
 val jakartaValidationVersion = "3.0.0"
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-
     implementation("jakarta.validation:jakarta.validation-api:$jakartaValidationVersion")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
@@ -26,6 +23,10 @@ dependencies {
     implementation("org.jetbrains:annotations:$jetbrainsAnnotationsVersion")
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+    }
 }
 
 tasks.test {

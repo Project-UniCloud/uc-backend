@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+adapters:
+  clients:
+    aws:
+      name: AWS adapter
+      host: localhost
+      port: 50051
+      costLimit: 3000.00
+      cronExpression: 0 0 3 * * *
+      resourceTypes:
+        - ec2
