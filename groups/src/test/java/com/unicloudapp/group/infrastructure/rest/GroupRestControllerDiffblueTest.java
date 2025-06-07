@@ -2,7 +2,6 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.GroupDTO;
@@ -150,8 +149,8 @@ class GroupRestControllerDiffblueTest {
     }
 
     @Test
-    @DisplayName("Test addAttender(UUID, StudentBasicData)")
-    void testAddAttender() throws Exception {
+    @DisplayName("Test addStudent(UUID, StudentBasicData)")
+    void testAddStudent() throws Exception {
         // Arrange
         UUID groupId = UUID.randomUUID();
         StudentBasicData requestData = StudentBasicData.builder()
@@ -162,7 +161,7 @@ class GroupRestControllerDiffblueTest {
                 .build();
 
         doNothing().when(groupService)
-                .addAttender(Mockito.any(), Mockito.any());
+                .addStudent(Mockito.any(), Mockito.any());
 
         String json = new ObjectMapper().writeValueAsString(requestData);
 

@@ -52,16 +52,16 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{groupId}/students")
     @ResponseStatus(HttpStatus.OK)
-    void addAttender(@PathVariable UUID groupId, @RequestBody @Valid StudentBasicData request) {
-        groupService.addAttender(GroupId.of(groupId), request);
+    void addStudent(@PathVariable UUID groupId, @RequestBody @Valid StudentBasicData request) {
+        groupService.addStudent(GroupId.of(groupId), request);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{groupId}/students/import")
     @ResponseStatus(HttpStatus.OK)
-    void addAttenders(@PathVariable UUID groupId, @RequestParam("file") MultipartFile file) throws IOException {
+    void importStudents(@PathVariable UUID groupId, @RequestParam("file") MultipartFile file) throws IOException {
         List<StudentBasicData> parsedStudentBasicData = csvUserImporter.parseCsv(file);
-        groupService.addAttenders(GroupId.of(groupId), parsedStudentBasicData);
+        groupService.addStudents(GroupId.of(groupId), parsedStudentBasicData);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -100,13 +100,13 @@ class GroupRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{groupId}/students")
-    Page<UserRowViewResponse> getAttendersDetails(
+    Page<UserRowViewResponse> getStudentsDetails(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @PathVariable @NotNull UUID groupId
     ) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        return groupService.getAttendersDetailsByGroupId(GroupId.of(groupId), pageable)
+        return groupService.getStudentsDetailsByGroupId(GroupId.of(groupId), pageable)
                 .map(userDetails -> UserRowViewResponse.builder()
                         .uuid(userDetails.userId().getValue())
                         .login(userDetails.login().getValue())

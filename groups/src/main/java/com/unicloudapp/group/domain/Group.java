@@ -27,7 +27,7 @@ public class Group {
     private final Set<CloudResourceAccessId> cloudResourceAccesses;
     private Description description;
 
-    public void addAttender(UserId studentId) {
+    public void addStudent(UserId studentId) {
         students.add(studentId);
     }
 

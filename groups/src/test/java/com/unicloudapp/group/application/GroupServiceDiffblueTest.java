@@ -126,19 +126,19 @@ class GroupServiceDiffblueTest {
     }
 
     @Test
-    @DisplayName("Test addAttender(GroupId, UserId); given Group addAttender(UserId) does nothing; then calls findById(UUID)")
-    void testAddAttender_givenGroupAddAttenderDoesNothing_thenCallsFindById() {
+    @DisplayName("Test addStudent(GroupId, UserId); given Group addStudent(UserId) does nothing; then calls findById(UUID)")
+    void testAddStudent_givenGroupAddStudentDoesNothing_thenCallsFindById() {
         // Arrange
         Group group = mock(Group.class);
         doNothing().when(group)
-                .addAttender(Mockito.<UserId>any());
+                .addStudent(Mockito.<UserId>any());
         Optional<Group> ofResult = Optional.of(group);
         when(groupRepositoryPort.save(Mockito.<Group>any())).thenReturn(null);
         when(groupRepositoryPort.findById(Mockito.<UUID>any())).thenReturn(ofResult);
         when(userValidationService.isUserStudent(Mockito.any())).thenReturn(true);
 
         // Act
-        groupService.addAttender(GroupId.of(UUID.randomUUID()),
+        groupService.addStudent(GroupId.of(UUID.randomUUID()),
                 StudentBasicData.builder()
                         .build()
         );
@@ -146,7 +146,7 @@ class GroupServiceDiffblueTest {
         // Assert
         verify(groupRepositoryPort).findById(isA(UUID.class));
         verify(groupRepositoryPort).save(isA(Group.class));
-        verify(group).addAttender(any());
+        verify(group).addStudent(any());
     }
 
     /**

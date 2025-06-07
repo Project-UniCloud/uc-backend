@@ -67,11 +67,11 @@ public class GroupService {
     }
 
     @Transactional
-    public void addAttender(GroupId groupId, StudentBasicData studentBasicData) {
+    public void addStudent(GroupId groupId, StudentBasicData studentBasicData) {
         UserId userId = userCommandService.createStudent(studentBasicData);
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow();
-        group.addAttender(userId);
+        group.addStudent(userId);
         groupRepository.save(group);
     }
 
@@ -163,7 +163,7 @@ public class GroupService {
                 .build();
     }
 
-    public Page<UserDetails> getAttendersDetailsByGroupId(GroupId groupId, Pageable pageable) {
+    public Page<UserDetails> getStudentsDetailsByGroupId(GroupId groupId, Pageable pageable) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         int size = pageable.getPageSize();
@@ -181,11 +181,11 @@ public class GroupService {
     }
 
     @Transactional
-    public void addAttenders(GroupId groupId, List<StudentBasicData> studentBasicData) {
+    public void addStudents(GroupId groupId, List<StudentBasicData> studentBasicData) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         List<UserId> importedStudents = userCommandService.importStudents(studentBasicData);
-        importedStudents.forEach(group::addAttender);
+        importedStudents.forEach(group::addStudent);
         groupRepository.save(group);
     }
 
