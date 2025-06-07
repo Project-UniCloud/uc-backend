@@ -12,7 +12,7 @@ INSERT INTO group_lecturers (group_id, user_id)
 VALUES ('387a914e-2f8b-4d0b-9248-f72f05e1c73b', 'dd978dc3-661d-4a72-a210-51bfcecb33e3');
 
 -- Attenders
-INSERT INTO group_attenders (group_id, user_id)
+INSERT INTO group_students (group_id, user_id)
 VALUES ('387a914e-2f8b-4d0b-9248-f72f05e1c73b', '03a021bd-6b89-4aea-8fee-14e5e32aaf1e');
 
 -- Cloud accesses

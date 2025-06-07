@@ -24,7 +24,7 @@ class GroupToDtoMapperTest {
     void shouldMapGroupToDtoAndBack() {
         var groupId = UUID.randomUUID();
         var lecturerId = UUID.randomUUID();
-        var attenderId = UUID.randomUUID();
+        var studentId = UUID.randomUUID();
         LocalDate startDate = LocalDate.of(2024,
                 1,
                 1
@@ -43,7 +43,7 @@ class GroupToDtoMapperTest {
                         startDate,
                         endDate,
                         Set.of(lecturerId),
-                        Set.of(attenderId),
+                        Set.of(studentId),
                         Set.of(uuid),
                         "Test description"
                 );
@@ -58,7 +58,7 @@ class GroupToDtoMapperTest {
         assertThat(dto.startDate()).isEqualTo(startDate);
         assertThat(dto.endDate()).isEqualTo(endDate);
         assertThat(dto.lecturers()).containsExactly(lecturerId);
-        assertThat(dto.attenders()).containsExactly(attenderId);
+        assertThat(dto.students()).containsExactly(studentId);
         assertThat(dto.cloudResourceAccesses()).containsExactly(uuid);
     }
 

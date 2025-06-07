@@ -162,7 +162,7 @@ class GroupRestControllerDiffblueTest {
         String json = new ObjectMapper().writeValueAsString(requestData);
 
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-                .post("/groups/{groupId}/attenders", groupId)
+                .post("/groups/{groupId}/students", groupId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json);
 

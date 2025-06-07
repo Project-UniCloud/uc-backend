@@ -23,7 +23,7 @@ interface GroupToDtoMapper {
     @Mapping(source = "startDate.value", target = "startDate")
     @Mapping(source = "endDate.value", target = "endDate")
     @Mapping(source = "lecturers", target = "lecturers")
-    @Mapping(source = "attenders", target = "attenders")
+    @Mapping(source = "students", target = "students")
     @Mapping(source = "cloudResourceAccesses", target = "cloudResourceAccesses")
     @Mapping(source = "description.value", target = "description")
     GroupDTO toDto(Group group);

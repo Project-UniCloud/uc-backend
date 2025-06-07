@@ -48,14 +48,14 @@ class GroupRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{groupId}/attenders")
+    @PostMapping("/{groupId}/students")
     @ResponseStatus(HttpStatus.OK)
     void addAttender(@PathVariable UUID groupId, @RequestBody StudentBasicData request) {
         groupService.addAttender(GroupId.of(groupId), request);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{groupId}/attenders/import")
+    @PostMapping("/{groupId}/students/import")
     @ResponseStatus(HttpStatus.OK)
     void addAttenders(@PathVariable UUID groupId, @RequestParam("file") MultipartFile file) throws IOException {
         List<StudentBasicData> parsedStudentBasicData = csvUserImporter.parseCsv(file);

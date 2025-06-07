@@ -23,12 +23,12 @@ public class Group {
     private StartDate startDate;
     private EndDate endDate;
     private final Set<UserId> lecturers;
-    private final Set<UserId> attenders;
+    private final Set<UserId> students;
     private final Set<CloudResourceAccessId> cloudResourceAccesses;
     private Description description;
 
-    public void addAttender(UserId attenderId) {
-        attenders.add(attenderId);
+    public void addAttender(UserId studentId) {
+        students.add(studentId);
     }
 
     public void giveCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
@@ -50,8 +50,8 @@ public class Group {
 
     static class GroupBuilder {
 
-        GroupBuilder attenders(Set<UserId> attenders) {
-            GroupBuilder.this.attenders = new HashSet<>(attenders);
+        GroupBuilder students(Set<UserId> students) {
+            GroupBuilder.this.students = new HashSet<>(students);
             return this;
         }
     }

@@ -24,7 +24,7 @@ class GroupToEntityMapper {
                 .lecturers(group.getLecturers().stream()
                         .map(UserId::getValue)
                         .collect(Collectors.toSet()))
-                .attenders(group.getAttenders().stream()
+                .students(group.getStudents().stream()
                         .map(UserId::getValue)
                         .collect(Collectors.toSet()))
                 .cloudResourceAccesses(group.getCloudResourceAccesses().stream()
@@ -43,7 +43,7 @@ class GroupToEntityMapper {
                 groupEntity.getStartDate(),
                 groupEntity.getEndDate(),
                 groupEntity.getLecturers(),
-                groupEntity.getAttenders(),
+                groupEntity.getStudents(),
                 groupEntity.getCloudResourceAccesses(),
                 groupEntity.getDescription()
         );

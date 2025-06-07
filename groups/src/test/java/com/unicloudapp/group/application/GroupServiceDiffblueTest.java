@@ -98,7 +98,7 @@ class GroupServiceDiffblueTest {
                 1
         );
         HashSet<UUID> lecturers = new HashSet<>();
-        HashSet<UUID> attenders = new HashSet<>();
+        HashSet<UUID> students = new HashSet<>();
 
         // Act
         Group actualCreateGroupResult = groupService.createGroup(new GroupDTO(groupId,
@@ -108,7 +108,7 @@ class GroupServiceDiffblueTest {
                 startDate,
                 endDate,
                 lecturers,
-                attenders,
+                students,
                 new HashSet<>(),
                 "Description"
         ));

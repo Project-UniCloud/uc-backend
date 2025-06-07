@@ -167,7 +167,7 @@ public class GroupService {
         int page = pageable.getPageNumber();
         int offset = page * size;
         List<UserDetails> userDetailsByIds = userQueryService.getUserDetailsByIds(
-                group.getAttenders(), offset, size
+                group.getStudents(), offset, size
         );
         return new PageImpl<>(userDetailsByIds,
                 PageRequest.of(page,

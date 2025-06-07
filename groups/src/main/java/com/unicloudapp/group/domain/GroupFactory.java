@@ -27,7 +27,7 @@ public class GroupFactory {
                 .lecturers(lecturers.stream()
                         .map(UserId::of)
                         .collect(Collectors.toSet()))
-                .attenders(new HashSet<>())
+                .students(new HashSet<>())
                 .cloudResourceAccesses(new HashSet<>())
                 .name(GroupName.of(groupName))
                 .semester(Semester.of(semester))
@@ -44,7 +44,7 @@ public class GroupFactory {
                          LocalDate startDate,
                          LocalDate endDate,
                          Set<UUID> lecturers,
-                         Set<UUID> attenders,
+                         Set<UUID> students,
                          Set<UUID> cloudResourceAccesses,
                          String description
     ) {
@@ -58,7 +58,7 @@ public class GroupFactory {
                 .lecturers(lecturers.stream()
                         .map(UserId::of)
                         .collect(Collectors.toSet()))
-                .attenders(attenders.stream()
+                .students(students.stream()
                         .map(UserId::of)
                         .collect(Collectors.toSet()))
                 .cloudResourceAccesses(cloudResourceAccesses.stream()

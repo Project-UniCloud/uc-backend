@@ -45,9 +45,9 @@ class GroupEntity {
     private Set<UUID> lecturers;
 
     @ElementCollection
-    @CollectionTable(name = "group_attenders", joinColumns = @JoinColumn(name = "group_id"))
+    @CollectionTable(name = "group_students", joinColumns = @JoinColumn(name = "group_id"))
     @Column(name = "user_id")
-    private Set<UUID> attenders;
+    private Set<UUID> students;
 
     @ElementCollection
     @CollectionTable(name = "group_cloud_resource_accesses", joinColumns = @JoinColumn(name = "group_id"))
