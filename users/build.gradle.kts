@@ -17,7 +17,7 @@ val lombokVersion = "1.18.38"
 val jakartaValidationVersion = "3.0.0"
 val hibernateValidatorVersion = "8.0.0.Final"
 val assertJVersion = "3.27.3"
-val mapStructVersion = "1.5.5.Final"
+val mapStructVersion = "1.6.3"
 
 dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
