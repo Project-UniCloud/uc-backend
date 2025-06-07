@@ -46,7 +46,7 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
                     .newBuilder()
                     .setResourceType(resourceType.getName())
                     .setGroupName(groupUniqueName.toString())
-                    .addAllLeaders(lecturerLogins.stream().map(UserLogin::toString).collect(Collectors.toList()))
+                    .addAllLeaders(lecturerLogins.stream().map(UserLogin::toString).toList())
                     .build();
             AdapterInterface.GroupCreatedResponse response = stub.createGroupWithLeaders(request);
             return GroupUniqueName.fromString(response.getGroupName());

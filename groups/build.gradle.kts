@@ -15,15 +15,16 @@ val lombokVersion = "1.18.38"
 val mapStructVersion = "1.5.5.Final"
 val jakartaValidationVersion = "3.0.0"
 val hibernateValidatorVersion = "8.0.0.Final"
+val opencsv = 5.11
 
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("com.diffblue.cover:cover-annotations:1.3.0")
 
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
 
     implementation(project(":commons"))
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -31,12 +32,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-test")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
-    annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
     implementation("jakarta.validation:jakarta.validation-api:$jakartaValidationVersion")
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
-    compileOnly("com.diffblue.cover:cover-annotations:1.3.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation("com.opencsv:opencsv:5.11")
+    implementation("com.opencsv:opencsv:$opencsv")
 }
 
 tasks.test {

@@ -2,13 +2,14 @@ package com.unicloudapp.group.domain;
 
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.group.GroupId;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.domain.user.UserId;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class GroupFactory {
