@@ -283,6 +283,32 @@ class UserServiceSpec extends Specification {
         count == 2L
     }
 
+    def "createStudent should create and save a student user and return their ID"() {
+        given:
+        def studentData = new StudentBasicData("Jan", "Kowalski", "studentLogin",  "jan.kowalski@example.com")
+        def mockUser = Mock(User)
+        def generatedId = UserId.of(UUID.randomUUID())
+        1 * userFactory.create(
+                _ as UserId,
+                UserLogin.of("studentLogin"),
+                FirstName.of("Jan"),
+                LastName.of("Kowalski"),
+                Email.of("jan.kowalski@example.com"),
+                UserRole.of(UserRole.Type.STUDENT)
+        ) >> mockUser
+        1 * userRepository.save(_) >> {
+            mockUser.getUserId() >> generatedId
+            return mockUser
+        }
+
+        when:
+        def result = userService.createStudent(studentData)
+
+        then:
+        result == generatedId
+    }
+
+
     def createStudentCommand() {
         CreateStudentCommand.builder()
                 .firstName(firstName)
