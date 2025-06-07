@@ -13,11 +13,13 @@ repositories {
 
 val jetbrainsAnnotationsVersion = "26.0.2"
 val lombokVersion = "1.18.38"
+val jakartaValidationVersion = "3.0.0"
 
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
+    implementation("jakarta.validation:jakarta.validation-api:$jakartaValidationVersion")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

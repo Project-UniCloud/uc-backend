@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -51,18 +54,16 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ProblemDetail> handle(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
-        StringBuilder errorMessage = new StringBuilder();
-        for (FieldError error : result.getFieldErrors()) {
-            errorMessage.append(error.getField())
-                    .append(" - ")
-                    .append(error.getDefaultMessage())
-                    .append("; ");
-        }
+        List<String> errorMessages = result.getFieldErrors().stream()
+                .map(error -> error.getField() + " - " + error.getDefaultMessage())
+                .toList();
+        String joinedMessage = String.join("; ", errorMessages);
         ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setTitle("Bad request");
-        problemDetail.setDetail(errorMessage.toString());
+        problemDetail.setDetail(joinedMessage);
         return ResponseEntity.of(problemDetail).build();
     }
+
 
     protected ResponseEntity<ProblemDetail> defaultHandleMethod(String details, String title, HttpStatus status) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(status);

@@ -16,6 +16,8 @@ spring:
   sql:
     init:
       mode: always
+  messages:
+    basename: messages/messages
 auth:
   jwt:
     expirationTimeInMs: 1209600000

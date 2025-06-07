@@ -9,6 +9,8 @@ import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.*;
 import com.unicloudapp.group.domain.GroupStatus;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +36,7 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    UUID createGroup(@RequestBody CreateGroupRequest request) {
+    UUID createGroup(@RequestBody @Valid CreateGroupRequest request) {
         GroupDTO groupDto = GroupDTO.builder()
                 .name(request.name())
                 .semester(request.semester())
@@ -50,7 +52,7 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{groupId}/students")
     @ResponseStatus(HttpStatus.OK)
-    void addAttender(@PathVariable UUID groupId, @RequestBody StudentBasicData request) {
+    void addAttender(@PathVariable UUID groupId, @RequestBody @Valid StudentBasicData request) {
         groupService.addAttender(GroupId.of(groupId), request);
     }
 
@@ -101,7 +103,7 @@ class GroupRestController {
     Page<UserRowViewResponse> getAttendersDetails(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @PathVariable UUID groupId
+            @PathVariable @NotNull UUID groupId
     ) {
         Pageable pageable = PageRequest.of(page, pageSize);
         return groupService.getAttendersDetailsByGroupId(GroupId.of(groupId), pageable)
@@ -120,7 +122,7 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.CREATED)
     CloudResourceAccessId giveCloudResourceAccess(
             @PathVariable UUID groupId,
-            @RequestBody GiveCloudResourceAccessRequest request
+            @RequestBody @Valid GiveCloudResourceAccessRequest request
     ) {
         return groupService.giveCloudResourceAccess(
                 GroupId.of(groupId),
@@ -134,7 +136,7 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.OK)
     void updateGroup(
             @PathVariable UUID groupId,
-            @RequestBody UpdateGroupDetailsRequest request
+            @RequestBody @Valid UpdateGroupDetailsRequest request
     ) {
         groupService.updateGroup(
                 GroupId.of(groupId),

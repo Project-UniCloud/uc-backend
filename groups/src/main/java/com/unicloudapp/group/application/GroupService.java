@@ -38,6 +38,9 @@ public class GroupService {
 
     @Transactional
     public Group createGroup(GroupDTO groupDTO) {
+        if (!groupDTO.endDate().isAfter(groupDTO.startDate())) {
+            throw new RuntimeException("Start date cannot be after end date.");
+        }
         boolean isGroupWithSameNameAndSemesterExists = groupRepository.existsByNameAndSemester(
                 GroupName.of(groupDTO.name()),
                 Semester.of(groupDTO.semester())

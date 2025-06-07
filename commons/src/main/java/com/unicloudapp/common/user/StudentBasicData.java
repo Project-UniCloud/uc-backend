@@ -1,5 +1,9 @@
 package com.unicloudapp.common.user;
 
+import com.unicloudapp.common.validation.FirstName;
+import com.unicloudapp.common.validation.LastName;
+import com.unicloudapp.common.validation.UserEmail;
+import com.unicloudapp.common.validation.UserLogin;
 import lombok.*;
 
 @NoArgsConstructor
@@ -9,8 +13,9 @@ import lombok.*;
 @AllArgsConstructor
 public class StudentBasicData {
 
-    private String firstName;
-    private String lastName;
-    private String login;
+    @FirstName private String firstName;
+    @LastName private String lastName;
+    @UserLogin private String login;
+    @UserEmail
     private String email;
 }

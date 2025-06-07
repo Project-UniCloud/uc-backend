@@ -1,32 +1,33 @@
 package com.unicloudapp.group.infrastructure.rest;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
+import com.unicloudapp.common.validation.GroupName;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 record CreateGroupRequest(
-        String name,
-        String semester,
-        Set<UUID> lecturers,
-        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
-        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
+        @GroupName String name,
+        @NotBlank String semester,
+        @NotEmpty Set<UUID> lecturers,
+        @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+        @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
         String description
 ) { }
 
 record GiveCloudResourceAccessRequest(
-        String cloudAccessClientId,
-        String cloudResourceType
+        @NotBlank String cloudAccessClientId,
+        @NotBlank String cloudResourceType
 ) {}
 
 record UpdateGroupDetailsRequest(
-        String name,
-        Set<UUID> lecturers,
-        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
-        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
+        @GroupName String name,
+        @NotEmpty Set<UUID> lecturers,
+        @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
+        @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
         String description
 ) {}
