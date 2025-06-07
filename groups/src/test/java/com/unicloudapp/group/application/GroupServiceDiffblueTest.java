@@ -94,7 +94,7 @@ class GroupServiceDiffblueTest {
                 1
         );
         LocalDate endDate = LocalDate.of(1970,
-                1,
+                2,
                 1
         );
         HashSet<UUID> lecturers = new HashSet<>();

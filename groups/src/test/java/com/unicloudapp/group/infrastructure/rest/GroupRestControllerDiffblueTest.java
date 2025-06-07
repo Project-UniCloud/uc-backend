@@ -154,7 +154,12 @@ class GroupRestControllerDiffblueTest {
     void testAddAttender() throws Exception {
         // Arrange
         UUID groupId = UUID.randomUUID();
-        StudentBasicData requestData = StudentBasicData.builder().build();
+        StudentBasicData requestData = StudentBasicData.builder()
+                .email("email@example.com")
+                .firstName("John")
+                .lastName("Doe")
+                .login("login")
+                .build();
 
         doNothing().when(groupService)
                 .addAttender(Mockito.any(), Mockito.any());
