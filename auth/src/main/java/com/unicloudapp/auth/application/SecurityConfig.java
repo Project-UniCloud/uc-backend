@@ -75,9 +75,9 @@ class SecurityConfig {
     
     @Bean
     UserDetailsService userDetailsService(
-            @Value("${auth.users.defaultAdminPassword}") String defaultAdminPassword,
-            @Value("${auth.users.defaultStudentPassword}") String defaultStudentPassword,
-            @Value("${auth.users.defaultLecturerPassword}") String defaultLecturerPassword
+            @Value("${auth.users.defaultAdminPassword:password}") String defaultAdminPassword,
+            @Value("${auth.users.defaultStudentPassword:password}") String defaultStudentPassword,
+            @Value("${auth.users.defaultLecturerPassword:password}") String defaultLecturerPassword
     ) {
         InMemoryUserDetailsManager inMemoryUserDetailsManager = new InMemoryUserDetailsManager();
         UserDetails admin = User.builder()

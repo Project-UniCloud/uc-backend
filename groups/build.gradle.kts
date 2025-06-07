@@ -18,9 +18,6 @@ val hibernateValidatorVersion = "9.0.0.Final"
 val opencsv = 5.11
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
@@ -36,6 +33,10 @@ dependencies {
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.opencsv:opencsv:$opencsv")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+    }
 }
 
 tasks.test {

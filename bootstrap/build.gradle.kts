@@ -14,9 +14,6 @@ repositories {
 val postgresVersion = "42.7.2"
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-
     runtimeOnly("org.postgresql:postgresql:$postgresVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -29,8 +26,12 @@ dependencies {
     implementation(project(":commons"))
     implementation(project(":groups"))
     implementation(project(":auth"))
-
+    testRuntimeOnly("com.h2database:h2")
     compileOnly("org.projectlombok:lombok:1.18.38")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+    }
 }
 
 tasks.test {

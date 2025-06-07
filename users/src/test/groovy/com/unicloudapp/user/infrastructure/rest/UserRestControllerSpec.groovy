@@ -29,7 +29,7 @@ class UserRestControllerSpec extends Specification {
 
     def "should create lecturer and return created response"() {
         given:
-        def request = Mock(CreateLecturerRequest) {
+        def request = GroovyMock(CreateLecturerRequest, global: true) {
             userIndexNumber() >> "lecturer123"
             firstName() >> "Jan"
             lastName() >> "Kowalski"
@@ -49,7 +49,7 @@ class UserRestControllerSpec extends Specification {
 
     def "should create student and return created response"() {
         given:
-        def request = Mock(CreateStudentRequest) {
+        def request = GroovyMock(CreateStudentRequest, global: true) {
             userIndexNumber() >> "student123"
             firstName() >> "Anna"
             lastName() >> "Nowak"
@@ -71,7 +71,7 @@ class UserRestControllerSpec extends Specification {
         given:
         def userId = UUID.randomUUID()
         def user = Mock(User)
-        def responseDto = Mock(UserFoundResponse)
+        def responseDto = GroovyMock(UserFoundResponse, global: true)
 
         when:
         def response = controller.getUserById(userId)
@@ -88,10 +88,12 @@ class UserRestControllerSpec extends Specification {
         def user1 = Stub(UserFullNameProjection) {
             getFirstName() >> "Jan"
             getLastName() >> "Kowalski"
+            getUuid() >> UUID.randomUUID()
         }
         def user2 = Stub(UserFullNameProjection) {
             getFirstName() >> "Janina"
             getLastName() >> "Nowak"
+            getUuid() >> UUID.randomUUID()
         }
         searchLecturerUserCase.searchLecturers(query) >> [user1, user2]
 
@@ -100,9 +102,11 @@ class UserRestControllerSpec extends Specification {
 
         then:
         results.size() == 2
-        results[0].firstName() == "Jan"
-        results[0].lastName() == "Kowalski"
-        results[1].firstName() == "Janina"
-        results[1].lastName() == "Nowak"
+        results[0].firstName() == user1.firstName
+        results[0].lastName() == user1.lastName
+        results[0].userId() == user1.uuid
+        results[1].firstName() == user2.firstName
+        results[1].lastName() == user2.lastName
+        results[1].userId() == user2.uuid
     }
 }

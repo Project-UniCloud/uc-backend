@@ -14,9 +14,6 @@ repositories {
 val lombokVersion = "1.18.38"
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
@@ -28,6 +25,10 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+    }
 }
 
 tasks.test {
