@@ -14,7 +14,7 @@ repositories {
 val lombokVersion = "1.18.38"
 val mapStructVersion = "1.5.5.Final"
 val jakartaValidationVersion = "3.0.0"
-val hibernateValidatorVersion = "8.0.0.Final"
+val hibernateValidatorVersion = "9.0.0.Final"
 val opencsv = 5.11
 
 dependencies {
