@@ -1,11 +1,11 @@
 package com.unicloudapp.auth.infrastructure.rest;
 
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 
 record AuthenticateRequest(
-        @NotEmpty(message = "login cannot be empty")
+        @NotBlank
         String login,
-        @NotEmpty(message = "password cannot be mepty")
+        @NotBlank
         String password
 ) {
 
