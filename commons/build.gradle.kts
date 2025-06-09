@@ -13,7 +13,7 @@ repositories {
 
 val jetbrainsAnnotationsVersion = "26.0.2"
 val lombokVersion = "1.18.38"
-val jakartaValidationVersion = "3.0.0"
+val jakartaValidationVersion = "3.1.1"
 
 dependencies {
     implementation("jakarta.validation:jakarta.validation-api:$jakartaValidationVersion")

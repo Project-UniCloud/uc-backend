@@ -13,7 +13,7 @@ repositories {
 
 val lombokVersion = "1.18.38"
 val mapStructVersion = "1.6.3"
-val jakartaValidationVersion = "3.0.0"
+val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.0.0.Final"
 val opencsv = 5.11
 
