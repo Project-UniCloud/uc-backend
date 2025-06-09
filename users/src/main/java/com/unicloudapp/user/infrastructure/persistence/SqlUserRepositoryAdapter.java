@@ -9,6 +9,7 @@ import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -70,6 +71,14 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public List<UserRowProjection> findAllUsers(int offset, int size) {
+        Pageable pageable = PageRequest.of(offset / size, size);
+        return userRepositoryJpa.findAllProjectedBy(pageable)
+                .stream()
+                .toList();
+    }
+
+    @Override
     public List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role) {
         return userRepositoryJpa.searchUserByName(query, role, PageRequest.of(0, 10));
     }
@@ -77,6 +86,11 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public long countByUuidIn(Collection<UUID> uuids) {
         return userRepositoryJpa.countByUuidIn(uuids);
+    }
+
+    @Override
+    public long countAll() {
+        return userRepositoryJpa.count();
     }
 
     @Override
@@ -113,6 +127,8 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role, Pageable pageable);
 
     List<UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
+
+    Page<UserRowProjection> findAllProjectedBy(Pageable pageable);
 
     long countByUuidIn(Collection<UUID> uuids);
 }

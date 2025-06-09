@@ -3,13 +3,12 @@ package com.unicloudapp.user.infrastructure.rest;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
-import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
-import com.unicloudapp.user.application.port.in.FindUserUseCase;
-import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
+import com.unicloudapp.user.application.port.in.*;
+import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,11 +26,12 @@ class UserRestController {
     private final FindUserUseCase findUserUseCase;
     private final SearchLecturerUserCase searchLecturerUserCase;
     private final UserToUserFoundResponseMapper userDomainDtoMapper;
+    private final FindAllLecturersUseCase findAllLecturersUseCase;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lecturers")
     @ResponseStatus(HttpStatus.CREATED)
-    LecturerCreatedResponse createStudent(
+    LecturerCreatedResponse createLecturer(
             @Valid
             @RequestBody
             CreateLecturerRequest createLecturerRequest
@@ -48,9 +48,17 @@ class UserRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/lecturers")
+    @ResponseStatus(HttpStatus.OK)
+    Page<UserRowProjection> getAllLecturers(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "10") int pageSize) {
+        return findAllLecturersUseCase.findAllLecturers(page, pageSize);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/students")
     @ResponseStatus(HttpStatus.CREATED)
-    StudentCreatedResponse createStudent(
+    StudentCreatedResponse createLecturer(
             @Valid
             @RequestBody
             CreateStudentRequest request

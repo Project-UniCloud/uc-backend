@@ -7,16 +7,17 @@ import com.unicloudapp.common.exception.user.UserNotFoundException;
 import com.unicloudapp.common.user.*;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
-import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
-import com.unicloudapp.user.application.port.in.FindUserUseCase;
-import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
+import com.unicloudapp.user.application.port.in.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.application.projection.UserFullNameProjection;
+import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
@@ -34,7 +35,8 @@ implements UserValidationService,
         FindUserUseCase,
         UserQueryService,
         SearchLecturerUserCase,
-        UserCommandService {
+        UserCommandService,
+        FindAllLecturersUseCase {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
@@ -153,5 +155,12 @@ implements UserValidationService,
                 UserRole.of(UserRole.Type.STUDENT)
         );
         return userRepository.save(user).getUserId();
+    }
+
+    @Override
+    public Page<UserRowProjection> findAllLecturers(int offset, int size) {
+        List<UserRowProjection> lecturers = userRepository.findAllUsers(offset, size);
+        long total = userRepository.countAll();
+        return new PageImpl<>(lecturers, PageRequest.of(offset / size, size), total);
     }
 }

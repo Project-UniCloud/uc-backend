@@ -65,17 +65,6 @@ class GroupRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    Page<GroupDTO> getAllGroups(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
-    ) {
-        Pageable pageable = PageRequest.of(page, pageSize);
-        return groupService.getAllGroups(pageable);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/filter")
     Page<GroupRowView> getAllGroupsByStatus(

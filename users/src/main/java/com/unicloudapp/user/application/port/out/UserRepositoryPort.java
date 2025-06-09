@@ -21,14 +21,15 @@ public interface UserRepositoryPort {
 
     List<UserFullNameProjection> findFullNamesByIds(List<UserId> userIds);
 
-    List<UserRowProjection> findUserRowByIds(Collection<UserId> userIds,
-                                             int offset,
-                                             int size
-    );
+    List<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int offset, int size);
+
+    List<UserRowProjection> findAllUsers(int offset, int size);
 
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role);
 
     long countByUuidIn(Collection<UUID> uuids);
+
+    long countAll();
 
     List<UserId> saveAll(List<User> students);
 

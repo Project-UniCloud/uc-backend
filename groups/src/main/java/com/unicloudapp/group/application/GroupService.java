@@ -29,8 +29,6 @@ public class GroupService {
 
     private final GroupRepositoryPort groupRepository;
     private final GroupFactory groupFactory;
-    private final GroupToDtoMapper groupMapper;
-    private final UserValidationService userValidationService;
     private final UserQueryService userQueryService;
     private final CloudResourceAccessQueryService cloudResourceAccessQueryService;
     private final CloudResourceAccessCommandService cloudResourceAccessCommandService;
@@ -73,20 +71,6 @@ public class GroupService {
                 .orElseThrow();
         group.addStudent(userId);
         groupRepository.save(group);
-    }
-
-    public Page<GroupDTO> getAllGroups(Pageable pageable) {
-        int size = pageable.getPageSize();
-        int page = pageable.getPageNumber();
-        int offset = page * size;
-        List<Group> groups = groupRepository.findAll(offset, size);
-        long total = groupRepository.count();
-
-        List<GroupDTO> groupDTOList = groups.stream()
-                .map(groupMapper::toDto)
-                .toList();
-
-        return new PageImpl<>(groupDTOList, PageRequest.of(page, size), total);
     }
 
     public Page<GroupRowView> getAllGroupsByStatus(
