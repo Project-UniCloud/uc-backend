@@ -1,4 +1,5 @@
 plugins {
+    groovy
     id("java")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
@@ -16,6 +17,7 @@ val mapStructVersion = "1.6.3"
 val jakartaValidationVersion = "3.0.0"
 val hibernateValidatorVersion = "9.0.0.Final"
 val opencsv = 5.11
+val spockVersion = "2.3-groovy-4.0"
 
 dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
@@ -37,6 +39,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
+    testImplementation("org.spockframework:spock-core:$spockVersion")
+    testImplementation("org.spockframework:spock-spring:$spockVersion")
 }
 
 tasks.test {
