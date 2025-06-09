@@ -43,15 +43,8 @@ public class GroupService {
                 GroupName.of(groupDTO.name()),
                 Semester.of(groupDTO.semester())
         );
-        boolean isGroupWithSameIdExists = groupRepository.existsByNameAndSemester(
-                GroupName.of(groupDTO.name()),
-                Semester.of(groupDTO.semester())
-        );
         if (isGroupWithSameNameAndSemesterExists) {
             throw new RuntimeException("Group with name " + groupDTO.name() + " and semester " + groupDTO.semester() + " already exists.");
-        }
-        if (isGroupWithSameIdExists) {
-            throw new RuntimeException("Group with id " + groupDTO.groupId() + " already exists.");
         }
         Group group = groupFactory.create(
                 groupDTO.name(),
