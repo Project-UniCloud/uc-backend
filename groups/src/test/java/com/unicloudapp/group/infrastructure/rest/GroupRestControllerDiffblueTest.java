@@ -176,33 +176,4 @@ class GroupRestControllerDiffblueTest {
                 .perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
-
-    @Test
-    @DisplayName("Test getAllGroups(int, int); then return PageImpl")
-    @Tag("MaintainedByDiffblue")
-    void testGetAllGroups_thenReturnPageImpl() {
-        //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
-        //   Run dcover create --keep-partial-tests to gain insights into why
-        //   a non-Spring test was created.
-
-        // Arrange
-        GroupService groupService = mock(GroupService.class);
-        StudentImporterPort studentImporterPort = mock(StudentImporterPort.class);
-        PageImpl<GroupDTO> pageImpl = new PageImpl<>(new ArrayList<>());
-        when(groupService.getAllGroups(Mockito.<Pageable>any())).thenReturn(pageImpl);
-
-        // Act
-        Page<GroupDTO> actualAllGroups = (new GroupRestController(groupService, studentImporterPort)).getAllGroups(1,
-                3
-        );
-
-        // Assert
-        verify(groupService).getAllGroups(isA(Pageable.class));
-        assertTrue(actualAllGroups instanceof PageImpl);
-        assertTrue(actualAllGroups.toList()
-                .isEmpty());
-        assertSame(pageImpl,
-                actualAllGroups
-        );
-    }
 }

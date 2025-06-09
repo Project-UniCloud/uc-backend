@@ -5,10 +5,7 @@ import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
-import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
-import com.unicloudapp.user.application.port.in.FindUserUseCase;
-import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
+import com.unicloudapp.user.application.port.in.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
@@ -59,6 +56,9 @@ class UserRestControllerDiffblueTest {
 
     @MockitoBean
     private SearchLecturerUserCase searchLecturerUserCase;
+
+    @MockitoBean
+    private FindAllLecturersUseCase findAllLecturersUseCase;
 
     /**
      * Test {@link UserRestController#createLecturer(CreateLecturerRequest)} with {@code createLecturerRequest}.
@@ -129,7 +129,8 @@ class UserRestControllerDiffblueTest {
                 createStudentUseCase,
                 findUserUseCase,
                 searchLecturerUserCase,
-                userDomainDtoMapper
+                userDomainDtoMapper,
+                findAllLecturersUseCase
         );
 
         // Act
@@ -213,7 +214,8 @@ class UserRestControllerDiffblueTest {
                 createStudentUseCase,
                 findUserUseCase,
                 searchLecturerUserCase,
-                userDomainDtoMapper
+                userDomainDtoMapper,
+                findAllLecturersUseCase
         );
 
         // Act

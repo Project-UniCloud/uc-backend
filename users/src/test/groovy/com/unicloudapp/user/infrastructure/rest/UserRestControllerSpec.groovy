@@ -1,6 +1,7 @@
 package com.unicloudapp.user.infrastructure.rest
 
 import com.unicloudapp.common.domain.user.UserId
+import com.unicloudapp.user.application.port.in.FindAllLecturersUseCase
 import com.unicloudapp.user.application.projection.UserFullNameProjection
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
@@ -18,13 +19,15 @@ class UserRestControllerSpec extends Specification {
     FindUserUseCase findUserUseCase = Mock()
     SearchLecturerUserCase searchLecturerUserCase = Mock()
     UserToUserFoundResponseMapper userDomainDtoMapper = Mock()
+    FindAllLecturersUseCase findAllLecturersUseCase = Mock()
 
     UserRestController controller = new UserRestController(
             createLecturerUseCase,
             createStudentUseCase,
             findUserUseCase,
             searchLecturerUserCase,
-            userDomainDtoMapper
+            userDomainDtoMapper,
+            findAllLecturersUseCase
     )
 
     def "should create lecturer and return created response"() {
