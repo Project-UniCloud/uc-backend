@@ -90,6 +90,23 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     public boolean existsById(UUID id) {
         return groupJpaRepository.existsById(id);
     }
+
+    @Override
+    public List<GroupRowProjection> findAllByStatusAndNameLike(int offset,
+                                                               int size,
+                                                               GroupStatus.Type status,
+                                                               String groupName
+    ) {
+        Pageable pageable = PageRequest.of(offset / size, size);
+        return groupJpaRepository.findAllByGroupStatusAndNameLike(status, groupName, pageable);
+    }
+
+    @Override
+    public long countByStatusAndNameLike(GroupStatus.Type status,
+                                         String groupName
+    ) {
+        return groupJpaRepository.countByGroupStatusAndNameLike(status, groupName);
+    }
 }
 
 @Repository
@@ -97,6 +114,12 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
 
     List<GroupRowProjection> findAllByGroupStatus(
             GroupStatus.Type groupStatus,
+            Pageable pageable
+    );
+
+    List<GroupRowProjection> findAllByGroupStatusAndNameLike(
+            GroupStatus.Type groupStatus,
+            String name,
             Pageable pageable
     );
 
@@ -108,4 +131,9 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
     );
 
     boolean existsById(UUID uuid);
+
+    long countByGroupStatusAndNameLike(
+            GroupStatus.Type status,
+            String groupName
+    );
 }

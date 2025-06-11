@@ -33,4 +33,14 @@ public interface GroupRepositoryPort {
     );
 
     boolean existsById(UUID id);
+
+    List<GroupRowProjection> findAllByStatusAndNameLike(int offset,
+                                                        int size,
+                                                        GroupStatus.Type status,
+                                                        String groupName
+    );
+
+    long countByStatusAndNameLike(GroupStatus.Type status,
+                                  String groupName
+    );
 }

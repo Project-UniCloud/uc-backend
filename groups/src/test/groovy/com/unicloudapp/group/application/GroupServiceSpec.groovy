@@ -294,7 +294,7 @@ class GroupServiceSpec extends Specification {
         def cloudResourceType = CloudResourceType.of("ec2")
 
         when:
-        def result = groupService.getAllGroupsByStatus(pageable, status)
+        def result = groupService.getAllGroupsByStatus(pageable, status, null)
 
         then:
         1 * groupRepository.findAllByStatus(0, 10, status) >> [groupProjection]

@@ -70,11 +70,12 @@ class GroupRestController {
     Page<GroupRowView> getAllGroupsByStatus(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam GroupStatus.Type status
+            @RequestParam GroupStatus.Type status,
+            @RequestParam(required = false) String groupName
     ) {
         Pageable pageable = PageRequest.of(page, pageSize);
         return groupService.getAllGroupsByStatus(
-                pageable, status
+                pageable, status, groupName
         );
     }
 

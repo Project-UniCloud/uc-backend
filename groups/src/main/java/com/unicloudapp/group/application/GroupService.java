@@ -68,27 +68,36 @@ public class GroupService {
 
     public Page<GroupRowView> getAllGroupsByStatus(
             Pageable pageable,
-            GroupStatus.Type status
+            GroupStatus.Type status,
+            String groupName
     ) {
         int size = pageable.getPageSize();
         int page = pageable.getPageNumber();
         int offset = page * size;
-        List<GroupRowProjection> groups = groupRepository.findAllByStatus(offset, size, status);
+
+        List<GroupRowProjection> groups;
+
+        if (groupName != null && !groupName.isBlank()) {
+            groups = groupRepository.findAllByStatusAndNameLike(offset, size, status, "%" + groupName + "%");
+        } else {
+            groups = groupRepository.findAllByStatus(offset, size, status);
+        }
+
         Map<UserId, UserFullName> userFullNames = userQueryService.getFullNameForUserIds(
                 groups.stream()
                         .flatMap(g -> g.getLecturers().stream().map(UserId::of))
                         .toList()
         );
+
         Map<UUID, Set<CloudResourceType>> cloudResourceTypes = groups.stream()
                 .collect(Collectors.toMap(
                         GroupRowProjection::getUuid,
-                        group ->
-                                cloudResourceAccessQueryService.getCloudResourceTypes(
-                                        group.getCloudResourceAccesses()
-                                                .stream()
-                                                .map(CloudResourceAccessId::of)
-                                                .collect(Collectors.toSet())
-                                )
+                        group -> cloudResourceAccessQueryService.getCloudResourceTypes(
+                                group.getCloudResourceAccesses()
+                                        .stream()
+                                        .map(CloudResourceAccessId::of)
+                                        .collect(Collectors.toSet())
+                        )
                 ));
 
         List<GroupRowView> groupViews = groups.stream()
@@ -116,9 +125,17 @@ public class GroupService {
                     );
                 })
                 .toList();
-        long total = groupRepository.countByStatus(status);
+
+        long total;
+        if (groupName != null && !groupName.isBlank()) {
+            total = groupRepository.countByStatusAndNameLike(status, "%" + groupName + "%");
+        } else {
+            total = groupRepository.countByStatus(status);
+        }
+
         return new PageImpl<>(groupViews, PageRequest.of(page, size), total);
     }
+
 
     public GroupDetailsView findById(UUID groupId) {
         GroupDetailsProjection details = groupRepository.findGroupDetailsByUuid(groupId);
