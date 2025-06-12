@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Documented
 @NotBlank
 @Size(min = 1, max = 128)
-@Pattern(regexp = "^[\\w+=,.@\\- ]+$")
+@Pattern(regexp = "^[\\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ\\- ]+$")
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER, ElementType.ANNOTATION_TYPE })
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {})
