@@ -50,9 +50,14 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/lecturers")
     @ResponseStatus(HttpStatus.OK)
-    Page<UserRowProjection> getAllLecturers(@RequestParam(defaultValue = "0") int page,
-                                            @RequestParam(defaultValue = "10") int pageSize) {
-        return findAllLecturersUseCase.findAllLecturers(page, pageSize);
+    Page<UserRowProjection> getAllLecturers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) String lecturerFirstOrLastName
+    ) {
+        return findAllLecturersUseCase.findAllLecturers(
+                page, pageSize, lecturerFirstOrLastName
+        );
     }
 
     @PreAuthorize("hasRole('ADMIN')")

@@ -71,14 +71,6 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public List<UserRowProjection> findAllUsers(int offset, int size) {
-        Pageable pageable = PageRequest.of(offset / size, size);
-        return userRepositoryJpa.findAllProjectedBy(pageable)
-                .stream()
-                .toList();
-    }
-
-    @Override
     public List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role) {
         return userRepositoryJpa.searchUserByName(query, role, PageRequest.of(0, 10));
     }
@@ -86,11 +78,6 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public long countByUuidIn(Collection<UUID> uuids) {
         return userRepositoryJpa.countByUuidIn(uuids);
-    }
-
-    @Override
-    public long countAll() {
-        return userRepositoryJpa.count();
     }
 
     @Override
@@ -108,6 +95,38 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
                 .map(entity -> UserLogin.of(entity.getLogin()))
                 .toList();
     }
+
+    @Override
+    public List<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
+            int offset,
+            int size,
+            UserRole.Type role,
+            String firstOrLastName
+    ) {
+        if (firstOrLastName == null || firstOrLastName.isBlank()) {
+            return userRepositoryJpa.findAllProjectedByRole(
+                            role, PageRequest.of(offset / size, size)
+                    )
+                    .stream()
+                    .toList();
+        }
+        return userRepositoryJpa.findAllByRoleAndFirstNameOrLastNameLike(
+                role,
+                firstOrLastName,
+                PageRequest.of(offset / size, size)
+        ).stream().toList();
+    }
+
+    @Override
+    public long countAllUsersByRoleAndFirstNameOrLastName(
+            UserRole.Type role,
+            String firstOrLastName
+    ) {
+        if (firstOrLastName == null || firstOrLastName.isBlank()) {
+            return userRepositoryJpa.countByRole(role);
+        }
+        return userRepositoryJpa.countByRoleAndFirstNameOrLastNameLike(role, firstOrLastName);
+    }
 }
 
 @Repository
@@ -123,12 +142,42 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
        WHERE (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
           OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%'))
        ) AND u.role = :role
-       """)
+    """)
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role, Pageable pageable);
 
     List<UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
 
-    Page<UserRowProjection> findAllProjectedBy(Pageable pageable);
+    Page<UserRowProjection> findAllProjectedByRole(
+            UserRole.Type role,
+            Pageable pageable
+    );
 
     long countByUuidIn(Collection<UUID> uuids);
+
+    @Query("""
+        SELECT u
+        FROM UserEntity u
+        WHERE u.role = :role
+            AND (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
+                OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
+            )
+    """)
+    Page<UserRowProjection> findAllByRoleAndFirstNameOrLastNameLike(
+            UserRole.Type role,
+            String firstOrLastName,
+            Pageable pageable
+    );
+
+
+    long countByRole(UserRole.Type role);
+
+    @Query("""
+        SELECT COUNT(*)
+        FROM UserEntity u
+        WHERE u.role = :role
+            AND (u.firstName = :firstOrLastName
+                OR u.lastName = :firstOrLastName
+            )
+    """)
+    long countByRoleAndFirstNameOrLastNameLike(UserRole.Type role, String firstOrLastName);
 }

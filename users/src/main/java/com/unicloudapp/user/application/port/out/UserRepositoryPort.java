@@ -23,15 +23,23 @@ public interface UserRepositoryPort {
 
     List<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int offset, int size);
 
-    List<UserRowProjection> findAllUsers(int offset, int size);
-
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role);
 
     long countByUuidIn(Collection<UUID> uuids);
 
-    long countAll();
-
     List<UserId> saveAll(List<User> students);
 
     List<UserLogin> findAllLoginsByIds(Set<UserId> userIds);
+
+    List<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
+            int offset,
+            int size,
+            UserRole.Type role,
+            String firstOrLastName
+    );
+
+    long countAllUsersByRoleAndFirstNameOrLastName(
+            UserRole.Type role,
+            String firstOrLastName
+    );
 }

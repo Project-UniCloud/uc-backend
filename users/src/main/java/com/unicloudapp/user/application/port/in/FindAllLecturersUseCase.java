@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 
 public interface FindAllLecturersUseCase {
 
-    Page<UserRowProjection> findAllLecturers(int offset, int size);
+    Page<UserRowProjection> findAllLecturers(int offset, int size, String lecturerFirstOrLastName);
 }

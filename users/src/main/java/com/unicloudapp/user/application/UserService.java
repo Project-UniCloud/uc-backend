@@ -158,9 +158,20 @@ implements UserValidationService,
     }
 
     @Override
-    public Page<UserRowProjection> findAllLecturers(int offset, int size) {
-        List<UserRowProjection> lecturers = userRepository.findAllUsers(offset, size);
-        long total = userRepository.countAll();
+    public Page<UserRowProjection> findAllLecturers(
+            int offset,
+            int size,
+            String lecturerFirstOrLastName
+    ) {
+        List<UserRowProjection> lecturers = userRepository.findAllUsersByRoleAndFirstNameOrLastName(
+                offset,
+                size,
+                UserRole.Type.LECTURER,
+                lecturerFirstOrLastName
+        );
+        long total = userRepository.countAllUsersByRoleAndFirstNameOrLastName(
+                UserRole.Type.LECTURER, lecturerFirstOrLastName
+        );
         return new PageImpl<>(lecturers, PageRequest.of(offset / size, size), total);
     }
 }
