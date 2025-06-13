@@ -24,6 +24,12 @@ public class GlobalExceptionHandler {
         return defaultHandleMethod(ex.getMessage(), "Bad request", HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler({Exception.class, RuntimeException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ProblemDetail> handle(Exception ex) {
+        return defaultHandleMethod(ex.getMessage(), "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseEntity<ProblemDetail> handle(AccessDeniedException ex) {
