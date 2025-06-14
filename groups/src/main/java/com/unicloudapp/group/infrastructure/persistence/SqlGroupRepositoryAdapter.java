@@ -3,20 +3,26 @@ package com.unicloudapp.group.infrastructure.persistence;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.group.application.GroupDetailsProjection;
+import com.unicloudapp.group.application.GroupFilterCriteria;
 import com.unicloudapp.group.application.GroupRepositoryPort;
 import com.unicloudapp.group.application.GroupRowProjection;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Example;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -43,29 +49,6 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     }
 
     @Override
-    public List<Group> findAll(int offset, int limit) {
-        Pageable pageable = PageRequest.of(offset / limit, limit);
-        return groupJpaRepository.findAll(pageable)
-                .stream()
-                .map(groupToEntityMapper::toDomain)
-                .toList();
-    }
-
-    @Override
-    public long count() {
-        return groupJpaRepository.count();
-    }
-
-    @Override
-    public List<GroupRowProjection> findAllByStatus(int offset,
-                                                    int size,
-                                                    GroupStatus.Type status
-    ) {
-        Pageable pageable = PageRequest.of(offset / size, size);
-        return groupJpaRepository.findAllByGroupStatus(status, pageable);
-    }
-
-    @Override
     public long countByStatus(GroupStatus.Type status) {
         GroupEntity groupEntity = GroupEntity.builder()
                 .groupStatus(status)
@@ -87,41 +70,27 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     }
 
     @Override
-    public boolean existsById(UUID id) {
-        return groupJpaRepository.existsById(id);
-    }
-
-    @Override
-    public List<GroupRowProjection> findAllByStatusAndNameLike(int offset,
-                                                               int size,
-                                                               GroupStatus.Type status,
-                                                               String groupName
+    public Page<GroupRowProjection> findAllByCriteria(
+            GroupFilterCriteria criteria,
+            Pageable pageable
     ) {
-        Pageable pageable = PageRequest.of(offset / size, size);
-        return groupJpaRepository.findAllByGroupStatusAndNameLike(status, groupName, pageable);
-    }
+        List<Specification<GroupEntity>> specs = new ArrayList<>();
 
-    @Override
-    public long countByStatusAndNameLike(GroupStatus.Type status,
-                                         String groupName
-    ) {
-        return groupJpaRepository.countByGroupStatusAndNameLike(status, groupName);
+        if (criteria.getStatus() != null) specs.add(hasStatus(criteria.getStatus()));
+        if (criteria.getGroupName() != null) specs.add(nameLike(criteria.getGroupName()));
+        if (criteria.getCloudClientId() != null) specs.add(hasCloudClientId(criteria.getCloudClientId()));
+        if (criteria.getResourceType() != null) specs.add(hasResourceType(criteria.getResourceType()));
+
+        Specification<GroupEntity> finalSpec = specs.stream()
+                .reduce(Specification::and)
+                .orElse(null);
+
+        return groupJpaRepository.findAll(finalSpec, pageable);
     }
 }
 
 @Repository
 interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
-
-    List<GroupRowProjection> findAllByGroupStatus(
-            GroupStatus.Type groupStatus,
-            Pageable pageable
-    );
-
-    List<GroupRowProjection> findAllByGroupStatusAndNameLike(
-            GroupStatus.Type groupStatus,
-            String name,
-            Pageable pageable
-    );
 
     GroupDetailsProjection findGroupDetailsByUuid(UUID uuid);
 
@@ -130,10 +99,10 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
             String semester
     );
 
-    boolean existsById(UUID uuid);
+    boolean existsById(@NonNull UUID uuid);
 
-    long countByGroupStatusAndNameLike(
-            GroupStatus.Type status,
-            String groupName
+    Page<GroupRowProjection> findAll(
+            Specification<GroupEntity> finalSpec,
+            Pageable pageable
     );
 }

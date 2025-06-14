@@ -6,6 +6,7 @@ import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.group.GroupId;
+import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.*;
 import com.unicloudapp.group.domain.GroupStatus;
@@ -70,13 +71,24 @@ class GroupRestController {
     Page<GroupRowView> getAllGroupsByStatus(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam GroupStatus.Type status,
-            @RequestParam(required = false) String groupName
+            @RequestParam(required = false) GroupStatus.Type status,
+            @RequestParam(required = false) String groupName,
+            @RequestParam(required = false) String cloudClientId,
+            @RequestParam(required = false) String resourceType
     ) {
+        if (resourceType != null && cloudClientId == null) {
+            throw new IllegalArgumentException("Cloud client id is required when resourceType is given");
+        }
+
+        GroupFilterCriteria criteria = GroupFilterCriteria.builder()
+                .status(status != null ? GroupStatus.of(status) : null)
+                .groupName(groupName != null ? GroupName.of(groupName) : null)
+                .cloudClientId(cloudClientId != null ? CloudAccessClientId.of(cloudClientId) : null)
+                .resourceType(resourceType != null ? CloudResourceType.of(resourceType) : null)
+                .build();
+
         Pageable pageable = PageRequest.of(page, pageSize);
-        return groupService.getAllGroupsByStatus(
-                pageable, status, groupName
-        );
+        return groupService.getGroupsByFilter(criteria, pageable);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
