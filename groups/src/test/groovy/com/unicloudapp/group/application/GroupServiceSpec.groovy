@@ -290,7 +290,7 @@ class GroupServiceSpec extends Specification {
         def status = GroupStatus.Type.ACTIVE
         def groupProjection = Mock(GroupRowProjection)
         def userId = UUID.randomUUID()
-        def userFullName = new UserFullName(FirstName.of("John"), LastName.of("Doe"))
+        def userFullName = new UserFullName(UserId.of(userId), FirstName.of("John"), LastName.of("Doe"))
         def cloudResourceType = CloudResourceType.of("ec2")
 
         when:
@@ -313,7 +313,7 @@ class GroupServiceSpec extends Specification {
         def groupId = UUID.randomUUID()
         def details = Mock(GroupDetailsProjection)
         def userId = UUID.randomUUID()
-        def userFullName = new UserFullName(FirstName.of("John"), LastName.of("Doe"))
+        def userFullName = new UserFullName(UserId.of(userId), FirstName.of("John"), LastName.of("Doe"))
 
         when:
         def result = groupService.findById(groupId)
