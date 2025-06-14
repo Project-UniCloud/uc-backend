@@ -95,6 +95,7 @@ implements UserValidationService,
                 .collect(Collectors.toMap(
                         projection -> UserId.of(projection.getUuid()),
                         projection -> UserFullName.of(
+                                UserId.of(projection.getUuid()),
                                 FirstName.of(projection.getFirstName()),
                                 LastName.of(projection.getLastName())
                         )));

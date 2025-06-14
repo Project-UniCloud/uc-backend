@@ -17,6 +17,4 @@ public interface CloudAccessClientController {
     boolean isRunning();
 
     boolean isCloudGroupExists(GroupUniqueName groupUniqueName);
-
-    void shutdown();
 }

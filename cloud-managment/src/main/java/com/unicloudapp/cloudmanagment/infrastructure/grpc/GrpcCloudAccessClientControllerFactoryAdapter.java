@@ -18,6 +18,6 @@ class GrpcCloudAccessClientControllerFactoryAdapter implements CloudAccessClient
                 .usePlaintext()
                 .build();
         var stub = CloudAdapterGrpc.newBlockingStub(channel);
-        return new GrpcCloudAccessClientController(channel, stub);
+        return new GrpcCloudAccessClientController(stub);
     }
 }

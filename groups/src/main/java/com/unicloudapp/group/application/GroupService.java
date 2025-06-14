@@ -139,12 +139,15 @@ public class GroupService {
 
     public GroupDetailsView findById(UUID groupId) {
         GroupDetailsProjection details = groupRepository.findGroupDetailsByUuid(groupId);
-        Set<String> lecturers = new HashSet<>(userQueryService.getFullNameForUserIds(
+        Set<UserFullNameDTO> lecturers = userQueryService.getFullNameForUserIds(
                         details.getLecturers()
                                 .stream()
                                 .map(UserId::of)
                                 .toList()
-                ).values()).stream().map(UserFullName::getFullName).collect(Collectors.toSet());
+                ).values()
+                .stream()
+                .map(UserFullNameDTO::from)
+                .collect(Collectors.toSet());
         return GroupDetailsView.builder()
                 .groupId(details.getUuid())
                 .name(details.getName())
