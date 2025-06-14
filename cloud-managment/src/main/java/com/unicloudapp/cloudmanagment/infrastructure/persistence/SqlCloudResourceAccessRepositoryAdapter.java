@@ -2,7 +2,9 @@ package com.unicloudapp.cloudmanagment.infrastructure.persistence;
 
 import com.unicloudapp.cloudmanagment.application.CloudResourceAccessRepositoryPort;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
+import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -39,9 +41,24 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
                 .map(cloudAccessMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public Set<CloudResourceAccess> findAllByCloudClientIdAndResourceType(
+            CloudAccessClientId cloudAccessClientId,
+            CloudResourceType resourceType
+    ) {
+        return repository.findAllByCloudAccessClientIdAndResourceType(cloudAccessClientId.getValue(), resourceType.getName())
+                .stream()
+                .map(cloudAccessMapper::toDomain)
+                .collect(Collectors.toSet());
+    }
 }
 
 @Repository
 interface CloudAccessJpaRepository extends JpaRepository<CloudResourceAccessEntity, UUID> {
 
+    Set<CloudResourceAccessEntity> findAllByCloudAccessClientIdAndResourceType(
+            String cloudAccessClientId,
+            String resourceType
+    );
 }

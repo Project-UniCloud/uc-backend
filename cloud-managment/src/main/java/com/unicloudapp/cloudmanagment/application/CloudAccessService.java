@@ -88,6 +88,17 @@ public class CloudAccessService
     }
 
     @Override
+    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
+            CloudAccessClientId cloudAccessClientId,
+            CloudResourceType resourceType
+    ) {
+        return cloudAccessRepository.findAllByCloudClientIdAndResourceType(cloudAccessClientId, resourceType)
+                .stream()
+                .map(CloudResourceAccess::getCloudResourceAccessId)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
     public CloudResourceAccessId giveGroupCloudResourceAccess(CloudAccessClientId cloudAccessClientId,
                                                               CloudResourceType cloudResourceType,
                                                               GroupUniqueName groupUniqueName

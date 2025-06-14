@@ -67,7 +67,7 @@ class GroupRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/filter")
+    @GetMapping
     Page<GroupRowView> getAllGroupsByStatus(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,

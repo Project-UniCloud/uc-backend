@@ -162,10 +162,22 @@ public class GroupService {
         groupRepository.save(group);
     }
 
-    public Page<GroupRowView> getGroupsByFilter(GroupFilterCriteria criteria,
-                                                Pageable pageable
+    public Page<GroupRowView> getGroupsByFilter(
+            GroupFilterCriteria criteria,
+            Pageable pageable
     ) {
-        Page<GroupRowProjection> groups = groupRepository.findAllByCriteria(criteria, pageable);
+        Page<GroupRowProjection> groups;
+        if (criteria.getCloudClientId() != null && criteria.getResourceType() != null) {
+            Set<CloudResourceAccessId> accessesByCloudClientIdAndResourceType = cloudResourceAccessQueryService.getCloudResourceAccessesByCloudClientIdAndResourceType(
+                    criteria.getCloudClientId(),
+                    criteria.getResourceType()
+            );
+            groups = groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(
+                    criteria, pageable, accessesByCloudClientIdAndResourceType
+            );
+        } else {
+            groups = groupRepository.findAllByCriteria(criteria, pageable);
+        }
 
         Map<UserId, UserFullName> userFullNames = userQueryService.getFullNameForUserIds(
                 groups.stream()
