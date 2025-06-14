@@ -333,7 +333,7 @@ class GroupServiceSpec extends Specification {
         and:
         result.groupId == groupId
         result.name == "Test Group"
-        result.lecturerFullNames == ["John Doe"] as Set
+        result.lecturerFullNames == [UserFullNameDTO.from(userFullName)] as Set
         result.status == GroupStatus.Type.ACTIVE.displayName
         result.description == "Test Description"
     }
