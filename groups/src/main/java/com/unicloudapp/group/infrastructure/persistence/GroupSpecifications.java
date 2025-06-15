@@ -15,7 +15,7 @@ class GroupSpecifications {
 
     public static Specification<GroupEntity> hasStatus(GroupStatus status) {
         return (root, query, criteriaBuilder) ->
-                criteriaBuilder.equal(root.get("status"), status.getStatus());
+                criteriaBuilder.equal(root.get("groupStatus"), status.getStatus());
     }
 
     public static Specification<GroupEntity> nameLike(GroupName groupName) {
