@@ -22,7 +22,7 @@ public class Group {
     private Semester semester;
     private StartDate startDate;
     private EndDate endDate;
-    private final Set<UserId> lecturers;
+    private Set<UserId> lecturers;
     private final Set<UserId> students;
     private final Set<CloudResourceAccessId> cloudResourceAccesses;
     private Description description;
@@ -42,7 +42,7 @@ public class Group {
                        Description description
     ) {
         this.name = name;
-        this.lecturers.addAll(lecturers);
+        this.lecturers = new HashSet<>(lecturers);
         this.startDate = startDate;
         this.endDate = endDate;
         this.description = description;
