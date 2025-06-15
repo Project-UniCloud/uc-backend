@@ -78,9 +78,11 @@ class UserRestControllerDiffblueTest {
         when(createLecturerUseCase.createLecturer(Mockito.any())).thenReturn(user);
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/lecturers")
                 .contentType(MediaType.APPLICATION_JSON);
-        CreateLecturerRequest createLecturerRequest = new CreateLecturerRequest("42",
+        CreateLecturerRequest createLecturerRequest = new CreateLecturerRequest(
+                "42",
                 "Jane",
-                "Doe"
+                "Doe",
+                "email@example.com"
         );
 
         MockHttpServletRequestBuilder requestBuilder = contentTypeResult
@@ -135,9 +137,11 @@ class UserRestControllerDiffblueTest {
 
         // Act
         LecturerCreatedResponse actualCreateLecturerResult = userRestController
-                .createLecturer(new CreateLecturerRequest("42",
+                .createLecturer(new CreateLecturerRequest(
+                        "42",
                         "Jane",
                         "Doe"
+                        ,"email@example.com"
                 ));
 
         // Assert
