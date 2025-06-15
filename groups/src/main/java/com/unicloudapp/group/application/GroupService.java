@@ -216,4 +216,20 @@ public class GroupService {
                 .toList();
         return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalPages());
     }
+
+    //TODO implement giving cloud resource access to students
+    public void activate(GroupId groupId) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        group.activate();
+        groupRepository.save(group);
+    }
+
+    //TODO implement taking away cloud resource access to students
+    public void archive(GroupId groupId) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        group.archive();
+        groupRepository.save(group);
+    }
 }

@@ -1,7 +1,7 @@
 package com.unicloudapp.group.domain;
 
-import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.domain.user.UserId;
@@ -11,6 +11,9 @@ import lombok.Getter;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.unicloudapp.group.domain.GroupStatus.Type.ACTIVE;
+import static com.unicloudapp.group.domain.GroupStatus.Type.ARCHIVED;
 
 @Builder(access = AccessLevel.PACKAGE)
 @Getter
@@ -46,6 +49,14 @@ public class Group {
         this.startDate = startDate;
         this.endDate = endDate;
         this.description = description;
+    }
+
+    public void activate() {
+        this.groupStatus = GroupStatus.of(ACTIVE);
+    }
+
+    public void archive() {
+        this.groupStatus = GroupStatus.of(ARCHIVED);
     }
 
     static class GroupBuilder {

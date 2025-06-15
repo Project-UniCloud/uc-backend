@@ -159,4 +159,18 @@ class GroupRestController {
     List<CloudResourceTypeRowView> getCloudResourceAccesses(@PathVariable UUID groupId) {
         return groupService.getCloudResourceAccesses(GroupId.of(groupId));
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value = "/{groupId}/activate")
+    @ResponseStatus(HttpStatus.OK)
+    void activate(@PathVariable UUID groupId) {
+        groupService.activate(GroupId.of(groupId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value = "/{groupId}/archive")
+    @ResponseStatus(HttpStatus.OK)
+    void archive(@PathVariable UUID groupId) {
+        groupService.archive(GroupId.of(groupId));
+    }
 }
