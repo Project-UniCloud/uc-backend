@@ -7,6 +7,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.scheduling.support.CronExpression;
+
+import java.time.LocalDate;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Builder
@@ -17,6 +20,10 @@ public class CloudResourceAccess {
     private final CloudAccessClientId cloudAccessClientId;
     private final CloudResourceType cloudResourceType;
     private CostLimit costLimit;
+    private UsedLimit usedLimit;
+    private CronExpression cronExpression;
+    private ExpiresDate expiresAt;
+    private CloudResourcesAccessStatus status;
 
     void changeCostLimit(CostLimit newCostLimit) {
         if (newCostLimit == null) {
