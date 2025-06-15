@@ -18,7 +18,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.*;
@@ -95,14 +94,8 @@ public class GroupService {
         int size = pageable.getPageSize();
         int page = pageable.getPageNumber();
         int offset = page * size;
-        List<UserDetails> userDetailsByIds = userQueryService.getUserDetailsByIds(
+        return userQueryService.getUserDetailsByIds(
                 group.getStudents(), offset, size
-        );
-        return new PageImpl<>(userDetailsByIds,
-                PageRequest.of(page,
-                        size
-                ),
-                userQueryService.countUsersByIds(group.getLecturers())
         );
     }
 

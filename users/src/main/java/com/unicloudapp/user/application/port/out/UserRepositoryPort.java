@@ -6,6 +6,7 @@ import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.projection.UserFullNameProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
+import org.springframework.data.domain.Page;
 
 import java.util.*;
 
@@ -21,24 +22,17 @@ public interface UserRepositoryPort {
 
     List<UserFullNameProjection> findFullNamesByIds(List<UserId> userIds);
 
-    List<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int offset, int size);
+    Page<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int offset, int size);
 
     List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role);
-
-    long countByUuidIn(Collection<UUID> uuids);
 
     List<UserId> saveAll(List<User> students);
 
     List<UserLogin> findAllLoginsByIds(Set<UserId> userIds);
 
-    List<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
+    Page<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
             int offset,
             int size,
-            UserRole.Type role,
-            String firstOrLastName
-    );
-
-    long countAllUsersByRoleAndFirstNameOrLastName(
             UserRole.Type role,
             String firstOrLastName
     );

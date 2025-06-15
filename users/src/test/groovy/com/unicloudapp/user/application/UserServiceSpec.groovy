@@ -268,21 +268,6 @@ class UserServiceSpec extends Specification {
         userDetails[0].email == Email.of("john.doe@example.com")
     }
 
-    def "countUsersByIds should return correct count"() {
-        given:
-        def uuid1 = UUID.randomUUID()
-        def uuid2 = UUID.randomUUID()
-        def userIds = [UserId.of(uuid1), UserId.of(uuid2)] as Set
-
-        1 * userRepository.countByUuidIn([uuid1, uuid2] as Set) >> 2L
-
-        when:
-        def count = userService.countUsersByIds(userIds)
-
-        then:
-        count == 2L
-    }
-
     def "createStudent should create and save a student user and return their ID"() {
         given:
         def studentData = new StudentBasicData("Jan", "Kowalski", "studentLogin",  "jan.kowalski@example.com")

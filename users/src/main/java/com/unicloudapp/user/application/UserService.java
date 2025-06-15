@@ -102,22 +102,15 @@ implements UserValidationService,
     }
 
     @Override
-    public List<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size) {
+    public Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size) {
         return userRepository.findUserRowByIds(userIds, offset, size)
-                .stream()
                 .map(userRowProjection -> UserDetails.builder()
                         .userId(UserId.of(userRowProjection.getUuid()))
                         .login(UserLogin.of(userRowProjection.getLogin()))
                         .firstName(FirstName.of(userRowProjection.getFirstName()))
                         .lastName(LastName.of(userRowProjection.getLastName()))
                         .email(Email.of(userRowProjection.getEmail()))
-                        .build())
-                .toList();
-    }
-
-    @Override
-    public long countUsersByIds(Set<UserId> userIds) {
-        return userRepository.countByUuidIn(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()));
+                        .build());
     }
 
     @Override
@@ -164,15 +157,11 @@ implements UserValidationService,
             int size,
             String lecturerFirstOrLastName
     ) {
-        List<UserRowProjection> lecturers = userRepository.findAllUsersByRoleAndFirstNameOrLastName(
+        return userRepository.findAllUsersByRoleAndFirstNameOrLastName(
                 offset,
                 size,
                 UserRole.Type.LECTURER,
                 lecturerFirstOrLastName
         );
-        long total = userRepository.countAllUsersByRoleAndFirstNameOrLastName(
-                UserRole.Type.LECTURER, lecturerFirstOrLastName
-        );
-        return new PageImpl<>(lecturers, PageRequest.of(offset / size, size), total);
     }
 }

@@ -2,6 +2,7 @@ package com.unicloudapp.common.user;
 
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserLogin;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
@@ -11,9 +12,7 @@ public interface UserQueryService {
 
     Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds);
 
-    List<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
-
-    long countUsersByIds(Set<UserId> userIds);
+    Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
 
     List<UserLogin> getUserLoginsByIds(Set<UserId> userIds);
 }

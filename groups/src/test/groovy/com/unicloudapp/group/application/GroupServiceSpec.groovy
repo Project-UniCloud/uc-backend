@@ -17,6 +17,7 @@ import com.unicloudapp.common.domain.user.UserLogin
 import com.unicloudapp.common.user.*
 import com.unicloudapp.group.domain.*
 import org.junit.jupiter.api.Disabled
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
@@ -249,10 +250,9 @@ class GroupServiceSpec extends Specification {
                 .login(UserLogin.of("123456"))
                 .email(Email.empty())
                 .build()
-        def studentDetails = [studentDetail]
         def pageable = PageRequest.of(0, 10)
-        def pagedStudentDetails = new PageImpl<>(studentDetails, pageable, studentDetails.size())
-        userQueryService.getUserDetailsByIds(studentIds, 0, 10) >> studentDetails
+        def pagedStudentDetails = new PageImpl<>([studentDetail], pageable, 1)
+        userQueryService.getUserDetailsByIds(studentIds, 0, 10) >> pagedStudentDetails
 
         when:
         def result = groupService.getStudentsDetailsByGroupId(groupId, pageable)
