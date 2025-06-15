@@ -40,6 +40,7 @@ class UserRestController {
                 .login(createLecturerRequest.userIndexNumber())
                 .firstName(createLecturerRequest.firstName())
                 .lastName(createLecturerRequest.lastName())
+                .email(createLecturerRequest.email())
                 .build();
         User createdLecturer = createLecturerUseCase.createLecturer(createLecturerCommand);
         return LecturerCreatedResponse.builder()

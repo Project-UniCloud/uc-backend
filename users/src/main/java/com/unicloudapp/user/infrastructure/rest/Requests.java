@@ -1,5 +1,6 @@
 package com.unicloudapp.user.infrastructure.rest;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -10,7 +11,9 @@ record CreateLecturerRequest(
         @NotBlank
         String firstName,
         @NotBlank
-        String lastName
+        String lastName,
+        @Email
+        String email
 ) {
 
 }
