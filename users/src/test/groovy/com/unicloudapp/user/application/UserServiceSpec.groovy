@@ -16,6 +16,7 @@ import com.unicloudapp.user.application.projection.UserFullNameProjection
 import com.unicloudapp.user.application.projection.UserRowProjection
 import com.unicloudapp.user.domain.User
 import com.unicloudapp.user.domain.UserFactory
+import org.springframework.data.domain.PageImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Title
@@ -254,7 +255,7 @@ class UserServiceSpec extends Specification {
         userRowProjection.getLastName() >> "Doe"
         userRowProjection.getEmail() >> "john.doe@example.com"
 
-        userRepository.findUserRowByIds(userIds, 0, 10) >> [userRowProjection]
+        userRepository.findUserRowByIds(userIds, 0, 10) >> new PageImpl([userRowProjection])
 
         when:
         def userDetails = userService.getUserDetailsByIds(userIds, 0, 10)
