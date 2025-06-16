@@ -2,6 +2,7 @@ package com.unicloudapp.cloudmanagment.application;
 
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
+import com.unicloudapp.cloudmanagment.domain.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
@@ -78,11 +79,12 @@ public class CloudAccessService
                         .name(cloudResourceAccess.getCloudResourceType().getName())
                         .costLimit(cloudResourceAccess.getCostLimit().getCost())
                         .clientId(cloudResourceAccess.getCloudAccessClientId().getValue())
-                        .status("ACTIVE") //TODO
-                        .cronCleanupSchedule("0 2 */2 * *")//TODO
-                        .lastUsedAt(LocalDateTime.now())//TODO
-                        .expiresAt(LocalDate.now().plusDays(30))//TODO
-                        .limitUsed(BigDecimal.ZERO)//TODO
+                        .status(cloudResourceAccess.getStatus().getStatus().name())
+                        .cronCleanupSchedule(cloudResourceAccess.getCronExpression().toString())
+                        .lastUsedAt(LocalDateTime.now())
+                        .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
+                        .limitUsed(cloudResourceAccess.getUsedLimit()
+                                .getValue())
                         .build())
                 .toList();
     }
@@ -123,7 +125,9 @@ public class CloudAccessService
                         CloudResourceAccessId.of(UUID.randomUUID()),
                         cloudAccessClient.getCloudAccessClientId(),
                         cloudResourceType,
-                        cloudAccessClient.getDefaultCostLimit()
+                        cloudAccessClient.getDefaultCostLimit(),
+                        cloudAccessClient.getCronExpression(),
+                        ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
                 );
         cloudAccessRepository.save(cloudResourceAccess);
         return cloudResourceAccess.getCloudResourceAccessId();

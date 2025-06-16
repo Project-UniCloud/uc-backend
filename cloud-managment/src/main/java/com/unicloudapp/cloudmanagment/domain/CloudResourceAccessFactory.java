@@ -3,6 +3,7 @@ package com.unicloudapp.cloudmanagment.domain;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import org.springframework.scheduling.support.CronExpression;
 
 public class CloudResourceAccessFactory {
 
@@ -10,7 +11,10 @@ public class CloudResourceAccessFactory {
             CloudResourceAccessId cloudResourceAccessId,
             CloudAccessClientId cloudAccessClientId,
             CloudResourceType cloudResourceType,
-            CostLimit costLimit
+            CostLimit costLimit,
+            CronExpression cronExpression,
+            ExpiresDate expiresAt
+
     ) {
         if (!isValid(cloudResourceAccessId, cloudAccessClientId, cloudResourceType, costLimit)) {
             throw new IllegalArgumentException("Invalid parameters for creating CloudResourceAccess");
@@ -19,7 +23,11 @@ public class CloudResourceAccessFactory {
                 cloudResourceAccessId,
                 cloudAccessClientId,
                 cloudResourceType,
-                costLimit
+                costLimit,
+                UsedLimit.empty(),
+                cronExpression,
+                expiresAt,
+                CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE)
         );
     }
 
