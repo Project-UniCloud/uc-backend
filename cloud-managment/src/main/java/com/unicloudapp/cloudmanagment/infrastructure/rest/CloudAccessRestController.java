@@ -1,6 +1,7 @@
 package com.unicloudapp.cloudmanagment.infrastructure.rest;
 
 import com.unicloudapp.cloudmanagment.application.CloudAccessService;
+import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +43,21 @@ class CloudAccessRestController {
                         .costLimit(client.getDefaultCostLimit().getCost())
                         .defaultCronExpression(client.getCronExpression().toString())
                         .build());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/client/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    CloudAccessClientDetails getCloudAccessClient(
+            @PathVariable String id
+    ) {
+        CloudAccessClient details = cloudAccessService.getCloudAccessClientDetails(CloudAccessClientId.of(id));
+        return CloudAccessClientDetails.builder()
+                .cloudAccessClientId(details.getCloudAccessClientId().getValue())
+                .cloudAccessClientName(details.getName())
+                .costLimit(details.getDefaultCostLimit().getCost())
+                .defaultCronExpression(details.getCronExpression().toString())
+                .isActive(false)
+                .build();
     }
 }

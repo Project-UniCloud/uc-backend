@@ -21,3 +21,12 @@ record CloudAccessClientRowView(
 ) {
 
 }
+
+@Builder
+record CloudAccessClientDetails(
+        String cloudAccessClientId,
+        String cloudAccessClientName,
+        BigDecimal costLimit,
+        String defaultCronExpression,
+        boolean isActive
+) {}

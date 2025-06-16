@@ -151,4 +151,8 @@ public class CloudAccessService
                 clients.size()
         );
     }
+
+    public CloudAccessClient getCloudAccessClientDetails(CloudAccessClientId clientId) {
+        return clients.get(clientId.getValue());
+    }
 }
