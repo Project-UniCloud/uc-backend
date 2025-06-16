@@ -79,7 +79,7 @@ public class CloudAccessService
                         .name(cloudResourceAccess.getCloudResourceType().getName())
                         .costLimit(cloudResourceAccess.getCostLimit().getCost())
                         .clientId(cloudResourceAccess.getCloudAccessClientId().getValue())
-                        .status("ACTIVE") //TODO
+                        .status(cloudResourceAccess.getStatus().getStatus().name())
                         .cronCleanupSchedule(cloudResourceAccess.getCronExpression().toString())
                         .lastUsedAt(LocalDateTime.now())
                         .expiresAt(cloudResourceAccess.getExpiresAt().getValue())

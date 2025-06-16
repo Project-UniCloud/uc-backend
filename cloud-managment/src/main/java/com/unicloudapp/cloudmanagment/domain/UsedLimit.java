@@ -12,7 +12,7 @@ public class UsedLimit {
 
     BigDecimal value;
 
-    static UsedLimit of(BigDecimal value) {
+    public static UsedLimit of(BigDecimal value) {
         if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Used limit must be a non-negative value");
         }

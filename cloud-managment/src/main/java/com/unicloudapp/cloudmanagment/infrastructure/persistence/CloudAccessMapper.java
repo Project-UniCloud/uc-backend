@@ -1,10 +1,10 @@
 package com.unicloudapp.cloudmanagment.infrastructure.persistence;
 
-import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
-import com.unicloudapp.cloudmanagment.domain.CostLimit;
+import com.unicloudapp.cloudmanagment.domain.*;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,6 +16,10 @@ class CloudAccessMapper {
                 .cloudAccessClientId(CloudAccessClientId.of(entity.getCloudAccessClientId()))
                 .cloudResourceType(CloudResourceType.of(entity.getResourceType()))
                 .costLimit(CostLimit.of(entity.getCostLimit()))
+                .usedLimit(UsedLimit.of(entity.getUsedLimit()))
+                .expiresAt(ExpiresDate.of(entity.getExpiresAt()))
+                .status(CloudResourcesAccessStatus.of(entity.getStatus()))
+                .cronExpression(CronExpression.parse(entity.getCronExpression()))
                 .build();
     }
 
@@ -26,6 +30,11 @@ class CloudAccessMapper {
                 .cloudAccessClientId(domain.getCloudAccessClientId().getValue())
                 .resourceType(domain.getCloudResourceType().getName())
                 .costLimit(domain.getCostLimit().getCost())
+                .cronExpression(domain.getCronExpression().toString())
+                .usedLimit(domain.getUsedLimit()
+                        .getValue())
+                .expiresAt(domain.getExpiresAt().getValue())
+                .status(domain.getStatus().getStatus())
                 .build();
     }
 
