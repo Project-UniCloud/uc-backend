@@ -143,6 +143,9 @@ public class GroupService {
     }
 
     public void updateGroup(GroupId groupId, GroupDTO groupDTO) {
+        if (!groupDTO.endDate().isAfter(groupDTO.startDate())) {
+            throw new RuntimeException("End date is not after start date");
+        }
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.update(
