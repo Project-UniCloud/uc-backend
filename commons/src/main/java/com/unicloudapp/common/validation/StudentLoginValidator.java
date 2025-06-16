@@ -2,8 +2,10 @@ package com.unicloudapp.common.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import lombok.NoArgsConstructor;
 
-class StudentLoginValidator implements ConstraintValidator<StudentLogin, String> {
+@NoArgsConstructor
+public class StudentLoginValidator implements ConstraintValidator<StudentLogin, String> {
 
     @Override
     public boolean isValid(

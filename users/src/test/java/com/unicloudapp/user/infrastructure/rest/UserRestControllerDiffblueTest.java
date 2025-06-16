@@ -174,9 +174,11 @@ class UserRestControllerDiffblueTest {
         when(createStudentUseCase.createStudent(Mockito.any())).thenReturn(user);
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/students")
                 .contentType(MediaType.APPLICATION_JSON);
-        CreateStudentRequest createStudentRequest = new CreateStudentRequest("42",
+        CreateStudentRequest createStudentRequest = new CreateStudentRequest(
+                "s123442",
                 "Jane",
-                "Doe"
+                "Doe",
+                "mail@mail.com"
         );
 
         MockHttpServletRequestBuilder requestBuilder = contentTypeResult
@@ -226,7 +228,8 @@ class UserRestControllerDiffblueTest {
         StudentCreatedResponse studentCreatedResponse = userRestController
                 .createStudent(new CreateStudentRequest("42",
                         "Jane",
-                        "Doe"
+                        "Doe",
+                        "mail@mail.com"
                 ));
 
         // Assert

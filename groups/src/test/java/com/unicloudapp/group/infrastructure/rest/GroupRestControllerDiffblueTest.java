@@ -157,7 +157,7 @@ class GroupRestControllerDiffblueTest {
                 .email("email@example.com")
                 .firstName("John")
                 .lastName("Doe")
-                .login("login")
+                .login("s123123")
                 .build();
 
         doNothing().when(groupService)
