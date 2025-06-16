@@ -52,6 +52,14 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
                 .map(cloudAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<CloudResourceAccess> findAllByCloudClientId(CloudAccessClientId cloudAccessClientId) {
+        return repository.findAllByCloudAccessClientId(cloudAccessClientId.getValue())
+                .stream()
+                .map(cloudAccessMapper::toDomain)
+                .collect(Collectors.toSet());
+    }
 }
 
 @Repository
@@ -61,4 +69,6 @@ interface CloudAccessJpaRepository extends JpaRepository<CloudResourceAccessEnti
             String cloudAccessClientId,
             String resourceType
     );
+
+    Set<CloudResourceAccessEntity> findAllByCloudAccessClientId(String cloudAccessClientId);
 }

@@ -44,7 +44,7 @@ class GroupSpecifications {
                     .map(id -> cb.isMember(id, root.get("cloudResourceAccesses")))
                     .toArray(Predicate[]::new);
 
-            return cb.or(predicates);
+            return cb.and(predicates);
         };
     }
 }
