@@ -64,7 +64,7 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/students")
     @ResponseStatus(HttpStatus.CREATED)
-    StudentCreatedResponse createLecturer(
+    StudentCreatedResponse createStudent(
             @Valid
             @RequestBody
             CreateStudentRequest request
@@ -73,6 +73,7 @@ class UserRestController {
                 .login(request.userIndexNumber())
                 .firstName(request.firstName())
                 .lastName(request.lastName())
+                .email(request.email())
                 .build();
         User createdLecturer = createStudentUseCase.createStudent(createStudentCommand);
         return StudentCreatedResponse.builder()

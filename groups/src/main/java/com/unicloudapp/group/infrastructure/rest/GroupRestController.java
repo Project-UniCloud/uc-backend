@@ -44,6 +44,7 @@ class GroupRestController {
                 .startDate(request.startDate())
                 .endDate(request.endDate())
                 .lecturers(request.lecturers())
+                .description(request.description())
                 .build();
         return groupService.createGroup(groupDto)
                 .getGroupId()

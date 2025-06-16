@@ -143,6 +143,9 @@ public class GroupService {
     }
 
     public void updateGroup(GroupId groupId, GroupDTO groupDTO) {
+        if (!groupDTO.endDate().isAfter(groupDTO.startDate())) {
+            throw new RuntimeException("End date is not after start date");
+        }
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.update(
@@ -159,18 +162,24 @@ public class GroupService {
             GroupFilterCriteria criteria,
             Pageable pageable
     ) {
-        Page<GroupRowProjection> groups;
-        if (criteria.getCloudClientId() != null && criteria.getResourceType() != null) {
-            Set<CloudResourceAccessId> accessesByCloudClientIdAndResourceType = cloudResourceAccessQueryService.getCloudResourceAccessesByCloudClientIdAndResourceType(
-                    criteria.getCloudClientId(),
-                    criteria.getResourceType()
-            );
-            groups = groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(
-                    criteria, pageable, accessesByCloudClientIdAndResourceType
-            );
-        } else {
-            groups = groupRepository.findAllByCriteria(criteria, pageable);
+        Set<CloudResourceAccessId> accessIds = null;
+
+        if (criteria.getCloudClientId() != null) {
+            if (criteria.getResourceType() == null) {
+                accessIds = cloudResourceAccessQueryService.getCloudResourceAccessesByCloudClientId(
+                        criteria.getCloudClientId()
+                );
+            } else {
+                accessIds = cloudResourceAccessQueryService.getCloudResourceAccessesByCloudClientIdAndResourceType(
+                        criteria.getCloudClientId(),
+                        criteria.getResourceType()
+                );
+            }
         }
+
+        Page<GroupRowProjection> groups = (accessIds != null)
+                ? groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(criteria, pageable, accessIds)
+                : groupRepository.findAllByCriteria(criteria, pageable);
 
         Map<UserId, UserFullName> userFullNames = userQueryService.getFullNameForUserIds(
                 groups.stream()

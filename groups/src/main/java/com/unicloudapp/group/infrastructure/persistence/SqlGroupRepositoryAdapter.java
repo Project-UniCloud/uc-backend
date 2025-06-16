@@ -119,7 +119,7 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
         if (criteria.getGroupName() != null) {
             specs.add(nameLike(criteria.getGroupName()));
         }
-        if (criteria.getCloudClientId() != null && criteria.getResourceType() != null) {
+        if (criteria.getCloudClientId() != null || criteria.getResourceType() != null) {
             specs.add(hasCloudResourceAccess(cloudResourceAccesses));
         }
 

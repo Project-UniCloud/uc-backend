@@ -15,7 +15,7 @@ repositories {
 val lombokVersion = "1.18.38"
 val mapStructVersion = "1.6.3"
 val jakartaValidationVersion = "3.1.1"
-val hibernateValidatorVersion = "9.0.0.Final"
+val hibernateValidatorVersion = "9.0.1.Final"
 val opencsv = 5.11
 val spockVersion = "2.3-groovy-4.0"
 
@@ -35,6 +35,7 @@ dependencies {
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.opencsv:opencsv:$opencsv")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")

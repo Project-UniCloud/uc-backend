@@ -19,4 +19,8 @@ public interface CloudResourceAccessQueryService {
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
             CloudAccessClientId cloudAccessClientId, CloudResourceType resourceType
     );
+
+    Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(
+            CloudAccessClientId cloudAccessClientId
+    );;
 }

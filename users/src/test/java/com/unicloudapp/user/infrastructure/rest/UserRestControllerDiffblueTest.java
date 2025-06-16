@@ -78,9 +78,11 @@ class UserRestControllerDiffblueTest {
         when(createLecturerUseCase.createLecturer(Mockito.any())).thenReturn(user);
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/lecturers")
                 .contentType(MediaType.APPLICATION_JSON);
-        CreateLecturerRequest createLecturerRequest = new CreateLecturerRequest("42",
+        CreateLecturerRequest createLecturerRequest = new CreateLecturerRequest(
+                "42",
                 "Jane",
-                "Doe"
+                "Doe",
+                "email@example.com"
         );
 
         MockHttpServletRequestBuilder requestBuilder = contentTypeResult
@@ -135,9 +137,11 @@ class UserRestControllerDiffblueTest {
 
         // Act
         LecturerCreatedResponse actualCreateLecturerResult = userRestController
-                .createLecturer(new CreateLecturerRequest("42",
+                .createLecturer(new CreateLecturerRequest(
+                        "42",
                         "Jane",
                         "Doe"
+                        ,"email@example.com"
                 ));
 
         // Assert
@@ -150,9 +154,9 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateStudentRequest)} with {@code request}.
+     * Test {@link UserRestController#createStudent(CreateStudentRequest)} with {@code request}.
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateStudentRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateStudentRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'")
@@ -170,9 +174,11 @@ class UserRestControllerDiffblueTest {
         when(createStudentUseCase.createStudent(Mockito.any())).thenReturn(user);
         MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/students")
                 .contentType(MediaType.APPLICATION_JSON);
-        CreateStudentRequest createStudentRequest = new CreateStudentRequest("42",
+        CreateStudentRequest createStudentRequest = new CreateStudentRequest(
+                "s123442",
                 "Jane",
-                "Doe"
+                "Doe",
+                "mail@mail.com"
         );
 
         MockHttpServletRequestBuilder requestBuilder = contentTypeResult
@@ -191,12 +197,12 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateStudentRequest)} with {@code request}.
+     * Test {@link UserRestController#createStudent(CreateStudentRequest)} with {@code request}.
      * <ul>
      *   <li>Then return studentId is randomUUID.</li>
      * </ul>
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateStudentRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateStudentRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'; then return studentId is randomUUID")
@@ -220,9 +226,10 @@ class UserRestControllerDiffblueTest {
 
         // Act
         StudentCreatedResponse studentCreatedResponse = userRestController
-                .createLecturer(new CreateStudentRequest("42",
+                .createStudent(new CreateStudentRequest("42",
                         "Jane",
-                        "Doe"
+                        "Doe",
+                        "mail@mail.com"
                 ));
 
         // Assert

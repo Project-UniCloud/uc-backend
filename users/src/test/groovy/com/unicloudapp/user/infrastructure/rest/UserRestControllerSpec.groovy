@@ -63,7 +63,7 @@ class UserRestControllerSpec extends Specification {
         }
 
         when:
-        def response = controller.createLecturer(request)
+        def response = controller.createStudent(request)
 
         then:
         1 * createStudentUseCase.createStudent(_ as CreateStudentCommand) >> user
