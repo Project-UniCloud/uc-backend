@@ -4,6 +4,8 @@ import com.unicloudapp.cloudmanagment.application.CloudAccessService;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +20,7 @@ class CloudAccessRestController {
     private final CloudAccessService cloudAccessService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/{cloudAccessClientId}")
+    @GetMapping("/client/{cloudAccessClientId}/resource-types")
     @ResponseStatus(HttpStatus.OK)
     List<CloudResourceType> getCloudResourceTypesForCloudAccessClient(
             @PathVariable CloudAccessClientId cloudAccessClientId
@@ -27,9 +29,18 @@ class CloudAccessRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
+    @GetMapping("/client")
     @ResponseStatus(HttpStatus.OK)
-    List<CloudAccessClientId> getCloudAccesses() {
-        return cloudAccessService.getCloudAccessClients();
+    Page<CloudAccessClientRowView> getCloudAccesses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return cloudAccessService.getCloudAccessClients(PageRequest.of(page, pageSize))
+                .map(client -> CloudAccessClientRowView.builder()
+                        .cloudAccessClientId(client.getCloudAccessClientId().getValue())
+                        .cloudAccessClientName(client.getName())
+                        .costLimit(client.getDefaultCostLimit().getCost())
+                        .defaultCronExpression(client.getCronExpression().toString())
+                        .build());
     }
 }

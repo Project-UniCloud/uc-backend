@@ -11,14 +11,14 @@ import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -141,10 +141,14 @@ public class CloudAccessService
         clients.get(cloudAccessClientId.getValue()).createGroup(groupUniqueName, lecturerLogins, resourceType);
     }
 
-    public List<CloudAccessClientId> getCloudAccessClients() {
-        return clients.keySet()
-                .stream()
-                .map(CloudAccessClientId::of)
-                .toList();
+    public Page<CloudAccessClient> getCloudAccessClients(Pageable pageable) {
+        return new PageImpl<>(
+                clients.values().stream()
+                        .sorted(Comparator.comparing(c -> c.getCloudAccessClientId()
+                                .getValue()))
+                        .toList(),
+                pageable,
+                clients.size()
+        );
     }
 }
