@@ -154,9 +154,9 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateStudentRequest)} with {@code request}.
+     * Test {@link UserRestController#createStudent(CreateStudentRequest)} with {@code request}.
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateStudentRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateStudentRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'")
@@ -195,12 +195,12 @@ class UserRestControllerDiffblueTest {
     }
 
     /**
-     * Test {@link UserRestController#createLecturer(CreateStudentRequest)} with {@code request}.
+     * Test {@link UserRestController#createStudent(CreateStudentRequest)} with {@code request}.
      * <ul>
      *   <li>Then return studentId is randomUUID.</li>
      * </ul>
      * <p>
-     * Method under test: {@link UserRestController#createLecturer(CreateStudentRequest)}
+     * Method under test: {@link UserRestController#createStudent(CreateStudentRequest)}
      */
     @Test
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'; then return studentId is randomUUID")
@@ -224,7 +224,7 @@ class UserRestControllerDiffblueTest {
 
         // Act
         StudentCreatedResponse studentCreatedResponse = userRestController
-                .createLecturer(new CreateStudentRequest("42",
+                .createStudent(new CreateStudentRequest("42",
                         "Jane",
                         "Doe"
                 ));
