@@ -62,6 +62,20 @@ public class GroupService {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow();
         group.addStudent(userId);
+        List<CloudResourceTypeRowView> cloudResourceTypesDetails =
+                cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
+        Set<String> collect = cloudResourceTypesDetails.stream()
+                .map(CloudResourceTypeRowView::clientId)
+                .collect(Collectors.toSet());
+        collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
+                    CloudAccessClientId.of(s),
+                    List.of(studentBasicData.getLogin()),
+                    GroupUniqueName.builder()
+                            .semester(group.getSemester())
+                            .groupName(group.getName())
+                            .build()
+                )
+        );
         groupRepository.save(group);
     }
 
@@ -105,6 +119,20 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         List<UserId> importedStudents = userCommandService.importStudents(studentBasicData);
         importedStudents.forEach(group::addStudent);
+        List<CloudResourceTypeRowView> cloudResourceTypesDetails =
+                cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
+        Set<String> collect = cloudResourceTypesDetails.stream()
+                .map(CloudResourceTypeRowView::clientId)
+                .collect(Collectors.toSet());
+        collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
+                        CloudAccessClientId.of(s),
+                        studentBasicData.stream().map(StudentBasicData::getLogin).toList(),
+                        GroupUniqueName.builder()
+                                .semester(group.getSemester())
+                                .groupName(group.getName())
+                                .build()
+                )
+        );
         groupRepository.save(group);
     }
 

@@ -17,4 +17,6 @@ public interface CloudAccessClientController {
     boolean isRunning();
 
     boolean isCloudGroupExists(GroupUniqueName groupUniqueName);
+
+    String createUsers(List<String> users, GroupUniqueName groupUniqueName);
 }
