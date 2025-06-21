@@ -19,12 +19,28 @@ class CsvStudentImporter implements StudentImporterPort {
         try (BufferedReader reader = new BufferedReader(
                 new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
 
-            CsvToBean<StudentBasicData> csvToBean = new CsvToBeanBuilder<StudentBasicData>(reader)
-                    .withType(StudentBasicData.class)
+            CsvToBean<StudentCsv> csvToBean = new CsvToBeanBuilder<StudentCsv>(reader)
+                    .withType(StudentCsv.class)
                     .withIgnoreLeadingWhiteSpace(true)
+                    .withSeparator(';')
+                    .withThrowExceptions(true)
                     .build();
 
-            return csvToBean.parse();
+
+            List<StudentBasicData> studentBasicDataList = csvToBean.parse()
+                    .stream()
+                    .map(studentCsv -> new StudentBasicData(
+                            studentCsv.getFirstName(),
+                            studentCsv.getLastName(),
+                            "s" + studentCsv.getLogin(),
+                            studentCsv.getEmail()
+                    ))
+                    .toList();
+            if (studentBasicDataList.isEmpty() || studentBasicDataList.stream().anyMatch(s -> s.getLogin() == null)) {
+                throw new RuntimeException("CSV format is invalid or missing required columns");
+            }
+            return studentBasicDataList;
+
         }
     }
 }
