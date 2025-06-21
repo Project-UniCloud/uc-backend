@@ -21,4 +21,6 @@ public interface CloudResourceAccessCommandService {
                      List<UserLogin> lecturerLogins,
                      CloudResourceType resourceType
     );
+
+    String createUsers(CloudAccessClientId cloudAccessClientId, List<String> users, GroupUniqueName groupUniqueName);
 }

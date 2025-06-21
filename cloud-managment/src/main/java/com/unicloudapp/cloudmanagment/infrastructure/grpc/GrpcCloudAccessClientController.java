@@ -46,4 +46,13 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
         AdapterInterface.GroupExistsResponse response = stub.groupExists(request);
         return response.getExists();
     }
+
+    @Override
+    public String createUsers(List<String> users, GroupUniqueName groupUniqueName) {
+        AdapterInterface.CreateUsersForGroupRequest request = AdapterInterface.CreateUsersForGroupRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .addAllUsers(users)
+                .build();
+        return stub.createUsersForGroup(request).getMessage();
+    }
 }

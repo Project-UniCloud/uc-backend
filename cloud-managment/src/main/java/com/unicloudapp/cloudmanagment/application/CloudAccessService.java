@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -158,5 +157,10 @@ public class CloudAccessService
 
     public CloudAccessClient getCloudAccessClientDetails(CloudAccessClientId clientId) {
         return clients.get(clientId.getValue());
+    }
+
+    @Override
+    public String createUsers(CloudAccessClientId cloudAccessClientId, List<String> users, GroupUniqueName groupUniqueName) {
+        return clients.get(cloudAccessClientId.getValue()).createUsers(users, groupUniqueName);
     }
 }
