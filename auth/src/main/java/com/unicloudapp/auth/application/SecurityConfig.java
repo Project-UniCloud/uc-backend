@@ -80,10 +80,16 @@ class SecurityConfig {
                 String password = authentication.getCredentials().toString();
 
                 if (ldapProvider.authenticate(username, password)) {
+                    UserDetails user = User.builder()
+                            .username(username)
+                            .password("")
+                            .roles("ADMIN")
+                            .build();
+
                     return new UsernamePasswordAuthenticationToken(
-                            username,
+                            user,
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                            user.getAuthorities()
                     );
                 }
                 throw new BadCredentialsException("LDAP authentication failed");
