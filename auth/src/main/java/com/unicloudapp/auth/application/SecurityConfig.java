@@ -1,16 +1,21 @@
 package com.unicloudapp.auth.application;
 
+import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -59,9 +64,40 @@ class SecurityConfig {
     }
 
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(
+            UserDetailsService userDetailsService,
+            AuthenticationProviderPort ldapProvider,
+            PasswordEncoder passwordEncoder
+    ) {
+        DaoAuthenticationProvider inMemoryAuthProvider = new DaoAuthenticationProvider();
+        inMemoryAuthProvider.setUserDetailsService(userDetailsService);
+        inMemoryAuthProvider.setPasswordEncoder(passwordEncoder);
+
+        AuthenticationProvider ldapAuthProvider = new AuthenticationProvider() {
+            @Override
+            public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+                String username = authentication.getName();
+                String password = authentication.getCredentials().toString();
+
+                if (ldapProvider.authenticate(username, password)) {
+                    return new UsernamePasswordAuthenticationToken(
+                            username,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                    );
+                }
+                throw new BadCredentialsException("LDAP authentication failed");
+            }
+
+            @Override
+            public boolean supports(Class<?> authentication) {
+                return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+            }
+        };
+
+        return new ProviderManager(List.of(inMemoryAuthProvider, ldapAuthProvider));
     }
+
 
     @Bean
     PasswordEncoder passwordEncoder() {

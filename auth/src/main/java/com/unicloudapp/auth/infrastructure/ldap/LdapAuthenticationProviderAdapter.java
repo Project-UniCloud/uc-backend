@@ -8,7 +8,6 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import java.util.Hashtable;
 
-//TODO generate token and auth in spring security
 @Component
 class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort {
 
