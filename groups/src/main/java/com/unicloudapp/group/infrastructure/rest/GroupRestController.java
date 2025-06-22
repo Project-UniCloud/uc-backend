@@ -2,9 +2,7 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
 import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.cloud.*;
 import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.user.StudentBasicData;
@@ -130,7 +128,8 @@ class GroupRestController {
         return groupService.giveCloudResourceAccess(
                 GroupId.of(groupId),
                 CloudAccessClientId.of(request.cloudAccessClientId()),
-                CloudResourceType.of(request.cloudResourceType())
+                CloudResourceType.of(request.cloudResourceType()),
+                request.costLimit() == null ? CostLimit.zero() : CostLimit.of(request.costLimit())
         );
     }
 

@@ -1,8 +1,6 @@
 package com.unicloudapp.cloudmanagment.domain;
 
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.cloud.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

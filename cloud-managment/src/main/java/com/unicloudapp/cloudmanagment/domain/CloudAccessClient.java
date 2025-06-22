@@ -2,6 +2,8 @@ package com.unicloudapp.cloudmanagment.domain;
 
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.cloud.CostLimit;
+import com.unicloudapp.common.domain.cloud.UsedLimit;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import lombok.Builder;

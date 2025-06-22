@@ -5,7 +5,9 @@ import com.unicloudapp.common.validation.GroupName;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +23,8 @@ record CreateGroupRequest(
 
 record GiveCloudResourceAccessRequest(
         @NotBlank String cloudAccessClientId,
-        @NotBlank String cloudResourceType
+        @NotBlank String cloudResourceType,
+        @PositiveOrZero BigDecimal costLimit
 ) {}
 
 record UpdateGroupDetailsRequest(

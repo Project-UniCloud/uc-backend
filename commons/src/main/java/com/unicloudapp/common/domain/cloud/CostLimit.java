@@ -1,4 +1,4 @@
-package com.unicloudapp.cloudmanagment.domain;
+package com.unicloudapp.common.domain.cloud;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,5 +17,9 @@ public class CostLimit {
             throw new IllegalArgumentException("Cost cannot be null or negative");
         }
         return new CostLimit(cost);
+    }
+
+    public static CostLimit zero() {
+        return new CostLimit(BigDecimal.ZERO);
     }
 }

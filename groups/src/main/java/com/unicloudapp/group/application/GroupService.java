@@ -6,6 +6,7 @@ import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.cloud.CostLimit;
 import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
@@ -145,7 +146,8 @@ public class GroupService {
     public CloudResourceAccessId giveCloudResourceAccess(
             GroupId groupId,
             CloudAccessClientId cloudAccessClientId,
-            CloudResourceType cloudResourceType
+            CloudResourceType cloudResourceType,
+            CostLimit costLimit
     ) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
@@ -171,7 +173,8 @@ public class GroupService {
         CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
                 cloudAccessClientId,
                 cloudResourceType,
-                groupUniqueName
+                groupUniqueName,
+                costLimit
         );
         group.giveCloudResourceAccess(cloudResourceAccessId);
         groupRepository.save(group);

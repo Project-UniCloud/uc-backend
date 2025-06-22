@@ -1,9 +1,7 @@
 package com.unicloudapp.cloudmanagment.infrastructure.persistence;
 
 import com.unicloudapp.cloudmanagment.domain.*;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.cloud.*;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 

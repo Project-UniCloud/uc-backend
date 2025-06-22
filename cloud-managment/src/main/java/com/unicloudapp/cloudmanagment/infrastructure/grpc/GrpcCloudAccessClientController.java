@@ -3,7 +3,7 @@ package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
-import com.unicloudapp.cloudmanagment.domain.UsedLimit;
+import com.unicloudapp.common.domain.cloud.UsedLimit;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;

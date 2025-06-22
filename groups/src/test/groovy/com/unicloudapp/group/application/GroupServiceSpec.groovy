@@ -16,8 +16,6 @@ import com.unicloudapp.common.domain.user.UserId
 import com.unicloudapp.common.domain.user.UserLogin
 import com.unicloudapp.common.user.*
 import com.unicloudapp.group.domain.*
-import org.junit.jupiter.api.Disabled
-import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
@@ -353,7 +351,7 @@ class GroupServiceSpec extends Specification {
         1 * cloudResourceAccessQueryService.getCloudResourceTypesDetails(_) >> []
 
         when:
-        def result = groupService.giveCloudResourceAccess(groupId, cloudAccessClientId, cloudResourceType)
+        def result = groupService.giveCloudResourceAccess(groupId, cloudAccessClientId, cloudResourceType, com.unicloudapp.common.domain.cloud.CostLimit.of(request.costLimit()))
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
@@ -363,7 +361,7 @@ class GroupServiceSpec extends Specification {
         1 * userQueryService.getUserLoginsByIds(_) >> lecturerLogins
         1 * cloudResourceAccessQueryService.isCloudGroupExists(_, cloudAccessClientId) >> false
         1 * cloudResourceAccessCommandService.createGroup(_, cloudAccessClientId, lecturerLogins, cloudResourceType)
-        1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(cloudAccessClientId, cloudResourceType, _) >> cloudResourceAccessId
+        1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(cloudAccessClientId, cloudResourceType, _, costLimit) >> cloudResourceAccessId
         1 * group.giveCloudResourceAccess(cloudResourceAccessId)
         1 * groupRepository.save(group)
 

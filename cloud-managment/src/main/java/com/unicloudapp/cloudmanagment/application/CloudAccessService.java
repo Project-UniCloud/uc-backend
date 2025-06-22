@@ -3,13 +3,10 @@ package com.unicloudapp.cloudmanagment.application;
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
 import com.unicloudapp.cloudmanagment.domain.ExpiresDate;
-import com.unicloudapp.cloudmanagment.domain.UsedLimit;
+import com.unicloudapp.common.domain.cloud.*;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import lombok.RequiredArgsConstructor;
@@ -112,7 +109,8 @@ public class CloudAccessService
     @Override
     public CloudResourceAccessId giveGroupCloudResourceAccess(CloudAccessClientId cloudAccessClientId,
                                                               CloudResourceType cloudResourceType,
-                                                              GroupUniqueName groupUniqueName
+                                                              GroupUniqueName groupUniqueName,
+                                                              CostLimit costLimit
     ) {
         if (!isCloudClientExists(cloudAccessClientId)) {
             throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
@@ -126,7 +124,7 @@ public class CloudAccessService
                         CloudResourceAccessId.of(UUID.randomUUID()),
                         cloudAccessClient.getCloudAccessClientId(),
                         cloudResourceType,
-                        cloudAccessClient.getDefaultCostLimit(),
+                        costLimit,
                         cloudAccessClient.getCronExpression(),
                         ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
                 );
