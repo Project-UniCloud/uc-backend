@@ -19,7 +19,7 @@ class UserEntity {
     @Id
     private UUID uuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String login;
 
     @Column(nullable = false)
