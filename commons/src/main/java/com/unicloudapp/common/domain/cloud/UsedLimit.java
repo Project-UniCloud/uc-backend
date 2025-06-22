@@ -19,7 +19,7 @@ public class UsedLimit {
         return new UsedLimit(value);
     }
 
-    static UsedLimit empty() {
+    public static UsedLimit empty() {
         return new UsedLimit(BigDecimal.ZERO);
     }
 

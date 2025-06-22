@@ -7,6 +7,7 @@ import com.unicloudapp.common.domain.Email
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId
 import com.unicloudapp.common.domain.cloud.CloudResourceType
+import com.unicloudapp.common.domain.cloud.CostLimit
 import com.unicloudapp.common.domain.group.GroupId
 import com.unicloudapp.common.domain.group.GroupName
 import com.unicloudapp.common.domain.group.Semester
@@ -349,9 +350,10 @@ class GroupServiceSpec extends Specification {
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
         def lecturerLogins = [new UserLogin("john.doe@example.com")]
         1 * cloudResourceAccessQueryService.getCloudResourceTypesDetails(_) >> []
+        def costLimit = CostLimit.zero()
 
         when:
-        def result = groupService.giveCloudResourceAccess(groupId, cloudAccessClientId, cloudResourceType, com.unicloudapp.common.domain.cloud.CostLimit.of(request.costLimit()))
+        def result = groupService.giveCloudResourceAccess(groupId, cloudAccessClientId, cloudResourceType, costLimit)
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
