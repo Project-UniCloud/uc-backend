@@ -64,18 +64,20 @@ public class GroupService {
         group.addStudent(userId);
         List<CloudResourceTypeRowView> cloudResourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
-        Set<String> collect = cloudResourceTypesDetails.stream()
-                .map(CloudResourceTypeRowView::clientId)
-                .collect(Collectors.toSet());
-        collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
-                    CloudAccessClientId.of(s),
-                    List.of(UserLogin.of(studentBasicData.getLogin())),
-                    GroupUniqueName.builder()
-                            .semester(group.getSemester())
-                            .groupName(group.getName())
-                            .build()
-                )
-        );
+        if (group.getGroupStatus().getStatus() == GroupStatus.Type.ACTIVE) {
+            Set<String> collect = cloudResourceTypesDetails.stream()
+                    .map(CloudResourceTypeRowView::clientId)
+                    .collect(Collectors.toSet());
+            collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
+                        CloudAccessClientId.of(s),
+                        List.of(UserLogin.of(studentBasicData.getLogin())),
+                        GroupUniqueName.builder()
+                                .semester(group.getSemester())
+                                .groupName(group.getName())
+                                .build()
+                    )
+            );
+        }
         groupRepository.save(group);
     }
 
@@ -121,20 +123,22 @@ public class GroupService {
         importedStudents.forEach(group::addStudent);
         List<CloudResourceTypeRowView> cloudResourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
-        Set<String> collect = cloudResourceTypesDetails.stream()
-                .map(CloudResourceTypeRowView::clientId)
-                .collect(Collectors.toSet());
-        collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
-                        CloudAccessClientId.of(s),
-                        studentBasicData.stream()
-                                .map(studentBasic -> UserLogin.of(studentBasic.getLogin()))
-                                .toList(),
-                        GroupUniqueName.builder()
-                                .semester(group.getSemester())
-                                .groupName(group.getName())
-                                .build()
-                )
-        );
+        if (group.getGroupStatus().getStatus() == GroupStatus.Type.ACTIVE) {
+            Set<String> collect = cloudResourceTypesDetails.stream()
+                    .map(CloudResourceTypeRowView::clientId)
+                    .collect(Collectors.toSet());
+            collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
+                            CloudAccessClientId.of(s),
+                            studentBasicData.stream()
+                                    .map(studentBasic -> UserLogin.of(studentBasic.getLogin()))
+                                    .toList(),
+                            GroupUniqueName.builder()
+                                    .semester(group.getSemester())
+                                    .groupName(group.getName())
+                                    .build()
+                    )
+            );
+        }
         groupRepository.save(group);
     }
 
@@ -149,12 +153,19 @@ public class GroupService {
                 .groupName(group.getName())
                 .semester(group.getSemester())
                 .build();
+        boolean hasGroupCloudResourceType = cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses())
+                .stream()
+                .anyMatch(cloudResourceTypeRowView ->
+                        cloudResourceTypeRowView.name().equals(cloudResourceType.getName())
+                                && cloudResourceTypeRowView.clientId().equals(cloudAccessClientId.getValue())
+                );
+        if (hasGroupCloudResourceType) {
+            throw new RuntimeException("Group already has access to cloud resource type: " + cloudResourceType.getName());
+        }
         List<UserLogin> lecturerLogins = userQueryService.getUserLoginsByIds(
                 group.getLecturers()
         );
-        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudAccessClientId)
-                || group.getGroupStatus().getStatus() == GroupStatus.Type.ACTIVE
-        ) {
+        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudAccessClientId)) {
             cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudAccessClientId, lecturerLogins, cloudResourceType);
         }
         CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
@@ -258,7 +269,6 @@ public class GroupService {
         return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalPages());
     }
 
-    //TODO implement giving cloud resource access to students
     public void activate(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
@@ -269,24 +279,14 @@ public class GroupService {
                 .build();
         List<CloudResourceTypeRowView> resourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
-        Set<String> clientIds = resourceTypesDetails.stream()
-                .map(CloudResourceTypeRowView::clientId)
-                .collect(Collectors.toSet());
-        List<UserLogin> lecturerLogins = userQueryService.getUserLoginsByIds(group.getLecturers());
         List<UserLogin> studentLogins = userQueryService.getUserLoginsByIds(group.getStudents());
-        clientIds.forEach(cloudClientId -> {
-            cloudResourceAccessCommandService.createGroup(
-                    groupUniqueName,
-                    CloudAccessClientId.of(cloudClientId),
-                    lecturerLogins,
-                    CloudResourceType.of(resourceTypesDetails.get(0).name())
-            );
-            cloudResourceAccessCommandService.createUsers(
-                    CloudAccessClientId.of(cloudClientId),
-                    studentLogins,
-                    groupUniqueName
-            );
-        });
+        resourceTypesDetails.stream()
+                .map(CloudResourceTypeRowView::clientId)
+                .forEach(s -> cloudResourceAccessCommandService.createUsers(
+                        CloudAccessClientId.of(s),
+                        studentLogins,
+                        groupUniqueName
+                ));
         groupRepository.save(group);
     }
 
