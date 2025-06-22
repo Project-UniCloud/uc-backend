@@ -8,7 +8,9 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.scheduling.support.CronExpression;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Builder
@@ -40,5 +42,9 @@ public class CloudAccessClient {
 
     public String createUsers(List<String> users, GroupUniqueName groupUniqueName) {
         return controller.createUsers(users, groupUniqueName);
+    }
+
+    public Map<GroupUniqueName, UsedLimit> updateUsedCost() {
+        return controller.updateUsedCost(LocalDate.EPOCH, LocalDate.now());
     }
 }

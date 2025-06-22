@@ -9,8 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.scheduling.support.CronExpression;
 
-import java.time.LocalDate;
-
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Builder
 @Getter
@@ -30,5 +28,12 @@ public class CloudResourceAccess {
             throw new IllegalArgumentException("New cost limit cannot be null");
         }
         this.costLimit = newCostLimit;
+    }
+
+    public void updateUsedLimit(UsedLimit newUsedCost) {
+        if (newUsedCost == null || newUsedCost.getValue().intValue() < usedLimit.getValue().intValue()) {
+            throw new IllegalArgumentException("New used limit cannot be null");
+        }
+        this.usedLimit = newUsedCost;
     }
 }

@@ -5,7 +5,6 @@ import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 

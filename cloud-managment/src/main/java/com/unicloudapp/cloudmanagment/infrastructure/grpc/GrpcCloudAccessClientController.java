@@ -3,12 +3,17 @@ package com.unicloudapp.cloudmanagment.infrastructure.grpc;
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
+import com.unicloudapp.cloudmanagment.domain.UsedLimit;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import lombok.RequiredArgsConstructor;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class GrpcCloudAccessClientController implements CloudAccessClientController {
@@ -54,5 +59,20 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
                 .addAllUsers(users)
                 .build();
         return stub.createUsersForGroup(request).getMessage();
+    }
+
+    @Override
+    public Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate) {
+        AdapterInterface.CostRequest request = AdapterInterface.CostRequest.newBuilder()
+                .setStartDate(startDate.toString())
+                .setEndDate(endDate.toString())
+                .build();
+        AdapterInterface.AllGroupsCostResponse totalCostsForAllGroups = stub.getTotalCostsForAllGroups(request);
+        return totalCostsForAllGroups.getGroupCostsList()
+                .stream()
+                .collect(Collectors.toMap(
+                        groupCost -> GroupUniqueName.fromString(groupCost.getGroupName()),
+                        groupCost -> UsedLimit.of(BigDecimal.valueOf(groupCost.getAmount()))
+                ));
     }
 }

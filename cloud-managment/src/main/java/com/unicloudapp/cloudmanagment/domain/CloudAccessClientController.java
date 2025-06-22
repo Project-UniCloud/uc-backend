@@ -4,7 +4,9 @@ import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface CloudAccessClientController {
 
@@ -19,4 +21,6 @@ public interface CloudAccessClientController {
     boolean isCloudGroupExists(GroupUniqueName groupUniqueName);
 
     String createUsers(List<String> users, GroupUniqueName groupUniqueName);
+
+    Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate);
 }

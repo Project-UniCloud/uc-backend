@@ -3,6 +3,7 @@ package com.unicloudapp.cloudmanagment.application;
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
 import com.unicloudapp.cloudmanagment.domain.ExpiresDate;
+import com.unicloudapp.cloudmanagment.domain.UsedLimit;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -162,5 +164,24 @@ public class CloudAccessService
     @Override
     public String createUsers(CloudAccessClientId cloudAccessClientId, List<String> users, GroupUniqueName groupUniqueName) {
         return clients.get(cloudAccessClientId.getValue()).createUsers(users, groupUniqueName);
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void updateCostUsed() {
+        clients.values()
+                .forEach(cloudAccessClient -> {
+                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudAccessClient.updateUsedCost();
+                    groupUniqueNameUsedLimitMap.forEach((groupUniqueName, usedLimit) -> {
+                        Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
+                                cloudAccessClient.getCloudAccessClientId(),
+                                cloudAccessClient.getResourceTypes().getFirst()
+                        );
+                        List<CloudResourceAccess> allById = cloudAccessRepository.findAllById(cloudResourceAccessIds);
+                        allById.forEach(cloudAccess -> {
+                            cloudAccess.updateUsedLimit(usedLimit);
+                            cloudAccessRepository.save(cloudAccess);
+                        });
+                    });
+                });
     }
 }
