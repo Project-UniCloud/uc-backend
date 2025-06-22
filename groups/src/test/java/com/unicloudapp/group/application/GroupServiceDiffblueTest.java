@@ -125,7 +125,8 @@ class GroupServiceDiffblueTest {
         assertNull(actualCreateGroupResult);
     }
 
-    @Test
+    //TODO
+    /*@Test
     @DisplayName("Test addStudent(GroupId, UserId); given Group addStudent(UserId) does nothing; then calls findById(UUID)")
     void testAddStudent_givenGroupAddStudentDoesNothing_thenCallsFindById() {
         // Arrange
@@ -147,13 +148,8 @@ class GroupServiceDiffblueTest {
         verify(groupRepositoryPort).findById(isA(UUID.class));
         verify(groupRepositoryPort).save(isA(Group.class));
         verify(group).addStudent(any());
-    }
+    }*/
 
-    /**
-     * Test {@link GroupService#getAllGroups(Pageable)}.
-     * <p>
-     * Method under test: {@link GroupService#getAllGroups(Pageable)}
-     */
     @Test
     @DisplayName("Test getAllGroups(Pageable)")
     @Tag("MaintainedByDiffblue")

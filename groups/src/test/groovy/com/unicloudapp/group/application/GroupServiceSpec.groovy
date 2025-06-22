@@ -350,6 +350,7 @@ class GroupServiceSpec extends Specification {
         def group = Mock(Group)
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
         def lecturerLogins = [new UserLogin("john.doe@example.com")]
+        1 * cloudResourceAccessQueryService.getCloudResourceTypesDetails(_) >> []
 
         when:
         def result = groupService.giveCloudResourceAccess(groupId, cloudAccessClientId, cloudResourceType)
