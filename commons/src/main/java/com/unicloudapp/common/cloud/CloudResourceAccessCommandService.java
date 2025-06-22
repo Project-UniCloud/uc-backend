@@ -22,5 +22,9 @@ public interface CloudResourceAccessCommandService {
                      CloudResourceType resourceType
     );
 
-    String createUsers(CloudAccessClientId cloudAccessClientId, List<String> users, GroupUniqueName groupUniqueName);
+    String createUsers(
+            CloudAccessClientId cloudAccessClientId,
+            List<UserLogin> users,
+            GroupUniqueName groupUniqueName
+    );
 }

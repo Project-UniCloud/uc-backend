@@ -40,7 +40,7 @@ public class CloudAccessClient {
         return controller.isCloudGroupExists(groupUniqueName);
     }
 
-    public String createUsers(List<String> users, GroupUniqueName groupUniqueName) {
+    public String createUsers(List<UserLogin> users, GroupUniqueName groupUniqueName) {
         return controller.createUsers(users, groupUniqueName);
     }
 

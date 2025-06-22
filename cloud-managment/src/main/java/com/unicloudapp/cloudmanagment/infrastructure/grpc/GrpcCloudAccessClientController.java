@@ -53,10 +53,10 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
     }
 
     @Override
-    public String createUsers(List<String> users, GroupUniqueName groupUniqueName) {
+    public String createUsers(List<UserLogin> users, GroupUniqueName groupUniqueName) {
         AdapterInterface.CreateUsersForGroupRequest request = AdapterInterface.CreateUsersForGroupRequest.newBuilder()
                 .setGroupName(groupUniqueName.toString())
-                .addAllUsers(users)
+                .addAllUsers(users.stream().map(UserLogin::getValue).toList())
                 .build();
         return stub.createUsersForGroup(request).getMessage();
     }

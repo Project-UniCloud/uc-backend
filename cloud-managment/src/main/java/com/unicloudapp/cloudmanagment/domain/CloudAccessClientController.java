@@ -20,7 +20,7 @@ public interface CloudAccessClientController {
 
     boolean isCloudGroupExists(GroupUniqueName groupUniqueName);
 
-    String createUsers(List<String> users, GroupUniqueName groupUniqueName);
+    String createUsers(List<UserLogin> users, GroupUniqueName groupUniqueName);
 
     Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate);
 }

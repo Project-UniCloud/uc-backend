@@ -162,7 +162,7 @@ public class CloudAccessService
     }
 
     @Override
-    public String createUsers(CloudAccessClientId cloudAccessClientId, List<String> users, GroupUniqueName groupUniqueName) {
+    public String createUsers(CloudAccessClientId cloudAccessClientId, List<UserLogin> users, GroupUniqueName groupUniqueName) {
         return clients.get(cloudAccessClientId.getValue()).createUsers(users, groupUniqueName);
     }
 
