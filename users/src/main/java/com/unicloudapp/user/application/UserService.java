@@ -71,7 +71,7 @@ implements UserValidationService,
     @Override
     public boolean isUserStudent(UserId userId) {
         return userRepository.findById(userId)
-                .map(user -> user.getUserRole().getValue().equals(UserRole.Type.STUDENT))
+                .map(user -> user.getUserRole().getValue() == UserRole.Type.STUDENT)
                 .orElse(false);
     }
 
@@ -133,7 +133,12 @@ implements UserValidationService,
                         UserRole.of(UserRole.Type.STUDENT)
                 ))
                 .toList();
-        return userRepository.saveAll(students);
+        userRepository.saveAll(
+                students.stream()
+                        .filter(user -> !isUserExists(user.getUserId()))
+                        .collect(Collectors.toList())
+        );
+        return students.stream().map(User::getUserId).collect(Collectors.toList());
     }
 
     @Override
