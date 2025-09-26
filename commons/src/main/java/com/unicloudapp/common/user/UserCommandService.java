@@ -9,4 +9,6 @@ public interface UserCommandService {
     List<UserId> importStudents(List<StudentBasicData> studentBasicData);
 
     UserId createStudent(StudentBasicData studentBasicData);
+
+    void createUser(UserCreateCommand userCreateCommand);
 }

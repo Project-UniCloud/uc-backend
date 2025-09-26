@@ -18,10 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -87,6 +84,11 @@ implements UserValidationService,
     }
 
     @Override
+    public boolean existsByLogin(String login) {
+        return userRepository.existsByLogin(login);
+    }
+
+    @Override
     public Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds) {
         return userRepository.findFullNamesByIds(userIds)
                 .stream()
@@ -108,12 +110,26 @@ implements UserValidationService,
                         .firstName(FirstName.of(userRowProjection.getFirstName()))
                         .lastName(LastName.of(userRowProjection.getLastName()))
                         .email(Email.of(userRowProjection.getEmail()))
+                        .role(UserRole.of(UserRole.Type.valueOf(userRowProjection.getRole())))
                         .build());
     }
 
     @Override
     public List<UserLogin> getUserLoginsByIds(Set<UserId> userIds) {
         return userRepository.findAllLoginsByIds(userIds);
+    }
+
+    @Override
+    public Optional<UserDetails> getUserDetailsByUsername(UserLogin userLogin) {
+        return userRepository.findByLogin(userLogin)
+                .map(user -> UserDetails.builder()
+                        .userId(user.getUserId())
+                        .login(user.getUserLogin())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .role(user.getUserRole())
+                        .build());
     }
 
     @Override
@@ -152,6 +168,19 @@ implements UserValidationService,
                 UserRole.of(UserRole.Type.STUDENT)
         );
         return userRepository.save(user).getUserId();
+    }
+
+    @Override
+    public void createUser(UserCreateCommand userCreateCommand) {
+        User user = userFactory.create(
+                UserId.of(UUID.randomUUID()),
+                userCreateCommand.userLogin(),
+                userCreateCommand.firstName(),
+                userCreateCommand.lastName(),
+                userCreateCommand.email(),
+                userCreateCommand.userRole()
+        );
+        userRepository.save(user);
     }
 
     @Override

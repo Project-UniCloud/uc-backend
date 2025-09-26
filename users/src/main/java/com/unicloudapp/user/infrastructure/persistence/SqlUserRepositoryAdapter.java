@@ -3,8 +3,8 @@ package com.unicloudapp.user.infrastructure.persistence;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.domain.user.UserRole;
-import com.unicloudapp.user.application.projection.UserFullNameProjection;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
+import com.unicloudapp.user.application.projection.UserFullNameProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -110,6 +110,12 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
                 PageRequest.of(offset / size, size)
         );
     }
+
+    @Override
+    public Optional<User> findByLogin(UserLogin userLogin) {
+        return userRepositoryJpa.findByLogin(userLogin.getValue())
+                .map(entity -> userMapper.entityToUser(entity, userFactory));
+    }
 }
 
 @Repository
@@ -148,4 +154,6 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
             String firstOrLastName,
             Pageable pageable
     );
+
+    Optional<UserEntity> findByLogin(String login);
 }

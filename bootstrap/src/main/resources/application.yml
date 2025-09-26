@@ -22,10 +22,8 @@ auth:
     expirationTimeInMs: 1209600000
     secret: ${JWT_SECRET:4e135dfe2cf3094292a194c713c227a501b9e234a8dbe88b106bf9ea2d1c74fff1e8fc9e8c0457f8402f4c102490a9c8bc38a6f55dd11d263721f2c62782c40628890a94015e460d4ec6aac2c69954245f31b18d25be92de7249d4bb5d86bf15966343c329d4e3aae6be49f50b25dab8271ba0b0f1cb46f7a51d55b3541809b1f9ddc9171eb638b2e6e58abeec62f7b21a5761c3fa8ef42453b4aa3cdb6ddbf9076fe6f6a44ab4a7709e14850b9d7774da9cc4162c446e409f6fa3cbbb9a65a381b80546c7d16e40358043b8f11bfc99b0331131329bbb8fbf905174d332c3790b693a06cbf7e00946b18837cf8f0a802e740a1d63ebd2a2d23c764951a36a82}
     issuer: job-offers-backend
-  users:
-    defaultAdminPassword: ${DEFAULT_ADMIN_PASSWORD:password}
-    defaultStudentPassword: ${DEFAULT_STUDENT_PASSWORD:password}
-    defaultLecturerPassword: ${DEFAULT_LECTURER_PASSWORD:password}
+  admins:
+    - s481871
 
 adapters:
   clients:

@@ -15,7 +15,7 @@ class CloudAccessMapper {
                 .cloudResourceType(CloudResourceType.of(entity.getResourceType()))
                 .costLimit(CostLimit.of(entity.getCostLimit()))
                 .usedLimit(UsedLimit.of(entity.getUsedLimit()))
-                .expiresAt(ExpiresDate.of(entity.getExpiresAt()))
+                .expiresAt(ExpiresDate.expirable(entity.getExpiresAt()))
                 .status(CloudResourcesAccessStatus.of(entity.getStatus()))
                 .cronExpression(CronExpression.parse(entity.getCronExpression()))
                 .build();

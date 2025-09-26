@@ -13,4 +13,6 @@ public interface UserRowProjection {
     String getLastName();
 
     String getLogin();
+
+    String getRole();
 }

@@ -1,7 +1,6 @@
 package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.in.AuthenticationUseCase;
-import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import com.unicloudapp.common.domain.user.UserRole;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -21,7 +20,6 @@ import java.util.Date;
 @RequiredArgsConstructor
 class AuthorizationService implements AuthenticationUseCase {
 
-    private final AuthenticationProviderPort authenticationProviderPort;
     private final AuthenticationManager authenticationManager;
     private final Clock clock;
     private final JwtConfigurationProperties properties;

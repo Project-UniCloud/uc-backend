@@ -254,6 +254,7 @@ class UserServiceSpec extends Specification {
         userRowProjection.getFirstName() >> "John"
         userRowProjection.getLastName() >> "Doe"
         userRowProjection.getEmail() >> "john.doe@example.com"
+        userRowProjection.getRole() >> "STUDENT"
 
         userRepository.findUserRowByIds(userIds, 0, 10) >> new PageImpl([userRowProjection])
 
@@ -267,6 +268,7 @@ class UserServiceSpec extends Specification {
         userDetails[0].firstName == FirstName.of("John")
         userDetails[0].lastName == LastName.of("Doe")
         userDetails[0].email == Email.of("john.doe@example.com")
+        userDetails[0].role == UserRole.of(UserRole.Type.STUDENT)
     }
 
     def "createStudent should create and save a student user and return their ID"() {

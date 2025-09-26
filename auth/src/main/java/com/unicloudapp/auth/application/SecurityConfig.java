@@ -1,27 +1,25 @@
 package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
+import com.unicloudapp.common.domain.user.UserLogin;
+import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.user.UserDetails;
+import com.unicloudapp.common.user.UserQueryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.*;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -39,58 +37,50 @@ class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(
-            HttpSecurity http, 
-            UserDetailsService userDetailsService, 
-            JwtConfigurationProperties jwtConfigurationProperties
+            HttpSecurity http,
+            UserDetailsService userDetailsService,
+            JwtConfigurationProperties jwtProperties
     ) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/auth", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(new JwtTokenParser(jwtConfigurationProperties.secret()), userDetailsService,
-                                new JwtValidator(jwtConfigurationProperties.secret())),
-                        UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exceptionHandling ->
-                        exceptionHandling.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(
+                                new JwtTokenParser(jwtProperties.secret()),
+                                userDetailsService,
+                                new JwtValidator(jwtProperties.secret())
+                        ),
+                        UsernamePasswordAuthenticationFilter.class
                 )
+                .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(
-            UserDetailsService userDetailsService,
             AuthenticationProviderPort ldapProvider,
-            PasswordEncoder passwordEncoder
+            AdminProperties adminProperties
     ) {
-        DaoAuthenticationProvider inMemoryAuthProvider = new DaoAuthenticationProvider();
-        inMemoryAuthProvider.setUserDetailsService(userDetailsService);
-        inMemoryAuthProvider.setPasswordEncoder(passwordEncoder);
-
         AuthenticationProvider ldapAuthProvider = new AuthenticationProvider() {
             @Override
             public Authentication authenticate(Authentication authentication) throws AuthenticationException {
                 String username = authentication.getName();
                 String password = authentication.getCredentials().toString();
 
-                if (ldapProvider.authenticate(username, password)) {
-                    UserDetails user = User.builder()
+                UserRole userRole = ldapProvider.authenticate(username, password);
+                if (userRole != null) {
+                    org.springframework.security.core.userdetails.UserDetails user = User.builder()
                             .username(username)
-                            .password("")
-                            .roles("ADMIN")
+                            .password(password)
+                            .roles(adminProperties.admins().contains(username) ? "ADMIN" : userRole.getValue().name())
                             .build();
-
-                    return new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            user.getAuthorities()
-                    );
+                    return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 }
+
                 throw new BadCredentialsException("LDAP authentication failed");
             }
 
@@ -99,10 +89,8 @@ class SecurityConfig {
                 return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
             }
         };
-
-        return new ProviderManager(List.of(inMemoryAuthProvider, ldapAuthProvider));
+        return new ProviderManager(List.of(ldapAuthProvider));
     }
-
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -116,39 +104,22 @@ class SecurityConfig {
     
     @Bean
     UserDetailsService userDetailsService(
-            @Value("${auth.users.defaultAdminPassword:password}") String defaultAdminPassword,
-            @Value("${auth.users.defaultStudentPassword:password}") String defaultStudentPassword,
-            @Value("${auth.users.defaultLecturerPassword:password}") String defaultLecturerPassword
+            UserQueryService userQueryService
     ) {
-        InMemoryUserDetailsManager inMemoryUserDetailsManager = new InMemoryUserDetailsManager();
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode(defaultAdminPassword))
-                .roles("ADMIN")
-                .build();
-        UserDetails student = User.builder()
-                .username("student")
-                .password(passwordEncoder().encode(defaultStudentPassword))
-                .roles("STUDENT")
-                .build();
-        UserDetails lecturer = User.builder()
-                .username("lecturer")
-                .password(passwordEncoder().encode(defaultLecturerPassword))
-                .roles("LECTURER")
-                .build();
-        inMemoryUserDetailsManager.createUser(admin);
-        inMemoryUserDetailsManager.createUser(student);
-        inMemoryUserDetailsManager.createUser(lecturer);
-        return inMemoryUserDetailsManager;
+        return username -> {
+            UserDetails userDetails = userQueryService.getUserDetailsByUsername(UserLogin.of(username)).orElseThrow();
+            return User.builder()
+                    .username(userDetails.login().getValue())
+                    .roles(userDetails.role().getValue().name())
+                    .password("")
+                    .build();
+        };
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "https://unicloud.projektstudencki.pl"
-        ));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://unicloud.projektstudencki.pl"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

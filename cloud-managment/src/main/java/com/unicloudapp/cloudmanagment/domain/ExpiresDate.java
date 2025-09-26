@@ -19,6 +19,13 @@ public class ExpiresDate {
         return new ExpiresDate(date);
     }
 
+    public static ExpiresDate expirable(LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Expiration date must be a future date");
+        }
+        return new ExpiresDate(date);
+    }
+
     @Override
     public String toString() {
         return value.toString();

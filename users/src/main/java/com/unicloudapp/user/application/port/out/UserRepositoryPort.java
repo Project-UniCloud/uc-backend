@@ -8,7 +8,10 @@ import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import org.springframework.data.domain.Page;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public interface UserRepositoryPort {
 
@@ -36,4 +39,6 @@ public interface UserRepositoryPort {
             UserRole.Type role,
             String firstOrLastName
     );
+
+    Optional<User> findByLogin(UserLogin userLogin);
 }

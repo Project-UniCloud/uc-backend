@@ -1,6 +1,8 @@
 package com.unicloudapp.auth.application.port.out;
 
+import com.unicloudapp.common.domain.user.UserRole;
+
 public interface AuthenticationProviderPort {
 
-    boolean authenticate(String username, String password);
+    UserRole authenticate(String username, String password);
 }

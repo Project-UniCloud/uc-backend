@@ -6,13 +6,18 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface UserQueryService {
+
+    boolean existsByLogin(String login);
 
     Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds);
 
     Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
 
     List<UserLogin> getUserLoginsByIds(Set<UserId> userIds);
+
+    Optional<UserDetails> getUserDetailsByUsername(UserLogin userLogin);
 }
