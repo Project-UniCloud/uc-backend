@@ -12,7 +12,7 @@ repositories {
     mavenCentral()
 }
 
-val lombokVersion = "1.18.38"
+val lombokVersion = "1.18.42"
 val mapStructVersion = "1.6.3"
 val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.0.1.Final"
