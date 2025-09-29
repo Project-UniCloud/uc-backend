@@ -13,7 +13,7 @@ repositories {
 }
 
 val jetbrainsAnnotationsVersion = "26.0.2"
-val lombokVersion = "1.18.38"
+val lombokVersion = "1.18.42"
 val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.0.1.Final"
 val mapStructVersion = "1.6.3"

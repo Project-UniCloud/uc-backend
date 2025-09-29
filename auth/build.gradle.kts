@@ -11,7 +11,7 @@ repositories {
     mavenCentral()
 }
 
-val lombokVersion = "1.18.38"
+val lombokVersion = "1.18.42"
 
 dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
