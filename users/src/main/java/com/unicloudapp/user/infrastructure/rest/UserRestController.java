@@ -1,6 +1,7 @@
 package com.unicloudapp.user.infrastructure.rest;
 
 import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.user.UserExternalQueryService;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.*;
@@ -27,6 +28,7 @@ class UserRestController {
     private final SearchLecturerUserCase searchLecturerUserCase;
     private final UserToUserFoundResponseMapper userDomainDtoMapper;
     private final FindAllLecturersUseCase findAllLecturersUseCase;
+    private final UserExternalQueryService userExternalQueryService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lecturers")
@@ -98,7 +100,20 @@ class UserRestController {
         return searchLecturerUserCase.searchLecturers(containsQuery)
                 .stream()
                 .map(user -> new LecturerFullNameResponse(
-                        user.getUuid(), user.getFirstName(), user.getLastName())
+                        user.getUuid(), user.getFirstName(), user.getLastName(), user.getLogin(), user.getEmail())
+                ).toList();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/lecturers/external/search")
+    @ResponseStatus(HttpStatus.OK)
+    List<LecturerFullNameResponse> getExternalLecturersByIds(
+            @RequestParam String containsQuery
+    ) {
+        return userExternalQueryService.searchLecturers(containsQuery)
+                .stream()
+                .map(user -> new LecturerFullNameResponse(
+                        user.getUuid(), user.getFirstName(), user.getLastName(), user.getLogin(), user.getEmail())
                 ).toList();
     }
 }

@@ -2,7 +2,7 @@ package com.unicloudapp.user.infrastructure.rest
 
 import com.unicloudapp.common.domain.user.UserId
 import com.unicloudapp.user.application.port.in.FindAllLecturersUseCase
-import com.unicloudapp.user.application.projection.UserFullNameProjection
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase
@@ -88,20 +88,20 @@ class UserRestControllerSpec extends Specification {
     def "should search lecturers and return list of responses"() {
         given:
         def query = "Ja"
-        def user1 = Stub(UserFullNameProjection) {
-            getFirstName() >> "Jan"
-            getLastName() >> "Kowalski"
-            getUuid() >> UUID.randomUUID()
+        def user1 = Stub(UserFullNameAndLoginProjection) {
+            firstName() >> "Jan"
+            lastName() >> "Kowalski"
+            uuid() >> UUID.randomUUID()
         }
-        def user2 = Stub(UserFullNameProjection) {
-            getFirstName() >> "Janina"
-            getLastName() >> "Nowak"
-            getUuid() >> UUID.randomUUID()
+        def user2 = Stub(UserFullNameAndLoginProjection) {
+            firstName() >> "Janina"
+            lastName() >> "Nowak"
+            uuid() >> UUID.randomUUID()
         }
         searchLecturerUserCase.searchLecturers(query) >> [user1, user2]
 
         when:
-        def results = controller.getLecturersByIds(query)
+        def results = controller.getExternalLecturersByIds(query)
 
         then:
         results.size() == 2

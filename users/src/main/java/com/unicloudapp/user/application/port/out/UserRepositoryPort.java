@@ -3,7 +3,7 @@ package com.unicloudapp.user.application.port.out;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.domain.user.UserRole;
-import com.unicloudapp.user.application.projection.UserFullNameProjection;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import org.springframework.data.domain.Page;
@@ -23,11 +23,11 @@ public interface UserRepositoryPort {
 
     boolean existsByLogin(String login);
 
-    List<UserFullNameProjection> findFullNamesByIds(List<UserId> userIds);
+    List<UserFullNameAndLoginProjection> findFullNamesByIds(List<UserId> userIds);
 
     Page<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int offset, int size);
 
-    List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role);
+    List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role);
 
     List<UserId> saveAll(List<User> students);
 

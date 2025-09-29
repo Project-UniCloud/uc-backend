@@ -12,7 +12,7 @@ import com.unicloudapp.common.user.StudentBasicData
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
 import com.unicloudapp.user.application.port.out.UserRepositoryPort
-import com.unicloudapp.user.application.projection.UserFullNameProjection
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.application.projection.UserRowProjection
 import com.unicloudapp.user.domain.User
 import com.unicloudapp.user.domain.UserFactory
@@ -161,16 +161,16 @@ class UserServiceSpec extends Specification {
         def id1 = UUID.randomUUID()
         def id2 = UUID.randomUUID()
 
-        def projection1 = Mock(UserFullNameProjection) {
-            getUuid() >> id1
-            getFirstName() >> "John"
-            getLastName() >> "Doe"
+        def projection1 = Mock(UserFullNameAndLoginProjection) {
+            uuid() >> id1
+            firstName() >> "John"
+            lastName() >> "Doe"
         }
 
-        def projection2 = Mock(UserFullNameProjection) {
-            getUuid() >> id2
-            getFirstName() >> "Alice"
-            getLastName() >> "Smith"
+        def projection2 = Mock(UserFullNameAndLoginProjection) {
+            uuid() >> id2
+            firstName() >> "Alice"
+            lastName() >> "Smith"
         }
 
         def userIds = [UserId.of(id1), UserId.of(id2)]
@@ -190,14 +190,14 @@ class UserServiceSpec extends Specification {
     def "should return list of lecturer projections matching query"() {
         given:
         def query = "Jo"
-        def projection1 = Mock(UserFullNameProjection)
-        def projection2 = Mock(UserFullNameProjection)
+        def projection1 = Mock(UserFullNameAndLoginProjection)
+        def projection2 = Mock(UserFullNameAndLoginProjection)
 
         when:
         def result = userService.searchLecturers(query)
 
         then:
-        1 * userRepository.searchUserByName(query, UserRole.Type.LECTURER) >> [projection1, projection2]
+        1 * userRepository.searchUserByNameOrLogin(query, UserRole.Type.LECTURER) >> [projection1, projection2]
         result == [projection1, projection2]
     }
 

@@ -78,7 +78,7 @@ class SecurityConfig {
                             .password(password)
                             .roles(adminProperties.admins().contains(username) ? "ADMIN" : userRole.getValue().name())
                             .build();
-                    return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+                    return new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
                 }
 
                 throw new BadCredentialsException("LDAP authentication failed");

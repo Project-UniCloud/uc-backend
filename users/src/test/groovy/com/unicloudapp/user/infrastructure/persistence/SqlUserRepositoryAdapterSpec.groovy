@@ -1,7 +1,7 @@
 package com.unicloudapp.user.infrastructure.persistence
 
 import com.unicloudapp.common.domain.user.UserRole
-import com.unicloudapp.user.application.projection.UserFullNameProjection
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.domain.User
 import com.unicloudapp.common.domain.user.UserId
 import com.unicloudapp.user.domain.UserFactory
@@ -100,7 +100,7 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         given:
         List<UserId> userIds = [UserId.of(UUID.randomUUID()), UserId.of(UUID.randomUUID())]
         List<UUID> uuids = userIds*.getValue()
-        List<UserFullNameProjection> projections = [Mock(UserFullNameProjection), Mock(UserFullNameProjection)]
+        List<UserFullNameAndLoginProjection> projections = [Mock(UserFullNameAndLoginProjection), Mock(UserFullNameAndLoginProjection)]
 
         1 * userRepositoryJpa.findAllByUuidIn(uuids) >> projections
 
@@ -115,12 +115,12 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         given:
         String query = "abc"
         UserRole.Type role = UserRole.Type.LECTURER
-        List<UserFullNameProjection> projections = [Mock(UserFullNameProjection), Mock(UserFullNameProjection)]
+        List<UserFullNameAndLoginProjection> projections = [Mock(UserFullNameAndLoginProjection), Mock(UserFullNameAndLoginProjection)]
 
-        1 * userRepositoryJpa.searchUserByName(query, role, PageRequest.of(0, 10)) >> projections
+        1 * userRepositoryJpa.searchUserByNameOrLogin(query, role, PageRequest.of(0, 10)) >> projections
 
         when:
-        def result = adapter.searchUserByName(query, role)
+        def result = adapter.searchUserByNameOrLogin(query, role)
 
         then:
         result == projections

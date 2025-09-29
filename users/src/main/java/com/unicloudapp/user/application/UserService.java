@@ -9,7 +9,7 @@ import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
-import com.unicloudapp.user.application.projection.UserFullNameProjection;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -133,8 +133,8 @@ implements UserValidationService,
     }
 
     @Override
-    public List<UserFullNameProjection> searchLecturers(String containsQuery) {
-        return userRepository.searchUserByName(containsQuery, UserRole.Type.LECTURER);
+    public List<UserFullNameAndLoginProjection> searchLecturers(String containsQuery) {
+        return userRepository.searchUserByNameOrLogin(containsQuery, UserRole.Type.LECTURER);
     }
 
     @Override
