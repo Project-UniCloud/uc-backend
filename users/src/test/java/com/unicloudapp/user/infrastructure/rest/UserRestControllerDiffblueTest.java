@@ -3,6 +3,7 @@ package com.unicloudapp.user.infrastructure.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.user.UserExternalQueryService;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.*;
@@ -59,6 +60,9 @@ class UserRestControllerDiffblueTest {
 
     @MockitoBean
     private FindAllLecturersUseCase findAllLecturersUseCase;
+
+    @MockitoBean
+    private UserExternalQueryService userExternalQueryService;
 
     /**
      * Test {@link UserRestController#createLecturer(CreateLecturerRequest)} with {@code createLecturerRequest}.
@@ -132,7 +136,8 @@ class UserRestControllerDiffblueTest {
                 findUserUseCase,
                 searchLecturerUserCase,
                 userDomainDtoMapper,
-                findAllLecturersUseCase
+                findAllLecturersUseCase,
+                userExternalQueryService
         );
 
         // Act
@@ -221,7 +226,8 @@ class UserRestControllerDiffblueTest {
                 findUserUseCase,
                 searchLecturerUserCase,
                 userDomainDtoMapper,
-                findAllLecturersUseCase
+                findAllLecturersUseCase,
+                userExternalQueryService
         );
 
         // Act

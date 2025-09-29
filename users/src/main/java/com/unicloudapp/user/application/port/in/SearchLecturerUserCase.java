@@ -1,10 +1,10 @@
 package com.unicloudapp.user.application.port.in;
 
-import com.unicloudapp.user.application.projection.UserFullNameProjection;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 
 import java.util.List;
 
 public interface SearchLecturerUserCase {
 
-    List<UserFullNameProjection> searchLecturers(String containsQuery);
+    List<UserFullNameAndLoginProjection> searchLecturers(String containsQuery);
 }

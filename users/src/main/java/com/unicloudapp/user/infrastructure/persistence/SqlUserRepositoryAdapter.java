@@ -4,7 +4,7 @@ import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
-import com.unicloudapp.user.application.projection.UserFullNameProjection;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -50,7 +50,7 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public List<UserFullNameProjection> findFullNamesByIds(List<UserId> userIds) {
+    public List<UserFullNameAndLoginProjection> findFullNamesByIds(List<UserId> userIds) {
         return userRepositoryJpa.findAllByUuidIn(
                 userIds.stream()
                         .map(UserId::getValue)
@@ -72,8 +72,8 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role) {
-        return userRepositoryJpa.searchUserByName(query, role, PageRequest.of(0, 10));
+    public List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role) {
+        return userRepositoryJpa.searchUserByNameOrLogin(query, role, PageRequest.of(0, 10));
     }
 
     @Override
@@ -123,16 +123,17 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
 
     boolean existsByLogin(String login);
 
-    List<UserFullNameProjection> findAllByUuidIn(Collection<UUID> uuids);
+    List<UserFullNameAndLoginProjection> findAllByUuidIn(Collection<UUID> uuids);
 
     @Query("""
-       SELECT u.uuid AS uuid, u.firstName AS firstName, u.lastName AS lastName
+       SELECT u.uuid AS uuid, u.firstName AS firstName, u.lastName AS lastName, u.login as login
        FROM UserEntity u
        WHERE (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
           OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%'))
+          OR LOWER(u.login) LIKE LOWER(CONCAT('%', :query, '%'))
        ) AND u.role = :role
     """)
-    List<UserFullNameProjection> searchUserByName(String query, UserRole.Type role, Pageable pageable);
+    List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role, Pageable pageable);
 
     Page<UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
 

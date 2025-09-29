@@ -35,6 +35,8 @@ record UserFoundResponse(
 record LecturerFullNameResponse(
         @NotNull UUID userId,
         @NotBlank String firstName,
-        @NotBlank String lastName
+        @NotBlank String lastName,
+        @NotBlank String login,
+        @NotBlank String email
 ) {
 }

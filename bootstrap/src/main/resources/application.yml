@@ -24,6 +24,7 @@ auth:
     issuer: job-offers-backend
   admins:
     - s481871
+    - bikol
 
 adapters:
   clients:

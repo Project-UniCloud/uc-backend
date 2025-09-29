@@ -1,8 +1,9 @@
 package com.unicloudapp.user.infrastructure.rest
 
 import com.unicloudapp.common.domain.user.UserId
+import com.unicloudapp.common.user.UserExternalQueryService
 import com.unicloudapp.user.application.port.in.FindAllLecturersUseCase
-import com.unicloudapp.user.application.projection.UserFullNameProjection
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
 import com.unicloudapp.user.application.port.in.CreateLecturerUseCase
@@ -20,6 +21,7 @@ class UserRestControllerSpec extends Specification {
     SearchLecturerUserCase searchLecturerUserCase = Mock()
     UserToUserFoundResponseMapper userDomainDtoMapper = Mock()
     FindAllLecturersUseCase findAllLecturersUseCase = Mock()
+    UserExternalQueryService userExternalQueryService = Mock()
 
     UserRestController controller = new UserRestController(
             createLecturerUseCase,
@@ -27,7 +29,8 @@ class UserRestControllerSpec extends Specification {
             findUserUseCase,
             searchLecturerUserCase,
             userDomainDtoMapper,
-            findAllLecturersUseCase
+            findAllLecturersUseCase,
+            userExternalQueryService
     )
 
     def "should create lecturer and return created response"() {
@@ -88,12 +91,12 @@ class UserRestControllerSpec extends Specification {
     def "should search lecturers and return list of responses"() {
         given:
         def query = "Ja"
-        def user1 = Stub(UserFullNameProjection) {
+        def user1 = Stub(UserFullNameAndLoginProjection) {
             getFirstName() >> "Jan"
             getLastName() >> "Kowalski"
             getUuid() >> UUID.randomUUID()
         }
-        def user2 = Stub(UserFullNameProjection) {
+        def user2 = Stub(UserFullNameAndLoginProjection) {
             getFirstName() >> "Janina"
             getLastName() >> "Nowak"
             getUuid() >> UUID.randomUUID()
