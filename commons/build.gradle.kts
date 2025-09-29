@@ -11,7 +11,7 @@ repositories {
     mavenCentral()
 }
 
-val jetbrainsAnnotationsVersion = "26.0.2"
+val jetbrainsAnnotationsVersion = "26.0.2-1"
 val lombokVersion = "1.18.42"
 val jakartaValidationVersion = "3.1.1"
 
