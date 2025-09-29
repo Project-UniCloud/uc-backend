@@ -162,15 +162,15 @@ class UserServiceSpec extends Specification {
         def id2 = UUID.randomUUID()
 
         def projection1 = Mock(UserFullNameAndLoginProjection) {
-            uuid() >> id1
-            firstName() >> "John"
-            lastName() >> "Doe"
+            getUuid() >> id1
+            getFirstName() >> "John"
+            getLastName() >> "Doe"
         }
 
         def projection2 = Mock(UserFullNameAndLoginProjection) {
-            uuid() >> id2
-            firstName() >> "Alice"
-            lastName() >> "Smith"
+            getUuid() >> id2
+            getFirstName() >> "Alice"
+            getLastName() >> "Smith"
         }
 
         def userIds = [UserId.of(id1), UserId.of(id2)]

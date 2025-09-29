@@ -1,6 +1,7 @@
 package com.unicloudapp.user.infrastructure.rest
 
 import com.unicloudapp.common.domain.user.UserId
+import com.unicloudapp.common.user.UserExternalQueryService
 import com.unicloudapp.user.application.port.in.FindAllLecturersUseCase
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.application.command.CreateLecturerCommand
@@ -20,6 +21,7 @@ class UserRestControllerSpec extends Specification {
     SearchLecturerUserCase searchLecturerUserCase = Mock()
     UserToUserFoundResponseMapper userDomainDtoMapper = Mock()
     FindAllLecturersUseCase findAllLecturersUseCase = Mock()
+    UserExternalQueryService userExternalQueryService = Mock()
 
     UserRestController controller = new UserRestController(
             createLecturerUseCase,
@@ -27,7 +29,8 @@ class UserRestControllerSpec extends Specification {
             findUserUseCase,
             searchLecturerUserCase,
             userDomainDtoMapper,
-            findAllLecturersUseCase
+            findAllLecturersUseCase,
+            userExternalQueryService
     )
 
     def "should create lecturer and return created response"() {
@@ -89,19 +92,19 @@ class UserRestControllerSpec extends Specification {
         given:
         def query = "Ja"
         def user1 = Stub(UserFullNameAndLoginProjection) {
-            firstName() >> "Jan"
-            lastName() >> "Kowalski"
-            uuid() >> UUID.randomUUID()
+            getFirstName() >> "Jan"
+            getLastName() >> "Kowalski"
+            getUuid() >> UUID.randomUUID()
         }
         def user2 = Stub(UserFullNameAndLoginProjection) {
-            firstName() >> "Janina"
-            lastName() >> "Nowak"
-            uuid() >> UUID.randomUUID()
+            getFirstName() >> "Janina"
+            getLastName() >> "Nowak"
+            getUuid() >> UUID.randomUUID()
         }
         searchLecturerUserCase.searchLecturers(query) >> [user1, user2]
 
         when:
-        def results = controller.getExternalLecturersByIds(query)
+        def results = controller.getLecturersByIds(query)
 
         then:
         results.size() == 2
