@@ -2,9 +2,9 @@ name: CI/CD – Spring + Docker Compose + Sonar + GHCR
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ develop ]
 
 permissions:
   contents: read
