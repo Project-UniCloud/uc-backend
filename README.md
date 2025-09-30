@@ -7,7 +7,7 @@
 ## Remote debugging
 To debug application running as docker container, you have to follow these steps:
 1. Click Edit Configurations...
-    test
+    
     ![1](1.png)
 
 2. Click Add New Configuration
