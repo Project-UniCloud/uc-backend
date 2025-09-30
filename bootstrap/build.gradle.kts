@@ -11,7 +11,7 @@ repositories {
     mavenCentral()
 }
 
-val postgresVersion = "42.7.7"
+val postgresVersion = "42.7.8"
 
 dependencies {
     runtimeOnly("org.postgresql:postgresql:$postgresVersion")
