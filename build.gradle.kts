@@ -3,6 +3,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.dependency.graph.generator") version "0.8.0"
     id("jacoco")
+    id("org.sonarqube") version "5.1.0.4882"
 }
 
 allprojects {
@@ -13,6 +14,16 @@ allprojects {
 
 jacoco {
     toolVersion = "0.8.12"
+}
+
+sonarqube {
+    properties {
+        property("sonar.organization", "project-unicloud")
+        property("sonar.projectKey", "Project-UniCloud_uc-backend")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoRootReport.xml")
+        property("sonar.java.binaries", "build/classes")
+    }
 }
 
 subprojects {
@@ -28,7 +39,7 @@ subprojects {
         finalizedBy("jacocoTestReport")
         this.extensions.getByType<JacocoTaskExtension>().apply {
             isEnabled = true
-            includes = listOf("com.unicloudapp.*")
+            includes = listOf("com/unicloudapp/**")
         }
     }
 
@@ -62,7 +73,7 @@ tasks.register<JacocoReport>("jacocoRootReport") {
         subproject.tasks.withType<Test>().mapNotNull { testTask ->
             testTask.extensions.findByType<JacocoTaskExtension>()?.destinationFile?.takeIf { it.exists() }
         }
-    }
+    }.distinct()
     executionData.from(files(executionDataFiles))
 
     val sourceDirectoriesFiles = subprojects.flatMap { subproject ->
@@ -72,7 +83,7 @@ tasks.register<JacocoReport>("jacocoRootReport") {
             ?.srcDirs
             ?.filter { it.exists() && !it.absolutePath.contains("build", ignoreCase = true) }
             ?: emptyList()
-    }
+    }.distinct()
     sourceDirectories.from(files(sourceDirectoriesFiles))
 
     val classDirectoriesFromSubprojects = subprojects.flatMap { subproject ->
@@ -83,7 +94,7 @@ tasks.register<JacocoReport>("jacocoRootReport") {
             ?.files
             ?.filter { it.exists() }
             ?: emptyList()
-    }
+    }.distinct()
     classDirectories.from(files(classDirectoriesFromSubprojects).asFileTree.matching {
         include("com/unicloudapp/**/*.class")
         exclude(
