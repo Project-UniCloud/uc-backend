@@ -38,8 +38,9 @@ jobs:
             exit 0
           fi
 
-          LAST_COMMIT=$(git log -1 --pretty=%B)
-
+          git fetch origin $BRANCH_NAME
+          LAST_COMMIT=$(git log origin/${BRANCH_NAME} --no-merges -1 --pretty=%B)
+  
           NEW_TITLE="${TICKET} ${LAST_COMMIT} #${PR_NUMBER}"
           echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
 
