@@ -1,9 +1,9 @@
-name: CI/CD – Spring + Docker Compose + Sonar + GHCR
+name: CI/CD – Spring + Docker Compose + GHCR
 
 on:
-  push:
-    branches: [ develop ]
   pull_request:
+    branches: [ develop ]
+  push:
     branches: [ develop ]
 
 permissions:
@@ -12,9 +12,9 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  ci:
+    name: CI (Build & Test)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +33,17 @@ jobs:
       - name: Build + Test + JaCoCo
         run: ./gradlew clean build jacocoRootReport
 
+  release:
+    name: Release (Docker Build & Push)
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -50,7 +61,13 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ env.IMAGE_NAME }}
 
+  deploy:
+    name: Deploy (Restart Application)
+    runs-on: self-hosted
+    needs: release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    steps:
       - name: Trigger restart webhook
         run: |
-          curl -X GET "https://unicloud.projektstudencki.pl/restart-webhook/uc-backend" \
+          curl -X GET "http://localhost/restart-webhook/uc-backend" \
             -H "Authorization: Bearer ${{ secrets.RESTART_SECRET }}"
