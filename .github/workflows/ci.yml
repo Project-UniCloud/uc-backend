@@ -12,9 +12,37 @@ permissions:
   id-token: write
 
 jobs:
+  set-pr-title:
+    name: Set PR Title
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Set PR Title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          CURRENT_TITLE="${{ github.event.pull_request.title }}"
+          BRANCH_NAME="${{ github.head_ref }}"
+          JIRA_TICKET=$(echo "$BRANCH_NAME" | grep -o '[A-Z]\+-[0-9]\+')
+          if [ -z "$JIRA_TICKET" ]; then
+            echo "No JIRA ticket found in branch name. Skipping PR title update."
+            exit 0
+          fi
+          NEW_TITLE="${JIRA_TICKET} ${CURRENT_TITLE} {#${PR_NUMBER}}"
+          echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
+          gh pr edit $PR_NUMBER --title "$NEW_TITLE"
+
   ci:
     name: CI (Build & Test)
     runs-on: ubuntu-latest
+    needs: set-pr-title
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,7 +95,8 @@ jobs:
     needs: release
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     steps:
-      - name: Trigger restart webhook
+      - name: Restart application
         run: |
-          curl -X GET "http://localhost/restart-webhook/uc-backend" \
-            -H "Authorization: Bearer ${{ secrets.RESTART_SECRET }}"
+          cd /ścieżka/do/aplikacji
+          docker-compose pull
+          docker-compose up -d
