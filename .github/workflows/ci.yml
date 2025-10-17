@@ -36,7 +36,7 @@ jobs:
             echo "No UC ticket found in branch name. Skipping PR title update."
             exit 0
           fi
-          NEW_TITLE="${JIRA_TICKET} ${CURRENT_TITLE} {#${PR_NUMBER}}"
+          NEW_TITLE="${JIRA_TICKET} ${CURRENT_TITLE} #${PR_NUMBER}"
           echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
           gh pr edit $PR_NUMBER --title "$NEW_TITLE"
 
