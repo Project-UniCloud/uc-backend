@@ -30,9 +30,9 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           CURRENT_TITLE="${{ github.event.pull_request.title }}"
           BRANCH_NAME="${{ github.head_ref }}"
-          JIRA_TICKET=$(echo "$BRANCH_NAME" | grep -o '[A-Z]\+-[0-9]\+')
+          JIRA_TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
           if [ -z "$JIRA_TICKET" ]; then
-            echo "No JIRA ticket found in branch name. Skipping PR title update."
+            echo "No UC ticket found in branch name. Skipping PR title update."
             exit 0
           fi
           NEW_TITLE="${JIRA_TICKET} ${CURRENT_TITLE} {#${PR_NUMBER}}"
