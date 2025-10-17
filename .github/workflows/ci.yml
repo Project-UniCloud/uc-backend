@@ -14,34 +14,35 @@ permissions:
 
 jobs:
   set-pr-title:
-    name: Set PR Title
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Install GitHub CLI
         run: sudo apt-get install gh -y
 
-      - name: Set PR Title
+      - name: Set PR Title using last commit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ "$CURRENT_TITLE" == *"#$PR_NUMBER"* ]]; then
-            echo "PR title already contains number. Skipping."
-            exit 0
-          fi
           PR_NUMBER=${{ github.event.pull_request.number }}
-          CURRENT_TITLE="${{ github.event.pull_request.title }}"
           BRANCH_NAME="${{ github.head_ref }}"
-          JIRA_TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
-          if [ -z "$JIRA_TICKET" ]; then
-            echo "No UC ticket found in branch name. Skipping PR title update."
+
+          TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
+          if [ -z "$TICKET" ]; then
+            echo "No UC ticket found. Skipping."
             exit 0
           fi
-          NEW_TITLE="${JIRA_TICKET} ${CURRENT_TITLE} #${PR_NUMBER}"
+
+          LAST_COMMIT=$(git log -1 --pretty=%B)
+
+          NEW_TITLE="${TICKET} ${LAST_COMMIT} {#${PR_NUMBER}}"
           echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
+
           gh pr edit $PR_NUMBER --title "$NEW_TITLE"
 
   ci:
