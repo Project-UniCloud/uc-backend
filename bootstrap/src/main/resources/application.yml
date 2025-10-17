@@ -25,6 +25,9 @@ auth:
   admins:
     - s481871
     - bikol
+    - s485704
+    - s481873
+    - s481833
 
 adapters:
   clients:
