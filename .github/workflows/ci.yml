@@ -40,7 +40,7 @@ jobs:
 
           LAST_COMMIT=$(git log -1 --pretty=%B)
 
-          NEW_TITLE="${TICKET} ${LAST_COMMIT} {#${PR_NUMBER}}"
+          NEW_TITLE="${TICKET} ${LAST_COMMIT} #${PR_NUMBER}"
           echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
 
           gh pr edit $PR_NUMBER --title "$NEW_TITLE"
