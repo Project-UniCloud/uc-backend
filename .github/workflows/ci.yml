@@ -10,11 +10,46 @@ permissions:
   contents: read
   packages: write
   id-token: write
+  pull-requests: write
 
 jobs:
+  set-pr-title:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Set PR Title using last commit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          BRANCH_NAME="${{ github.head_ref }}"
+
+          TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
+          if [ -z "$TICKET" ]; then
+            echo "No UC ticket found. Skipping."
+            exit 0
+          fi
+
+          git fetch origin $BRANCH_NAME
+          LAST_COMMIT=$(git log origin/${BRANCH_NAME} --no-merges -1 --pretty=%B)
+  
+          NEW_TITLE="${TICKET} ${LAST_COMMIT} #${PR_NUMBER}"
+          echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
+
+          gh pr edit $PR_NUMBER --title "$NEW_TITLE"
+
   ci:
     name: CI (Build & Test)
     runs-on: ubuntu-latest
+    needs: set-pr-title
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,7 +102,8 @@ jobs:
     needs: release
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     steps:
-      - name: Trigger restart webhook
+      - name: Restart application
         run: |
-          curl -X GET "http://localhost/restart-webhook/uc-backend" \
-            -H "Authorization: Bearer ${{ secrets.RESTART_SECRET }}"
+          cd /ścieżka/do/aplikacji
+          docker-compose pull
+          docker-compose up -d
