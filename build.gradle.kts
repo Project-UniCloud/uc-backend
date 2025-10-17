@@ -3,7 +3,6 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.dependency.graph.generator") version "0.8.0"
     id("jacoco")
-    id("org.sonarqube") version "5.1.0.4882"
 }
 
 allprojects {
@@ -14,16 +13,6 @@ allprojects {
 
 jacoco {
     toolVersion = "0.8.12"
-}
-
-sonarqube {
-    properties {
-        property("sonar.organization", "project-unicloud")
-        property("sonar.projectKey", "Project-UniCloud_uc-backend")
-        property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoRootReport.xml")
-        property("sonar.java.binaries", "build/classes")
-    }
 }
 
 subprojects {
