@@ -1,4 +1,4 @@
-name: CI/CD – Spring + Docker Compose + GHCR
+name: CI/CD
 
 on:
   pull_request:
