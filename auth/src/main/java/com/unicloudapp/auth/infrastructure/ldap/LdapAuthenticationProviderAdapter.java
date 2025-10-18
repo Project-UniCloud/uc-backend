@@ -16,6 +16,10 @@ import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.support.LdapUtils;
+import org.springframework.ldap.filter.AndFilter;
+import org.springframework.ldap.filter.EqualsFilter;
+import org.springframework.ldap.filter.OrFilter;
+import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -44,11 +48,13 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             String principal = username + "@" + DOMAIN_SUFFIX;
             ctx = ldapTemplate.getContextSource().getContext(principal, password);
 
-            String filter = "(&(objectClass=user)(sAMAccountName=" + username + "))";
+            AndFilter filter = new AndFilter();
+            filter.and(new EqualsFilter("objectClass", "user"));
+            filter.and(new EqualsFilter("sAMAccountName", username));
 
             List<UserRecord> found = ldapTemplate.search(
                     BASE_DN,
-                    filter,
+                    filter.encode(),
                     buildUserContextMapper()
             );
 
@@ -94,6 +100,9 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
         DirContext ctx = null;
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || authentication.getCredentials() == null) {
+                return Collections.emptyList();
+            }
             String password = authentication.getCredentials().toString();
             String username = authentication.getName();
 
@@ -101,17 +110,16 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             String principal = username + "@" + DOMAIN_SUFFIX;
             ctx = ldapTemplate.getContextSource().getContext(principal, password);
 
-            String filter = "(|" +
-                    "(sAMAccountName=*" + containsQuery + "*)" +
-                    "(givenName=*" + containsQuery + "*)" +
-                    "(sn=*" + containsQuery + "*)" +
-                    ")";
+            OrFilter filter = new OrFilter();
+            filter.or(new WhitespaceWildcardsFilter("sAMAccountName", containsQuery));
+            filter.or(new WhitespaceWildcardsFilter("givenName", containsQuery));
+            filter.or(new WhitespaceWildcardsFilter("sn", containsQuery));
 
             String facultyBaseDn = "OU=Faculty,OU=People," + BASE_DN;
 
             List<UserRecord> found = ldapTemplate.search(
                     facultyBaseDn,
-                    filter,
+                    filter.encode(),
                     buildUserContextMapper()
             );
 
