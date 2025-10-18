@@ -49,9 +49,9 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
 
             SearchControls controls = new SearchControls();
             controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-            String filter = "(&(objectClass=user)(sAMAccountName=" + username + "))";
+            String filter = "(&(objectClass=user)(sAMAccountName={0}))";
 
-            var results = ctx.search(BASE_DN, filter, controls);
+            var results = ctx.search(BASE_DN, filter, new String[]{username}, controls);
             if (!results.hasMore()) {
                 ctx.close();
                 return null;
