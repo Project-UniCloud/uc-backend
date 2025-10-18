@@ -9,7 +9,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +22,7 @@ class AuthorizationController {
     private final AuthenticationUseCase authenticationUseCase;
 
     @PostMapping("/auth")
-    ResponseEntity<AuthenticateResponse> authenticate(
+    protected ResponseEntity<AuthenticateResponse> authenticate(
             @Valid @RequestBody AuthenticateRequest authenticateRequest,
             HttpServletResponse response
     ) {
@@ -43,7 +42,7 @@ class AuthorizationController {
     }
 
     @PostMapping("/auth/logout")
-    public ResponseEntity<Void> logout() {
+    protected ResponseEntity<Void> logout() {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
                 .secure(true)

@@ -1,13 +1,18 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
 import com.unicloudapp.auth.application.AdminProperties;
+import com.unicloudapp.auth.application.LdapProperties;
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.user.FirstName;
 import com.unicloudapp.common.domain.user.LastName;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.domain.user.UserRole;
-import com.unicloudapp.common.user.*;
+import com.unicloudapp.common.user.UserCommandService;
+import com.unicloudapp.common.user.UserCreateCommand;
+import com.unicloudapp.common.user.UserExternalQueryService;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
+import com.unicloudapp.common.user.UserQueryService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,37 +20,38 @@ import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.support.LdapUtils;
 import org.springframework.ldap.filter.AndFilter;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.ldap.filter.OrFilter;
 import org.springframework.ldap.filter.WhitespaceWildcardsFilter;
+import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.naming.directory.DirContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, UserExternalQueryService {
 
-    private static final String DOMAIN_SUFFIX = "labs.wmi.amu.edu.pl";
-    private static final String BASE_DN = "DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl";
-
     private final UserQueryService userQueryService;
     private final UserCommandService userCommandService;
     private final AdminProperties adminProperties;
     private final LdapTemplate ldapTemplate;
+    private final LdapProperties ldapProperties;
 
     @Override
     public UserRole authenticate(String username, String password) {
         DirContext ctx = null;
         try {
             // Try to bind with user credentials to verify authentication
-            String principal = username + "@" + DOMAIN_SUFFIX;
+            String principal = username + "@" + ldapProperties.domainSuffix();
             ctx = ldapTemplate.getContextSource().getContext(principal, password);
 
             AndFilter filter = new AndFilter();
@@ -53,7 +59,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             filter.and(new EqualsFilter("sAMAccountName", username));
 
             List<UserRecord> found = ldapTemplate.search(
-                    BASE_DN,
+                    "",
                     filter.encode(),
                     buildUserContextMapper()
             );
@@ -107,7 +113,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             String username = authentication.getName();
 
             // Ensure we can bind with current user credentials
-            String principal = username + "@" + DOMAIN_SUFFIX;
+            String principal = username + "@" + ldapProperties.domainSuffix();
             ctx = ldapTemplate.getContextSource().getContext(principal, password);
 
             OrFilter filter = new OrFilter();
@@ -115,7 +121,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             filter.or(new WhitespaceWildcardsFilter("givenName", containsQuery));
             filter.or(new WhitespaceWildcardsFilter("sn", containsQuery));
 
-            String facultyBaseDn = "OU=Faculty,OU=People," + BASE_DN;
+            String facultyBaseDn = ldapProperties.facultyPeopleOu();
 
             List<UserRecord> found = ldapTemplate.search(
                     facultyBaseDn,

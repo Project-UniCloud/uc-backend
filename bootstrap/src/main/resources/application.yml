@@ -28,6 +28,11 @@ auth:
     - s485704
     - s481873
     - s481833
+  ldap:
+    url: ldaps://dc1-2016.labs.wmi.amu.edu.pl:636
+    domainSuffix: labs.wmi.amu.edu.pl
+    baseDn: DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl
+    facultyPeopleOu: OU=Faculty,OU=People
 
 adapters:
   clients:

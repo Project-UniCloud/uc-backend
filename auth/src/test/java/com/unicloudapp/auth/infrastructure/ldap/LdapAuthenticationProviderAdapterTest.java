@@ -1,6 +1,7 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
 import com.unicloudapp.auth.application.AdminProperties;
+import com.unicloudapp.auth.application.LdapProperties;
 import com.unicloudapp.common.domain.user.UserRole;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
@@ -30,6 +31,7 @@ class LdapAuthenticationProviderAdapterTest {
     private UserCommandService userCommandService;
     private AdminProperties adminProperties;
     private LdapTemplate ldapTemplate;
+    private LdapProperties ldapProperties;
 
     @BeforeEach
     void setUp() {
@@ -37,6 +39,13 @@ class LdapAuthenticationProviderAdapterTest {
         userCommandService = mock(UserCommandService.class);
         adminProperties = new AdminProperties(Collections.emptyList());
         ldapTemplate = mock(LdapTemplate.class);
+        ldapProperties = new LdapProperties(
+                "labs.wmi.amu.edu.pl",
+                "DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
+                "OU=Faculty,OU=People",
+                "ldaps://dc1-2016.labs.wmi.amu.edu.pl:636"
+        );
+        // defaults in LdapProperties already match previous constants
     }
 
     @AfterEach
@@ -53,7 +62,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -82,7 +92,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -116,7 +127,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 new AdminProperties(java.util.List.of("admin1")),
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -149,7 +161,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -173,7 +186,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -211,7 +225,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -236,7 +251,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
@@ -261,7 +277,8 @@ class LdapAuthenticationProviderAdapterTest {
                 userQueryService,
                 userCommandService,
                 adminProperties,
-                ldapTemplate
+                ldapTemplate,
+                ldapProperties
         );
 
         // When
