@@ -15,23 +15,28 @@ permissions:
 jobs:
   set-pr-title:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
-      - name: Install GitHub CLI
-        run: sudo apt-get install gh -y
-
-      - name: Set PR Title using last commit
+      - name: Set safe environment variables
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          BRANCH_NAME="${{ github.head_ref }}"
+          # Ensure variables contain only safe characters
+          SAFE_PR_NUMBER=$(printf '%s' "$PR_NUMBER" | tr -dc '0-9')
+          SAFE_BRANCH_NAME=$(printf '%s' "$HEAD_REF" | tr -dc '[:alnum:]-_/')
+
+          echo "SAFE_PR_NUMBER=$SAFE_PR_NUMBER" >> "$GITHUB_ENV"
+          echo "SAFE_BRANCH_NAME=$SAFE_BRANCH_NAME" >> "$GITHUB_ENV"
+
+      - name: Update PR title
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH_NAME="$SAFE_BRANCH_NAME"
+          PR_NUMBER="$SAFE_PR_NUMBER"
 
           TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
           if [ -z "$TICKET" ]; then
@@ -39,13 +44,9 @@ jobs:
             exit 0
           fi
 
-          git fetch origin $BRANCH_NAME
-          LAST_COMMIT=$(git log origin/${BRANCH_NAME} --no-merges -1 --pretty=%B)
-  
+          git fetch origin "$BRANCH_NAME"
+          LAST_COMMIT=$(git log "origin/${BRANCH_NAME}" --no-merges -1 --pretty=%B)
           NEW_TITLE="${TICKET} ${LAST_COMMIT}"
-          echo "Updating PR #$PR_NUMBER to title: $NEW_TITLE"
-
-          gh pr edit $PR_NUMBER --title "$NEW_TITLE"
 
   ci:
     name: CI (Build & Test)
