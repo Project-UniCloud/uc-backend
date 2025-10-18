@@ -68,6 +68,15 @@ jobs:
       - name: Build + Test + JaCoCo
         run: ./gradlew clean build jacocoRootReport
 
+      - name: SonarCloud Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./gradlew sonarqube \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.organization=project-unicloud \
+            -Dsonar.projectKey=Project-UniCloud_uc-backend
+
   release:
     name: Release (Docker Build & Push)
     runs-on: ubuntu-latest
