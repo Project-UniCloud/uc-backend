@@ -55,6 +55,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
@@ -68,14 +69,24 @@ jobs:
       - name: Build + Test + JaCoCo
         run: ./gradlew clean build jacocoRootReport
 
-      - name: SonarCloud Scan
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
+      - name: Build and analyze
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          ./gradlew sonarqube \
-            -Dsonar.token=$SONAR_TOKEN \
-            -Dsonar.organization=project-unicloud \
-            -Dsonar.projectKey=Project-UniCloud_uc-backend
+        run: ./gradlew build sonar --info
 
   release:
     name: Release (Docker Build & Push)
