@@ -124,6 +124,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     steps:
       - name: Trigger restart webhook
+        env:
+          RESTART_SECRET: ${{ secrets.RESTART_SECRET }}
         run: |
           curl -X GET "http://localhost/restart-webhook/uc-backend" \
-            -H "Authorization: Bearer ${{ secrets.RESTART_SECRET }}"
+            -H "Authorization: Bearer $RESTART_SECRET"
