@@ -28,6 +28,7 @@ jobs:
       - name: Set PR Title using last commit
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           BRANCH_NAME="${{ github.head_ref }}"
