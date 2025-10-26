@@ -54,6 +54,9 @@ implements UserValidationService,
 
     @Override
     public User createStudent(@Valid CreateStudentCommand command) {
+        if (userRepository.existsByLogin(command.login())) {
+            throw new UserAlreadyExistsException(command.login());
+        }
         User user = userFactory.create(
                 UserId.of(UUID.randomUUID()),
                 UserLogin.of(command.login()),

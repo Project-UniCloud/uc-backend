@@ -13,15 +13,29 @@ import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.domain.user.UserId;
 import com.unicloudapp.common.domain.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
-import com.unicloudapp.common.user.*;
-import com.unicloudapp.group.domain.*;
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserCommandService;
+import com.unicloudapp.common.user.UserDetails;
+import com.unicloudapp.common.user.UserFullName;
+import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.group.application.port.GroupRepositoryPort;
+import com.unicloudapp.group.domain.Description;
+import com.unicloudapp.group.domain.EndDate;
+import com.unicloudapp.group.domain.Group;
+import com.unicloudapp.group.domain.GroupFactory;
+import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.StartDate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -59,7 +73,15 @@ public class GroupService {
 
     @Transactional
     public void addStudent(GroupId groupId, StudentBasicData studentBasicData) {
-        UserId userId = userCommandService.createStudent(studentBasicData);
+        boolean isUserExists = userQueryService.existsByLogin(studentBasicData.getLogin());
+        UserId userId;
+        if (isUserExists) {
+            userId = userQueryService.getUserDetailsByUsername(UserLogin.of(studentBasicData.getLogin()))
+                    .orElseThrow()
+                    .userId();
+        } else {
+            userId = userCommandService.createStudent(studentBasicData);
+        }
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow();
         group.addStudent(userId);
@@ -294,6 +316,7 @@ public class GroupService {
     }
 
     //TODO implement taking away cloud resource access to students
+    @Transactional
     public void archive(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));

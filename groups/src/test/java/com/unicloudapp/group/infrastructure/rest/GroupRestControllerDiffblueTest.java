@@ -2,22 +2,19 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
-import com.unicloudapp.group.application.StudentImporterPort;
+import com.unicloudapp.group.application.port.StudentImporterPort;
 import com.unicloudapp.group.domain.Group;
-import com.unicloudapp.common.domain.group.GroupId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
@@ -29,14 +26,15 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ContextConfiguration(classes = GroupRestController.class)
 @DisabledInAotMode
@@ -119,7 +117,7 @@ class GroupRestControllerDiffblueTest {
         when(group.getGroupId()).thenReturn(GroupId.of(uuid));
         GroupService groupService = mock(GroupService.class);
         StudentImporterPort studentBasicData = mock(StudentImporterPort.class);
-        when(groupService.createGroup(Mockito.<GroupDTO>any())).thenReturn(group);
+        when(groupService.createGroup(Mockito.any())).thenReturn(group);
         GroupRestController groupRestController = new GroupRestController(groupService, studentBasicData);
         HashSet<UUID> lecturers = new HashSet<>();
         LocalDate startDate = LocalDate.of(1970,

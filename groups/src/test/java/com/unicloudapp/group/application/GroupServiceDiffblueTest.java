@@ -2,14 +2,12 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
-import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
+import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.group.domain.GroupStatus.Type;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -18,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -26,7 +23,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -80,12 +76,12 @@ class GroupServiceDiffblueTest {
     @Tag("MaintainedByDiffblue")
     void testCreateGroup_whenLocalDateWith1970AndOneAndOne_thenReturnNull() {
         // Arrange
-        when(groupRepositoryPort.save(Mockito.<Group>any())).thenReturn(null);
-        when(groupFactory.create(Mockito.<String>any(),
-                Mockito.<String>any(),
-                Mockito.<Set<UUID>>any(),
-                Mockito.<LocalDate>any(),
-                Mockito.<LocalDate>any(),
+        when(groupRepositoryPort.save(Mockito.any())).thenReturn(null);
+        when(groupFactory.create(Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
+                Mockito.any(),
                 Mockito.any()
         )).thenReturn(null);
         UUID groupId = UUID.randomUUID();

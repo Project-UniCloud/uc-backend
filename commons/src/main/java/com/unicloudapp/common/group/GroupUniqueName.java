@@ -3,6 +3,7 @@ package com.unicloudapp.common.group;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
 import lombok.Builder;
+import org.jetbrains.annotations.NotNull;
 
 @Builder
 public record GroupUniqueName(
@@ -23,8 +24,7 @@ public record GroupUniqueName(
         return new GroupUniqueName(GroupName.of(name), Semester.of(suffix));
     }
 
-
-    public String toString() {
+    public @NotNull String toString() {
         return groupName + " " + semester;
     }
 }

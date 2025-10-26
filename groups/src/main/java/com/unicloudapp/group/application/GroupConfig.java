@@ -4,6 +4,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.GroupFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 class GroupConfig {
 
     @Bean
-    GroupService getGroupFactory(
+    GroupService groupService(
             GroupRepositoryPort groupRepository,
             UserQueryService userQueryService,
             CloudResourceAccessQueryService cloudResourceAccessQueryService,

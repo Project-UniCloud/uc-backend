@@ -11,7 +11,7 @@ import java.util.Map;
 
 public interface CloudAccessClientController {
 
-    GroupUniqueName createGroup(
+    void createGroup(
             GroupUniqueName groupUniqueName,
             List<UserLogin> lecturerLogins,
             CloudResourceType resourceType
@@ -24,4 +24,6 @@ public interface CloudAccessClientController {
     String createUsers(List<UserLogin> users, GroupUniqueName groupUniqueName);
 
     Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate);
+
+    void cleanUpResources(GroupUniqueName groupUniqueName, boolean force);
 }

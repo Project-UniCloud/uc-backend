@@ -2,11 +2,13 @@ package com.unicloudapp.cloudmanagment.application;
 
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccessFactory;
+import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 import com.unicloudapp.common.domain.cloud.CostLimit;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.group.GroupQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronExpression;
 
 import java.util.Map;
@@ -19,7 +21,9 @@ class CloudAccessServiceConfig {
     CloudAccessService cloudAccessService(
             CloudResourceAccessRepositoryPort repository,
             CloudAccessClientProperties cloudAccessClientProperties,
-            CloudAccessClientControllerFactoryPort cloudAccessClientControllerFactory
+            CloudAccessClientControllerFactoryPort cloudAccessClientControllerFactory,
+            ThreadPoolTaskScheduler taskScheduler,
+            GroupQueryService groupQueryService
     ) {
         var clients = cloudAccessClientProperties.clients()
                 .entrySet()
@@ -43,6 +47,14 @@ class CloudAccessServiceConfig {
                                 ).build()
                         )
                 );
-        return new CloudAccessService(clients, repository);
+        return new CloudAccessService(taskScheduler, clients, repository, groupQueryService);
+    }
+
+    @Bean
+    public ThreadPoolTaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(5);
+        scheduler.setThreadNamePrefix("cloud-cleaner-");
+        return scheduler;
     }
 }

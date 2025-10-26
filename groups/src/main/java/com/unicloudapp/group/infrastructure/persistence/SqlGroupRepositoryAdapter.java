@@ -3,9 +3,11 @@ package com.unicloudapp.group.infrastructure.persistence;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupFilterCriteria;
-import com.unicloudapp.group.application.GroupRepositoryPort;
+import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.application.GroupRowProjection;
 import com.unicloudapp.group.domain.Group;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +19,15 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
-import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.*;
+import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasCloudResourceAccess;
+import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasStatus;
+import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.nameLike;
 
 @Repository
 @RequiredArgsConstructor
@@ -160,6 +168,24 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
                     }
                 });
     }
+
+    @Override
+    public List<GroupCloudDto> findAllGroupCloudDto() {
+        return groupJpaRepository.findAllProjectedBy()
+                .stream()
+                .map(groupCloudDtoProjection -> {
+                    GroupUniqueName groupUniqueName = GroupUniqueName.fromString(
+                            groupCloudDtoProjection.getName() + groupCloudDtoProjection.getSemester()
+                    );
+                    return new GroupCloudDto(
+                            groupUniqueName,
+                            groupCloudDtoProjection.getCloudResourceAccesses()
+                                    .stream()
+                                    .map(CloudResourceAccessId::of)
+                                    .toList()
+                    );
+                }).toList();
+    }
 }
 
 @Repository
@@ -178,4 +204,13 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
             Specification<GroupEntity> finalSpec,
             Pageable pageable
     );
+
+    List<GroupCloudDtoProjection> findAllProjectedBy();
+}
+
+interface GroupCloudDtoProjection {
+
+    String getName();
+    List<UUID> getCloudResourceAccesses();
+    String getSemester();
 }
