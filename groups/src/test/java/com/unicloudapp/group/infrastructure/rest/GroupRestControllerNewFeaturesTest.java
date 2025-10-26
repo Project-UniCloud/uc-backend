@@ -38,7 +38,6 @@ class GroupRestControllerNewFeaturesTest {
         assertTrue(ex.getMessage().contains("Cloud client id is required"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("importStudents parses CSV and delegates to service")
     void importStudents_parsesAndDelegates() throws IOException {
@@ -56,6 +55,7 @@ class GroupRestControllerNewFeaturesTest {
 
         controller.importStudents(groupId, file);
 
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<List<StudentBasicData>> listCaptor = ArgumentCaptor.forClass(List.class);
         verify(importer).parseCsv(file);
         verify(groupService).addStudents(eq(GroupId.of(groupId)), listCaptor.capture());
