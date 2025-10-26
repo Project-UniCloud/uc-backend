@@ -30,12 +30,12 @@ public class CloudAccessClient {
         return resourceTypes.contains(resourceType);
     }
 
-    public GroupUniqueName createGroup(
+    public void createGroup(
             GroupUniqueName groupUniqueName,
             List<UserLogin> lecturerLogins,
             CloudResourceType resourceType
     ) {
-        return controller.createGroup(groupUniqueName, lecturerLogins, resourceType);
+        controller.createGroup(groupUniqueName, lecturerLogins, resourceType);
     }
 
     public boolean isCloudGroupExists(GroupUniqueName groupUniqueName) {
@@ -48,5 +48,9 @@ public class CloudAccessClient {
 
     public Map<GroupUniqueName, UsedLimit> updateUsedCost() {
         return controller.updateUsedCost(LocalDate.EPOCH, LocalDate.now());
+    }
+
+    public void cleanUpResources(GroupUniqueName groupUniqueName, boolean force) {
+        controller.cleanUpResources(groupUniqueName, force);
     }
 }

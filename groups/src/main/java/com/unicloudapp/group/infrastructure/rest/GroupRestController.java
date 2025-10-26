@@ -7,6 +7,7 @@ import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.*;
+import com.unicloudapp.group.application.port.StudentImporterPort;
 import com.unicloudapp.group.domain.GroupStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

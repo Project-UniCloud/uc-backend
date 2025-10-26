@@ -2,6 +2,7 @@ package com.unicloudapp.cloudmanagment.infrastructure.persistence;
 
 import com.unicloudapp.cloudmanagment.application.CloudResourceAccessRepositoryPort;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
+import com.unicloudapp.cloudmanagment.domain.CloudResourcesAccessStatus;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,6 +62,17 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
                 .map(cloudAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Map<CloudResourceAccessId, CloudResourceAccess> findAllByStatus(CloudResourcesAccessStatus status) {
+        return repository.findAllByStatus(status.getStatus())
+                .stream()
+                .map(cloudAccessMapper::toDomain)
+                .collect(Collectors.toMap(
+                        CloudResourceAccess::getCloudResourceAccessId,
+                        cloudResourceAccess -> cloudResourceAccess
+                ));
+    }
 }
 
 @Repository
@@ -71,4 +84,6 @@ interface CloudAccessJpaRepository extends JpaRepository<CloudResourceAccessEnti
     );
 
     Set<CloudResourceAccessEntity> findAllByCloudAccessClientId(String cloudAccessClientId);
+
+    Set<CloudResourceAccessEntity> findAllByStatus(CloudResourcesAccessStatus.Status status);
 }

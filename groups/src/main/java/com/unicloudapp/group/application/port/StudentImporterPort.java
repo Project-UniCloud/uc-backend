@@ -1,4 +1,4 @@
-package com.unicloudapp.group.application;
+package com.unicloudapp.group.application.port;
 
 import com.unicloudapp.common.user.StudentBasicData;
 import org.springframework.web.multipart.MultipartFile;

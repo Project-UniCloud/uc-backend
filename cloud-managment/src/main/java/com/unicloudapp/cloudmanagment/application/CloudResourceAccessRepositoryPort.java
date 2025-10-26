@@ -1,11 +1,13 @@
 package com.unicloudapp.cloudmanagment.application;
 
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
+import com.unicloudapp.cloudmanagment.domain.CloudResourcesAccessStatus;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface CloudResourceAccessRepositoryPort {
@@ -22,4 +24,6 @@ public interface CloudResourceAccessRepositoryPort {
     );
 
     Set<CloudResourceAccess> findAllByCloudClientId(CloudAccessClientId cloudAccessClientId);
+
+    Map<CloudResourceAccessId, CloudResourceAccess> findAllByStatus(CloudResourcesAccessStatus status);
 }

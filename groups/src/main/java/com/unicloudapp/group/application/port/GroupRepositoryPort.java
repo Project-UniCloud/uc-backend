@@ -1,12 +1,17 @@
-package com.unicloudapp.group.application;
+package com.unicloudapp.group.application.port;
 
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.group.application.GroupDetailsProjection;
+import com.unicloudapp.group.application.GroupFilterCriteria;
+import com.unicloudapp.group.application.GroupRowProjection;
 import com.unicloudapp.group.domain.Group;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -33,4 +38,6 @@ public interface GroupRepositoryPort {
             Pageable pageable,
             Set<CloudResourceAccessId> cloudResourceAccesses
     );
+
+    List<GroupCloudDto> findAllGroupCloudDto();
 }

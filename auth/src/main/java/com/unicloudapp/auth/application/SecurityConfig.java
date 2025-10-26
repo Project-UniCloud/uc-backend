@@ -45,6 +45,7 @@ class SecurityConfig {
             UserDetailsService userDetailsService,
             JwtConfigurationProperties jwtProperties
     ) throws Exception {
+        // NOSONAR: CSRF disabled intentionally for stateless REST API
         return http.csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))

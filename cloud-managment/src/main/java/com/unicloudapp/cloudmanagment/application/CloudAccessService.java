@@ -2,30 +2,72 @@ package com.unicloudapp.cloudmanagment.application;
 
 import com.unicloudapp.cloudmanagment.domain.CloudAccessClient;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
+import com.unicloudapp.cloudmanagment.domain.CloudResourcesAccessStatus;
 import com.unicloudapp.cloudmanagment.domain.ExpiresDate;
-import com.unicloudapp.common.domain.cloud.*;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
+import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.domain.cloud.CloudResourceType;
+import com.unicloudapp.common.domain.cloud.CostLimit;
+import com.unicloudapp.common.domain.cloud.UsedLimit;
 import com.unicloudapp.common.domain.user.UserLogin;
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronTrigger;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class CloudAccessService
         implements CloudResourceAccessQueryService, CloudResourceAccessCommandService {
 
+    private final Map<CloudResourceAccessId, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+
+    private final TaskScheduler taskScheduler;
     private final Map<String, CloudAccessClient> clients;
     private final CloudResourceAccessRepositoryPort cloudAccessRepository;
+    private final GroupQueryService groupQueryService;
+
+    @PostConstruct
+    protected void init() {
+        List<GroupCloudDto> groupCloudDtoList = groupQueryService.getGroupCloudDto();
+        CloudResourcesAccessStatus activeStatus = CloudResourcesAccessStatus.of(
+                CloudResourcesAccessStatus.Status.ACTIVE
+        );
+        Map<CloudResourceAccessId, CloudResourceAccess> cloudResourcesAccesses =
+                cloudAccessRepository.findAllByStatus(activeStatus);
+        groupCloudDtoList.forEach(groupCloudDto ->
+                groupCloudDto.cloudResourceAccesses().forEach(cloudResourceAccessId ->
+                    scheduleTask(cloudResourcesAccesses.get(cloudResourceAccessId), groupCloudDto.groupUniqueName())));
+    }
+
+    private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
+        CronTrigger cronTrigger = new CronTrigger(cloudResourceAccess.getCronExpression().toString());
+        ScheduledFuture<?> future = taskScheduler.schedule(
+                () -> cleanUpResources(cloudResourceAccess, groupUniqueName),
+                cronTrigger
+        );
+        scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);
+    }
 
     public boolean isRunning(CloudAccessClientId cloudAccessClientId) {
         if (!isCloudClientExists(cloudAccessClientId)) {
@@ -129,6 +171,7 @@ public class CloudAccessService
                         ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
                 );
         cloudAccessRepository.save(cloudResourceAccess);
+        scheduleTask(cloudResourceAccess, groupUniqueName);
         return cloudResourceAccess.getCloudResourceAccessId();
     }
 
@@ -165,7 +208,7 @@ public class CloudAccessService
     }
 
     @Scheduled(cron = "0 0 * * * *")
-    public void updateCostUsed() {
+    protected void updateCostUsed() {
         clients.values()
                 .forEach(cloudAccessClient -> {
                     Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudAccessClient.updateUsedCost();
@@ -181,5 +224,10 @@ public class CloudAccessService
                         });
                     });
                 });
+    }
+
+    private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
+        clients.get(cloudResourceAccess.getCloudAccessClientId().getValue())
+                .cleanUpResources(groupUniqueName, true);
     }
 }
