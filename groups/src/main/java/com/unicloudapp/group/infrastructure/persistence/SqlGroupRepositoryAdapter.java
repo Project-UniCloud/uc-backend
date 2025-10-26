@@ -175,7 +175,7 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
                 .stream()
                 .map(groupCloudDtoProjection -> {
                     GroupUniqueName groupUniqueName = GroupUniqueName.fromString(
-                            groupCloudDtoProjection.getName() + groupCloudDtoProjection.getSemester()
+                            groupCloudDtoProjection.getName() + " " + groupCloudDtoProjection.getSemester()
                     );
                     return new GroupCloudDto(
                             groupUniqueName,
