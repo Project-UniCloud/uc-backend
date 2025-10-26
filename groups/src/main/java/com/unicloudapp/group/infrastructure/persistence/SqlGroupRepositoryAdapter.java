@@ -17,6 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -170,6 +171,7 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GroupCloudDto> findAllGroupCloudDto() {
         return groupJpaRepository.findAllProjectedBy()
                 .stream()
