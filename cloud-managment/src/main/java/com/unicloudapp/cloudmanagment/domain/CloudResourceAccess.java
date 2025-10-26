@@ -34,4 +34,11 @@ public class CloudResourceAccess {
         }
         this.usedLimit = newUsedCost;
     }
+
+    public void active() {
+        if (status == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        this.status = CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE);
+    }
 }

@@ -5,6 +5,7 @@ import com.unicloudapp.common.domain.group.GroupName;
 import com.unicloudapp.common.domain.group.Semester;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.group.domain.GroupStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,7 @@ class SqlGroupRepositoryAdapterTest {
 
     @Test
     @DisplayName("findAllGroupCloudDto maps projection to GroupCloudDto when name has no trailing space")
-    void findAllGroupCloudDto_malformedConcatenation_thenThrows() {
+    void findActiveGroups_malformedConcatenation_thenThrows() {
         GroupJpaRepository repo = mock(GroupJpaRepository.class);
         GroupToEntityMapper mapper = mock(GroupToEntityMapper.class);
         SqlGroupRepositoryAdapter adapter = new SqlGroupRepositoryAdapter(repo, mapper);
@@ -31,8 +32,8 @@ class SqlGroupRepositoryAdapterTest {
             @Override public List<UUID> getCloudResourceAccesses() { return List.of(id); }
             @Override public String getSemester() { return "2024L"; }
         };
-        when(repo.findAllProjectedBy()).thenReturn(List.of(projection));
-        List<GroupCloudDto> groupCloudDtoList = adapter.findAllGroupCloudDto();
+        when(repo.findAllProjectedByGroupStatus(GroupStatus.Type.ACTIVE)).thenReturn(List.of(projection));
+        List<GroupCloudDto> groupCloudDtoList = adapter.findActiveGroups();
 
         GroupUniqueName groupUniqueName = GroupUniqueName.builder()
                 .groupName(GroupName.of(projection.getName()))
@@ -50,7 +51,7 @@ class SqlGroupRepositoryAdapterTest {
 
     @Test
     @DisplayName("findAllGroupCloudDto maps projection to GroupCloudDto when name includes trailing space")
-    void findAllGroupCloudDto_valid_whenNameEndsWithSpace() {
+    void findActiveGroupWithActiveCloudResourcesDto_valid_whenNameEndsWithSpace() {
         GroupJpaRepository repo = mock(GroupJpaRepository.class);
         GroupToEntityMapper mapper = mock(GroupToEntityMapper.class);
         SqlGroupRepositoryAdapter adapter = new SqlGroupRepositoryAdapter(repo, mapper);
@@ -61,9 +62,9 @@ class SqlGroupRepositoryAdapterTest {
             @Override public List<UUID> getCloudResourceAccesses() { return List.of(id1); }
             @Override public String getSemester() { return "2024L"; }
         };
-        when(repo.findAllProjectedBy()).thenReturn(List.of(projection));
+        when(repo.findAllProjectedByGroupStatus(GroupStatus.Type.ACTIVE)).thenReturn(List.of(projection));
 
-        List<GroupCloudDto> result = adapter.findAllGroupCloudDto();
+        List<GroupCloudDto> result = adapter.findActiveGroups();
         assertEquals(1, result.size());
         GroupCloudDto dto = result.getFirst();
         assertEquals("AI 2024L", dto.groupUniqueName().toString());

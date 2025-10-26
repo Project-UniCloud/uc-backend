@@ -22,5 +22,5 @@ public interface CloudResourceAccessQueryService {
 
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(
             CloudAccessClientId cloudAccessClientId
-    );;
+    );
 }

@@ -29,4 +29,6 @@ public interface CloudResourceAccessCommandService {
             List<UserLogin> users,
             GroupUniqueName groupUniqueName
     );
+
+    void activateCloudResource(CloudResourceAccessId cloudResourceAccessId);
 }

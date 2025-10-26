@@ -39,5 +39,5 @@ public interface GroupRepositoryPort {
             Set<CloudResourceAccessId> cloudResourceAccesses
     );
 
-    List<GroupCloudDto> findAllGroupCloudDto();
+    List<GroupCloudDto> findActiveGroups();
 }

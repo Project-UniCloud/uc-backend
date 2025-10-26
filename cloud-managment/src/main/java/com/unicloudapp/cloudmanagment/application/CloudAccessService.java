@@ -24,12 +24,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,15 +51,20 @@ public class CloudAccessService
 
     @PostConstruct
     protected void init() {
-        List<GroupCloudDto> groupCloudDtoList = groupQueryService.getGroupCloudDto();
+        List<GroupCloudDto> groupCloudDtoList = groupQueryService.getActiveGroups();
         CloudResourcesAccessStatus activeStatus = CloudResourcesAccessStatus.of(
                 CloudResourcesAccessStatus.Status.ACTIVE
         );
-        Map<CloudResourceAccessId, CloudResourceAccess> cloudResourcesAccesses =
+        Map<CloudResourceAccessId, CloudResourceAccess> activeCloudResourcesAccesses =
                 cloudAccessRepository.findAllByStatus(activeStatus);
         groupCloudDtoList.forEach(groupCloudDto ->
-                groupCloudDto.cloudResourceAccesses().forEach(cloudResourceAccessId ->
-                    scheduleTask(cloudResourcesAccesses.get(cloudResourceAccessId), groupCloudDto.groupUniqueName())));
+                groupCloudDto.cloudResourceAccesses()
+                        .stream()
+                        .filter(activeCloudResourcesAccesses::containsKey)
+                        .forEach(cloudResourceAccessId ->
+                            scheduleTask(activeCloudResourcesAccesses.get(cloudResourceAccessId), groupCloudDto.groupUniqueName())
+                        )
+        );
     }
 
     private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
@@ -205,6 +212,16 @@ public class CloudAccessService
     @Override
     public String createUsers(CloudAccessClientId cloudAccessClientId, List<UserLogin> users, GroupUniqueName groupUniqueName) {
         return clients.get(cloudAccessClientId.getValue()).createUsers(users, groupUniqueName);
+    }
+
+    @Override
+    @Transactional
+    public void activateCloudResource(CloudResourceAccessId cloudResourceAccessId) {
+        Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(cloudResourceAccessId);
+        resourceAccess.ifPresent(cloudResourceAccess -> {
+            cloudResourceAccess.active();
+            cloudAccessRepository.save(resourceAccess.get());
+        });
     }
 
     @Scheduled(cron = "0 0 * * * *")

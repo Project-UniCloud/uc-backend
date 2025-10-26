@@ -309,7 +309,7 @@ class CloudAccessServiceTest {
         // Prepare group dto: one access id
         CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
         GroupCloudDto dto = new GroupCloudDto(GroupUniqueName.fromString("AI 2024L"), List.of(accessId));
-        when(groupQueryService.getGroupCloudDto()).thenReturn(List.of(dto));
+        when(groupQueryService.getActiveGroups()).thenReturn(List.of(dto));
 
         // Prepare repository active map returning our CloudResourceAccess
         CloudResourceAccess access = CloudResourceAccess.builder()

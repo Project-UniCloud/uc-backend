@@ -14,15 +14,15 @@ class BasicGroupQueryServiceTest {
 
     @Test
     @DisplayName("getGroupCloudDto delegates to repository")
-    void getGroupCloudDto_delegates() {
+    void getActiveGroups_delegates() {
         GroupRepositoryPort repo = mock(GroupRepositoryPort.class);
         BasicGroupQueryService svc = new BasicGroupQueryService(repo);
         List<GroupCloudDto> expected = List.of(mock(GroupCloudDto.class));
-        when(repo.findAllGroupCloudDto()).thenReturn(expected);
+        when(repo.findActiveGroups()).thenReturn(expected);
 
-        List<GroupCloudDto> actual = svc.getGroupCloudDto();
+        List<GroupCloudDto> actual = svc.getActiveGroups();
 
-        verify(repo).findAllGroupCloudDto();
+        verify(repo).findActiveGroups();
         assertSame(expected, actual);
     }
 }

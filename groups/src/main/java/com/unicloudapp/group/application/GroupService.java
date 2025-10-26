@@ -294,6 +294,7 @@ public class GroupService {
         return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalPages());
     }
 
+    @Transactional
     public void activate(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
@@ -312,6 +313,7 @@ public class GroupService {
                         studentLogins,
                         groupUniqueName
                 ));
+        group.getCloudResourceAccesses().forEach(cloudResourceAccessCommandService::activateCloudResource);
         groupRepository.save(group);
     }
 

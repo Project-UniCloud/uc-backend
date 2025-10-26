@@ -17,7 +17,7 @@ class BasicGroupQueryService implements GroupQueryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<GroupCloudDto> getGroupCloudDto() {
-        return groupRepository.findAllGroupCloudDto();
+    public List<GroupCloudDto> getActiveGroups() {
+        return groupRepository.findActiveGroups();
     }
 }
