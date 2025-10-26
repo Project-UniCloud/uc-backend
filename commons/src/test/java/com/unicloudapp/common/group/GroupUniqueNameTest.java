@@ -1,32 +1,41 @@
 package com.unicloudapp.common.group;
 
+import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.domain.group.Semester;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GroupUniqueNameTest {
 
     @Test
-    @DisplayName("fromString parses 'Name YYYYX' and toString reproduces it")
-    void fromStringParsesCorrectly() {
-        GroupUniqueName unique = GroupUniqueName.fromString("Grupa A 2024L");
-        assertEquals("Grupa A", unique.groupName().toString());
-        assertEquals("2024L", unique.semester().toString());
-        assertEquals("Grupa A 2024L", unique.toString());
+    @DisplayName("fromString parses valid 'Name YYYYZ/L' and toString returns same format")
+    void fromString_valid_thenOk_and_toString() {
+        GroupUniqueName unique = GroupUniqueName.fromString("AI 2024L");
+        assertEquals(GroupName.of("AI"), unique.groupName());
+        assertEquals(Semester.of("2024L"), unique.semester());
+        assertEquals("AI 2024L", unique.toString());
     }
 
     @Test
-    @DisplayName("fromString throws on invalid format")
-    void fromStringThrowsOnInvalid() {
-        // null
-        assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString(null));
-        // missing space before suffix
-        assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("GrupaA2024L"));
-        // wrong suffix pattern
-        assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("Grupa A 2024X"));
-        // no digits
-        assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("Grupa A L"));
+    @DisplayName("fromString throws for null")
+    void fromString_null_thenThrows() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString(null));
+        assertTrue(ex.getMessage().contains("Niepoprawny format"));
+    }
+
+    @Test
+    @DisplayName("fromString throws for missing space")
+    void fromString_missingSpace_thenThrows() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("AI2024L"));
+        assertTrue(ex.getMessage().contains("Niepoprawny format"));
+    }
+
+    @Test
+    @DisplayName("fromString throws for malformed suffix")
+    void fromString_badSuffix_thenThrows() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("AI 2024X"));
+        assertTrue(ex.getMessage().contains("Niepoprawny format"));
     }
 }
