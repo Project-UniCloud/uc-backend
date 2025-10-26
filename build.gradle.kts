@@ -9,7 +9,7 @@ plugins {
 
 allprojects {
     repositories {
-        mavenCentral()
+        mavenCentral() // NOSONAR - Trusted official Maven repository
     }
 }
 
