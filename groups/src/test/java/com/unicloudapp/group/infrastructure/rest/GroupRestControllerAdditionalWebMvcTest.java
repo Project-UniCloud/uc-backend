@@ -206,11 +206,8 @@ class GroupRestControllerAdditionalWebMvcTest {
     void deactivateCloudAccess_endpoint() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();
-        GroupRestController.DeactivateCloudResourcesAccessRequest req = new GroupRestController.DeactivateCloudResourcesAccessRequest(gid, aid);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/cloud-access/{cloudAccessId}/deactivate", gid, aid)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(mapper().writeValueAsString(req)))
+        mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/cloud-access/{cloudAccessId}/deactivate", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }
