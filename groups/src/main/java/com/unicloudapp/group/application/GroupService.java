@@ -307,13 +307,15 @@ public class GroupService {
         List<CloudResourceRowView> resourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
         List<UserLogin> studentLogins = userQueryService.getUserLoginsByIds(group.getStudents());
-        resourceTypesDetails.stream()
-                .map(CloudResourceRowView::clientId)
-                .forEach(s -> cloudResourceAccessCommandService.createUsers(
-                        CloudAccessClientId.of(s),
-                        studentLogins,
-                        groupUniqueName
-                ));
+        if (!studentLogins.isEmpty()) {
+            resourceTypesDetails.stream()
+                    .map(CloudResourceRowView::clientId)
+                    .forEach(s -> cloudResourceAccessCommandService.createUsers(
+                            CloudAccessClientId.of(s),
+                            studentLogins,
+                            groupUniqueName
+                    ));
+        }
         group.getCloudResourceAccesses().forEach(cloudResourceAccessCommandService::activateCloudResource);
         groupRepository.save(group);
     }
@@ -345,6 +347,7 @@ public class GroupService {
                 .cron(cloudResourceDetailsFirst.cronCleanupSchedule())
                 .limit(cloudResourceDetailsFirst.limitUsed())
                 .expiresAt(cloudResourceDetailsFirst.expiresAt())
+                .status(cloudResourceDetailsFirst.status())
                 .build();
     }
 

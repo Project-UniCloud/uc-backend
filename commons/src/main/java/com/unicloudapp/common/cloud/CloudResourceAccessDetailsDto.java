@@ -12,5 +12,6 @@ public record CloudResourceAccessDetailsDto(
         UUID id,
         BigDecimal limit,
         String cron,
-        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate expiresAt
+        @JsonFormat(pattern = "dd-MM-yyyy") LocalDate expiresAt,
+        String status
 ) { }
