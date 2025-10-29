@@ -4,7 +4,7 @@ plugins {
     id("com.vanniktech.dependency.graph.generator") version "0.8.0"
     id("jacoco")
     id("com.diffplug.spotless") version "8.0.0"
-    id("org.sonarqube") version "7.0.0.6105"
+    id("org.sonarqube") version "7.0.1.6134"
 }
 
 allprojects {
