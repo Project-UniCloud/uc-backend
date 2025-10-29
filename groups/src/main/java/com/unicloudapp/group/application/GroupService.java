@@ -345,7 +345,7 @@ public class GroupService {
         return CloudResourceAccessDetailsDto.builder()
                 .id(cloudResourceDetailsFirst.id())
                 .cron(cloudResourceDetailsFirst.cronCleanupSchedule())
-                .limit(cloudResourceDetailsFirst.limitUsed())
+                .limit(cloudResourceDetailsFirst.costLimit())
                 .expiresAt(cloudResourceDetailsFirst.expiresAt())
                 .status(cloudResourceDetailsFirst.status())
                 .build();
