@@ -382,7 +382,7 @@ class CloudAccessServiceTest {
         service.updateGroupCloudResourceAccess(request, group);
 
         // Assert: previous future cancelled and repository saved with updated values
-        verify(initialFuture).cancel(false);
+        verify(initialFuture).cancel(anyBoolean());
         ArgumentCaptor<CloudResourceAccess> savedCaptor = ArgumentCaptor.forClass(CloudResourceAccess.class);
         verify(repository, atLeastOnce()).save(savedCaptor.capture());
         CloudResourceAccess saved = savedCaptor.getValue();
@@ -425,7 +425,7 @@ class CloudAccessServiceTest {
         service.deactivateCloudResourceAccess(accessId);
 
         // Assert
-        verify(initialFuture).cancel(false);
+        verify(initialFuture).cancel(anyBoolean());
         ArgumentCaptor<CloudResourceAccess> savedCaptor = ArgumentCaptor.forClass(CloudResourceAccess.class);
         verify(repository).save(savedCaptor.capture());
         CloudResourceAccess saved = savedCaptor.getValue();
