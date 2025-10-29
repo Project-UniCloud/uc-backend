@@ -1,8 +1,9 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
+import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -85,11 +86,11 @@ public class GroupService {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow();
         group.addStudent(userId);
-        List<CloudResourceTypeRowView> cloudResourceTypesDetails =
-                cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
+        List<CloudResourceRowView> cloudResourceTypesDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
         if (group.getGroupStatus().getStatus() == GroupStatus.Type.ACTIVE) {
             Set<String> collect = cloudResourceTypesDetails.stream()
-                    .map(CloudResourceTypeRowView::clientId)
+                    .map(CloudResourceRowView::clientId)
                     .collect(Collectors.toSet());
             collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
                         CloudAccessClientId.of(s),
@@ -144,11 +145,11 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         List<UserId> importedStudents = userCommandService.importStudents(studentBasicData);
         importedStudents.forEach(group::addStudent);
-        List<CloudResourceTypeRowView> cloudResourceTypesDetails =
-                cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
+        List<CloudResourceRowView> cloudResourceTypesDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
         if (group.getGroupStatus().getStatus() == GroupStatus.Type.ACTIVE) {
             Set<String> collect = cloudResourceTypesDetails.stream()
-                    .map(CloudResourceTypeRowView::clientId)
+                    .map(CloudResourceRowView::clientId)
                     .collect(Collectors.toSet());
             collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
                             CloudAccessClientId.of(s),
@@ -177,7 +178,7 @@ public class GroupService {
                 .groupName(group.getName())
                 .semester(group.getSemester())
                 .build();
-        boolean hasGroupCloudResourceType = cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses())
+        boolean hasGroupCloudResourceType = cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses())
                 .stream()
                 .anyMatch(cloudResourceTypeRowView ->
                         cloudResourceTypeRowView.name().equals(cloudResourceType.getName())
@@ -203,11 +204,11 @@ public class GroupService {
         return cloudResourceAccessId;
     }
 
-    public List<CloudResourceTypeRowView> getCloudResourceAccesses(GroupId groupId) {
+    public List<CloudResourceRowView> getCloudResourceAccesses(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
-        return cloudResourceAccessQueryService.getCloudResourceTypesDetails(cloudResourceAccesses);
+        return cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccesses);
     }
 
     public void updateGroup(GroupId groupId, GroupDTO groupDTO) {
@@ -303,11 +304,11 @@ public class GroupService {
                 .semester(group.getSemester())
                 .groupName(group.getName())
                 .build();
-        List<CloudResourceTypeRowView> resourceTypesDetails =
-                cloudResourceAccessQueryService.getCloudResourceTypesDetails(group.getCloudResourceAccesses());
+        List<CloudResourceRowView> resourceTypesDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
         List<UserLogin> studentLogins = userQueryService.getUserLoginsByIds(group.getStudents());
         resourceTypesDetails.stream()
-                .map(CloudResourceTypeRowView::clientId)
+                .map(CloudResourceRowView::clientId)
                 .forEach(s -> cloudResourceAccessCommandService.createUsers(
                         CloudAccessClientId.of(s),
                         studentLogins,
@@ -324,5 +325,42 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.archive();
         groupRepository.save(group);
+    }
+
+    public CloudResourceAccessDetailsDto getCloudResourceAccess(
+            GroupId groupId,
+            CloudResourceAccessId cloudResourceAccessId
+    ) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
+        List<CloudResourceRowView> cloudResourceDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccesses);
+        CloudResourceRowView cloudResourceDetailsFirst = cloudResourceDetails.getFirst();
+        if (!cloudResourceAccessId.getValue().equals(cloudResourceDetailsFirst.id())) {
+            throw new RuntimeException("Cloud resource access not found with id: " + cloudResourceAccessId);
+        }
+        return CloudResourceAccessDetailsDto.builder()
+                .id(cloudResourceDetailsFirst.id())
+                .cron(cloudResourceDetailsFirst.cronCleanupSchedule())
+                .limit(cloudResourceDetailsFirst.limitUsed())
+                .expiresAt(cloudResourceDetailsFirst.expiresAt())
+                .build();
+    }
+
+    public void saveCloudResourceAccess(GroupId groupId, CloudResourceAccessDetailsDto request) {
+        Group group = groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .semester(group.getSemester())
+                .groupName(group.getName())
+                .build();
+        cloudResourceAccessCommandService.updateGroupCloudResourceAccess(request, groupUniqueName);
+    }
+
+    public void deactivateCloudResourcesAccess(GroupId groupId, CloudResourceAccessId cloudResourceAccessId) {
+        groupRepository.findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        cloudResourceAccessCommandService.deactivateCloudResourceAccess(cloudResourceAccessId);
     }
 }
