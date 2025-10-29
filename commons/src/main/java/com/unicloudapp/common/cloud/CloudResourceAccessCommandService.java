@@ -31,4 +31,8 @@ public interface CloudResourceAccessCommandService {
     );
 
     void activateCloudResource(CloudResourceAccessId cloudResourceAccessId);
+
+    void updateGroupCloudResourceAccess(CloudResourceAccessDetailsDto request, GroupUniqueName groupUniqueName);
+
+    void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId);
 }

@@ -6,9 +6,11 @@ import lombok.Builder;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
-public record CloudResourceTypeRowView(
+public record CloudResourceRowView(
+        UUID id,
         String clientId,
         String name,
         BigDecimal costLimit,

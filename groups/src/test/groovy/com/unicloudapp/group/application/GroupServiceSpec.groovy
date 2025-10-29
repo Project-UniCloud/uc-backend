@@ -2,7 +2,7 @@ package com.unicloudapp.group.application
 
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView
+import com.unicloudapp.common.cloud.CloudResourceRowView
 import com.unicloudapp.common.domain.Email
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId
@@ -193,7 +193,7 @@ class GroupServiceSpec extends Specification {
         ] as Set
         def today = LocalDate.now()
         def now = LocalDateTime.now()
-        def resourceTypeRowView = CloudResourceTypeRowView.builder()
+        def resourceTypeRowView = CloudResourceRowView.builder()
                 .clientId("aws")
                 .name("EC2")
                 .costLimit(BigDecimal.ONE)
@@ -210,7 +210,7 @@ class GroupServiceSpec extends Specification {
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
         1 * group.getCloudResourceAccesses() >> cloudResourceAccessIds
-        1 * cloudResourceAccessQueryService.getCloudResourceTypesDetails(cloudResourceAccessIds) >> cloudResourceTypeViews
+        1 * cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessIds) >> cloudResourceTypeViews
 
         and:
         result == cloudResourceTypeViews
@@ -350,7 +350,7 @@ class GroupServiceSpec extends Specification {
         def group = Mock(Group)
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
         def lecturerLogins = [new UserLogin("john.doe@example.com")]
-        1 * cloudResourceAccessQueryService.getCloudResourceTypesDetails(_) >> []
+        1 * cloudResourceAccessQueryService.getCloudResourceDetails(_) >> []
         def costLimit = CostLimit.zero()
 
         when:

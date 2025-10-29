@@ -13,12 +13,12 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CloudResourceTypeRowViewTest {
+class CloudResourceRowViewTest {
 
     @Test
     @DisplayName("Builder sets fields and JSON serialization respects @JsonFormat patterns")
     void builderAndJsonFormat() throws JsonProcessingException {
-        CloudResourceTypeRowView view = CloudResourceTypeRowView.builder()
+        CloudResourceRowView view = CloudResourceRowView.builder()
                 .clientId("client-123")
                 .name("VM")
                 .costLimit(new BigDecimal("100.00"))

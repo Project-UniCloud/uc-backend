@@ -1,5 +1,6 @@
 package com.unicloudapp.cloudmanagment.domain;
 
+import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.domain.cloud.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,13 +22,6 @@ public class CloudResourceAccess {
     private ExpiresDate expiresAt;
     private CloudResourcesAccessStatus status;
 
-    void changeCostLimit(CostLimit newCostLimit) {
-        if (newCostLimit == null) {
-            throw new IllegalArgumentException("New cost limit cannot be null");
-        }
-        this.costLimit = newCostLimit;
-    }
-
     public void updateUsedLimit(UsedLimit newUsedCost) {
         if (newUsedCost == null || newUsedCost.getValue().intValue() < usedLimit.getValue().intValue()) {
             throw new IllegalArgumentException("New used limit cannot be null");
@@ -40,5 +34,21 @@ public class CloudResourceAccess {
             throw new IllegalArgumentException("Status cannot be null");
         }
         this.status = CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE);
+    }
+
+    public void deactivate() {
+        if (status == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        this.status = CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE);
+    }
+
+    public void update(CloudResourceAccessDetailsDto request) {
+        if (status == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        this.costLimit = CostLimit.of(request.limit());
+        this.cronExpression = CronExpression.parse(request.cron());
+        this.expiresAt = ExpiresDate.of(request.expiresAt());
     }
 }

@@ -1,6 +1,7 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.domain.Email;
 import com.unicloudapp.common.domain.cloud.*;
 import com.unicloudapp.common.domain.group.GroupId;
@@ -157,8 +158,28 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "/{groupId}/cloud-access")
     @ResponseStatus(HttpStatus.OK)
-    List<CloudResourceTypeRowView> getCloudResourceAccesses(@PathVariable UUID groupId) {
+    List<CloudResourceRowView> getCloudResourceAccesses(@PathVariable UUID groupId) {
         return groupService.getCloudResourceAccesses(GroupId.of(groupId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "/{groupId}/cloud-access/{cloudAccessId}")
+    @ResponseStatus(HttpStatus.OK)
+    CloudResourceAccessDetailsDto getCloudResourceAccesses(
+            @PathVariable UUID groupId,
+            @PathVariable UUID cloudAccessId
+    ) {
+        return groupService.getCloudResourceAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping(value = "/{groupId}/cloud-access")
+    @ResponseStatus(HttpStatus.OK)
+    void updateCloudResourceAccesses(
+            @PathVariable UUID groupId,
+            @RequestBody CloudResourceAccessDetailsDto request
+    ) {
+        groupService.saveCloudResourceAccess(GroupId.of(groupId), request);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -173,5 +194,18 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.OK)
     void archive(@PathVariable UUID groupId) {
         groupService.archive(GroupId.of(groupId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/deactivate")
+    @ResponseStatus(HttpStatus.OK)
+    void deactivateCloudResourcesAccess(
+            @RequestBody DeactivateCloudResourcesAccessRequest request
+    ) {
+        groupService.deactivateCloudResourcesAccess(GroupId.of(request.groupId), CloudResourceAccessId.of(request.cloudAccessId));
+    }
+
+    record DeactivateCloudResourcesAccessRequest(UUID groupId, UUID cloudAccessId) {
+
     }
 }

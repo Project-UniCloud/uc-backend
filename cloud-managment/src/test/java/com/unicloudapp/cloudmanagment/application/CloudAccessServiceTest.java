@@ -5,7 +5,7 @@ import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccessFactory;
 import com.unicloudapp.cloudmanagment.domain.CloudResourcesAccessStatus;
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -151,7 +151,7 @@ class CloudAccessServiceTest {
 
     @Test
     @DisplayName("getCloudResourceTypesDetails maps all fields")
-    void getCloudResourceTypesDetails_maps() {
+    void getCloudResourceDetails_maps() {
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
                 .cloudAccessClientId(CloudAccessClientId.of("a-client"))
@@ -164,9 +164,9 @@ class CloudAccessServiceTest {
                 .build();
         when(repository.findAllById(any())).thenReturn(List.of(cra));
 
-        List<CloudResourceTypeRowView> rows = service.getCloudResourceTypesDetails(Set.of(cra.getCloudResourceAccessId()));
+        List<CloudResourceRowView> rows = service.getCloudResourceDetails(Set.of(cra.getCloudResourceAccessId()));
         assertEquals(1, rows.size());
-        CloudResourceTypeRowView row = rows.getFirst();
+        CloudResourceRowView row = rows.getFirst();
         assertEquals("S3", row.name());
         assertEquals(new BigDecimal("123.45"), row.costLimit());
         assertEquals("a-client", row.clientId());
