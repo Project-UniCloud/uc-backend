@@ -284,6 +284,10 @@ public class CloudAccessService
     }
 
     private void cancelScheduledTask(CloudResourceAccessId cloudResourceAccessId) {
-        scheduledTasks.get(cloudResourceAccessId).cancel(false);
+        ScheduledFuture<?> scheduledFuture = scheduledTasks.get(cloudResourceAccessId);
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(true);
+        }
+        scheduledTasks.remove(cloudResourceAccessId);
     }
 }
