@@ -2,7 +2,7 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -121,7 +121,7 @@ class GroupServiceTest {
         when(group.getSemester()).thenReturn(Semester.of("2024L"));
         when(group.getName()).thenReturn(GroupName.of("AI"));
 
-        CloudResourceTypeRowView row1 = CloudResourceTypeRowView.builder()
+        CloudResourceRowView row1 = CloudResourceRowView.builder()
                 .clientId("clientA")
                 .name("S3")
                 .costLimit(BigDecimal.TEN)
@@ -131,7 +131,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceTypesDetails(any())).thenReturn(List.of(row1));
+        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row1));
 
         service.addStudent(groupId, s);
 
@@ -230,7 +230,7 @@ class GroupServiceTest {
         UserId id2 = UserId.of(UUID.randomUUID());
         when(userCmd.importStudents(list)).thenReturn(List.of(id1, id2));
 
-        CloudResourceTypeRowView row = CloudResourceTypeRowView.builder()
+        CloudResourceRowView row = CloudResourceRowView.builder()
                 .clientId("clientB")
                 .name("EC2")
                 .costLimit(BigDecimal.ONE)
@@ -240,7 +240,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceTypesDetails(any())).thenReturn(List.of(row));
+        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row));
 
         service.addStudents(gid, list);
 
@@ -267,7 +267,7 @@ class GroupServiceTest {
         CostLimit limit = CostLimit.of(new BigDecimal("5"));
 
         // no existing access types
-        when(cloudQuery.getCloudResourceTypesDetails(any())).thenReturn(List.of());
+        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of());
         when(userQueryService.getUserLoginsByIds(anySet())).thenReturn(List.of(UserLogin.of("lect")));
         when(cloudQuery.isCloudGroupExists(GroupUniqueName.fromString("AI 2024L"), clientId)).thenReturn(false);
         CloudResourceAccessId newId = CloudResourceAccessId.of(UUID.randomUUID());
@@ -280,7 +280,7 @@ class GroupServiceTest {
         verify(groupRepository).save(group);
 
         // duplicate path: when details say already has this type/client
-        CloudResourceTypeRowView row = CloudResourceTypeRowView.builder()
+        CloudResourceRowView row = CloudResourceRowView.builder()
                 .clientId("clientX")
                 .name("S3")
                 .costLimit(BigDecimal.TEN)
@@ -291,7 +291,7 @@ class GroupServiceTest {
                 .status("ACTIVE")
                 .build();
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
-        when(cloudQuery.getCloudResourceTypesDetails(any())).thenReturn(List.of(row));
+        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row));
         assertThrows(RuntimeException.class, () -> service.giveCloudResourceAccess(gid, clientId, type, limit));
     }
 
@@ -303,7 +303,7 @@ class GroupServiceTest {
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.of(group));
         Set<CloudResourceAccessId> ids = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
         when(group.getCloudResourceAccesses()).thenReturn(ids);
-        List<CloudResourceTypeRowView> rows = List.of(CloudResourceTypeRowView.builder()
+        List<CloudResourceRowView> rows = List.of(CloudResourceRowView.builder()
                 .clientId("c")
                 .name("S3")
                 .costLimit(BigDecimal.ZERO)
@@ -313,7 +313,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build());
-        when(cloudQuery.getCloudResourceTypesDetails(ids)).thenReturn(rows);
+        when(cloudQuery.getCloudResourceDetails(ids)).thenReturn(rows);
         assertSame(rows, service.getCloudResourceAccesses(gid));
     }
 
@@ -402,7 +402,7 @@ class GroupServiceTest {
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
         List<UserLogin> studentLogins = List.of(UserLogin.of("s1"), UserLogin.of("s2"));
         when(userQueryService.getUserLoginsByIds(anySet())).thenReturn(studentLogins);
-        CloudResourceTypeRowView rowA = CloudResourceTypeRowView.builder()
+        CloudResourceRowView rowA = CloudResourceRowView.builder()
                 .clientId("clientA")
                 .name("S3")
                 .costLimit(BigDecimal.TEN)
@@ -412,7 +412,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        CloudResourceTypeRowView rowB = CloudResourceTypeRowView.builder()
+        CloudResourceRowView rowB = CloudResourceRowView.builder()
                 .clientId("clientB")
                 .name("EC2")
                 .costLimit(BigDecimal.TEN)
@@ -422,7 +422,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceTypesDetails(any())).thenReturn(List.of(rowA, rowB));
+        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(rowA, rowB));
 
         service.activate(gid);
 

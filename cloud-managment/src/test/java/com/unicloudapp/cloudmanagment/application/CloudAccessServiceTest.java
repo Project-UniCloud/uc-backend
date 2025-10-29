@@ -5,7 +5,8 @@ import com.unicloudapp.cloudmanagment.domain.CloudAccessClientController;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
 import com.unicloudapp.cloudmanagment.domain.CloudResourceAccessFactory;
 import com.unicloudapp.cloudmanagment.domain.CloudResourcesAccessStatus;
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -151,7 +152,7 @@ class CloudAccessServiceTest {
 
     @Test
     @DisplayName("getCloudResourceTypesDetails maps all fields")
-    void getCloudResourceTypesDetails_maps() {
+    void getCloudResourceDetails_maps() {
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
                 .cloudAccessClientId(CloudAccessClientId.of("a-client"))
@@ -164,9 +165,9 @@ class CloudAccessServiceTest {
                 .build();
         when(repository.findAllById(any())).thenReturn(List.of(cra));
 
-        List<CloudResourceTypeRowView> rows = service.getCloudResourceTypesDetails(Set.of(cra.getCloudResourceAccessId()));
+        List<CloudResourceRowView> rows = service.getCloudResourceDetails(Set.of(cra.getCloudResourceAccessId()));
         assertEquals(1, rows.size());
-        CloudResourceTypeRowView row = rows.getFirst();
+        CloudResourceRowView row = rows.getFirst();
         assertEquals("S3", row.name());
         assertEquals(new BigDecimal("123.45"), row.costLimit());
         assertEquals("a-client", row.clientId());
@@ -309,7 +310,7 @@ class CloudAccessServiceTest {
         // Prepare group dto: one access id
         CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
         GroupCloudDto dto = new GroupCloudDto(GroupUniqueName.fromString("AI 2024L"), List.of(accessId));
-        when(groupQueryService.getGroupCloudDto()).thenReturn(List.of(dto));
+        when(groupQueryService.getActiveGroups()).thenReturn(List.of(dto));
 
         // Prepare repository active map returning our CloudResourceAccess
         CloudResourceAccess access = CloudResourceAccess.builder()
@@ -334,5 +335,100 @@ class CloudAccessServiceTest {
         // Execute scheduled runnable and verify cleanup
         runnableCaptor.getValue().run();
         verify(controllerA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), true);
+    }
+
+    @Test
+    @DisplayName("updateGroupCloudResourceAccess updates entity, reschedules task, and saves")
+    void updateGroupCloudResourceAccess_updatesEntityReschedulesAndSaves() {
+        // Arrange: create an existing active access and schedule it via init()
+        UUID id = UUID.randomUUID();
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(id);
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+
+        CloudResourceAccess existing = CloudResourceAccess.builder()
+                .cloudResourceAccessId(accessId)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.of(new BigDecimal("10")))
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.cloudmanagment.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        // init() prerequisites
+        GroupCloudDto dto = new GroupCloudDto(group, List.of(accessId));
+        when(groupQueryService.getActiveGroups()).thenReturn(List.of(dto));
+        when(repository.findAllByStatus(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE)))
+                .thenReturn(Map.of(accessId, existing));
+
+        // Scheduled future created during init() and re-used for subsequent schedule calls in this test
+        ScheduledFuture<?> initialFuture = mock(ScheduledFuture.class);
+        doReturn(initialFuture).when(taskScheduler).schedule(any(Runnable.class), any(CronTrigger.class));
+
+        service.init();
+
+        // Prepare update request with new values
+        CloudResourceAccessDetailsDto request = CloudResourceAccessDetailsDto.builder()
+                .id(id)
+                .limit(new BigDecimal("99.99"))
+                .cron("0 */15 * * * *")
+                .expiresAt(LocalDate.now().plusDays(30))
+                .build();
+
+        when(repository.findById(accessId)).thenReturn(Optional.of(existing));
+
+        // Act
+        service.updateGroupCloudResourceAccess(request, group);
+
+        // Assert: previous future cancelled and repository saved with updated values
+        verify(initialFuture).cancel(anyBoolean());
+        ArgumentCaptor<CloudResourceAccess> savedCaptor = ArgumentCaptor.forClass(CloudResourceAccess.class);
+        verify(repository, atLeastOnce()).save(savedCaptor.capture());
+        CloudResourceAccess saved = savedCaptor.getValue();
+        assertEquals(new BigDecimal("99.99"), saved.getCostLimit().getCost());
+        assertEquals("0 */15 * * * *", saved.getCronExpression().toString());
+        assertEquals(request.expiresAt(), saved.getExpiresAt().getValue());
+    }
+
+    @Test
+    @DisplayName("deactivateCloudResourceAccess deactivates access, cancels scheduled task, and saves")
+    void deactivateCloudResourceAccess_cancelsAndSaves() {
+        // Arrange: schedule an existing access via init() so that cancel can work
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+
+        CloudResourceAccess existing = CloudResourceAccess.builder()
+                .cloudResourceAccessId(accessId)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.cloudmanagment.domain.ExpiresDate.of(LocalDate.now().plusDays(7)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        GroupCloudDto dto = new GroupCloudDto(group, List.of(accessId));
+        when(groupQueryService.getActiveGroups()).thenReturn(List.of(dto));
+        when(repository.findAllByStatus(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE)))
+                .thenReturn(Map.of(accessId, existing));
+
+        ScheduledFuture<?> initialFuture = mock(ScheduledFuture.class);
+        doReturn(initialFuture).when(taskScheduler).schedule(any(Runnable.class), any(CronTrigger.class));
+
+        service.init();
+
+        when(repository.findById(accessId)).thenReturn(Optional.of(existing));
+
+        // Act
+        service.deactivateCloudResourceAccess(accessId);
+
+        // Assert
+        verify(initialFuture).cancel(anyBoolean());
+        ArgumentCaptor<CloudResourceAccess> savedCaptor = ArgumentCaptor.forClass(CloudResourceAccess.class);
+        verify(repository).save(savedCaptor.capture());
+        CloudResourceAccess saved = savedCaptor.getValue();
+        assertEquals("INACTIVE", saved.getStatus().getStatus().name());
     }
 }

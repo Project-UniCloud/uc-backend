@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface GroupQueryService {
 
-    List<GroupCloudDto> getGroupCloudDto();
+    List<GroupCloudDto> getActiveGroups();
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -72,6 +73,12 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
                         CloudResourceAccess::getCloudResourceAccessId,
                         cloudResourceAccess -> cloudResourceAccess
                 ));
+    }
+
+    @Override
+    public Optional<CloudResourceAccess> findById(CloudResourceAccessId cloudResourceAccessId) {
+        return repository.findById(cloudResourceAccessId.getValue())
+                .map(cloudAccessMapper::toDomain);
     }
 }
 

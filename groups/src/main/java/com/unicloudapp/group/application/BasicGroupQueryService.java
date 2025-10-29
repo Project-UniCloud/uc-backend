@@ -5,6 +5,7 @@ import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -15,7 +16,8 @@ class BasicGroupQueryService implements GroupQueryService {
     private final GroupRepositoryPort groupRepository;
 
     @Override
-    public List<GroupCloudDto> getGroupCloudDto() {
-        return groupRepository.findAllGroupCloudDto();
+    @Transactional(readOnly = true)
+    public List<GroupCloudDto> getActiveGroups() {
+        return groupRepository.findActiveGroups();
     }
 }
