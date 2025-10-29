@@ -5,8 +5,9 @@ import com.unicloudapp.cloudmanagment.domain.CloudResourceAccess;
 import com.unicloudapp.cloudmanagment.domain.CloudResourcesAccessStatus;
 import com.unicloudapp.cloudmanagment.domain.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
+import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
-import com.unicloudapp.common.cloud.CloudResourceTypeRowView;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
 import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.domain.cloud.CloudResourceType;
@@ -67,15 +68,6 @@ public class CloudAccessService
         );
     }
 
-    private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
-        CronTrigger cronTrigger = new CronTrigger(cloudResourceAccess.getCronExpression().toString());
-        ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> cleanUpResources(cloudResourceAccess, groupUniqueName),
-                cronTrigger
-        );
-        scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);
-    }
-
     public boolean isRunning(CloudAccessClientId cloudAccessClientId) {
         if (!isCloudClientExists(cloudAccessClientId)) {
             throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
@@ -119,10 +111,11 @@ public class CloudAccessService
     }
 
     @Override
-    public List<CloudResourceTypeRowView> getCloudResourceTypesDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
+    public List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
         List<CloudResourceAccess> cloudResourceAccesses = cloudAccessRepository.findAllById(cloudResourceAccessIds);
         return cloudResourceAccesses.stream()
-                .map(cloudResourceAccess -> CloudResourceTypeRowView.builder()
+                .map(cloudResourceAccess -> CloudResourceRowView.builder()
+                        .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
                         .name(cloudResourceAccess.getCloudResourceType().getName())
                         .costLimit(cloudResourceAccess.getCostLimit().getCost())
                         .clientId(cloudResourceAccess.getCloudAccessClientId().getValue())
@@ -220,7 +213,32 @@ public class CloudAccessService
         Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(cloudResourceAccessId);
         resourceAccess.ifPresent(cloudResourceAccess -> {
             cloudResourceAccess.active();
-            cloudAccessRepository.save(resourceAccess.get());
+            cloudAccessRepository.save(cloudResourceAccess);
+        });
+    }
+
+    @Transactional
+    @Override
+    public void updateGroupCloudResourceAccess(CloudResourceAccessDetailsDto request, GroupUniqueName groupUniqueName) {
+        Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(CloudResourceAccessId.of(request.id()));
+        resourceAccess.ifPresent(cloudResourceAccess -> {
+            cloudResourceAccess.update(request);
+            updateScheduledTask(
+                    cloudResourceAccess,
+                    groupUniqueName
+            );
+            cloudAccessRepository.save(cloudResourceAccess);
+        });
+    }
+
+    @Transactional
+    @Override
+    public void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
+        Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(cloudResourceAccessId);
+        resourceAccess.ifPresent(cloudResourceAccess -> {
+            cloudResourceAccess.deactivate();
+            cancelScheduledTask(cloudResourceAccessId);
+            cloudAccessRepository.save(cloudResourceAccess);
         });
     }
 
@@ -246,5 +264,30 @@ public class CloudAccessService
     private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
         clients.get(cloudResourceAccess.getCloudAccessClientId().getValue())
                 .cleanUpResources(groupUniqueName, true);
+    }
+
+    private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
+        CronTrigger cronTrigger = new CronTrigger(cloudResourceAccess.getCronExpression().toString());
+        ScheduledFuture<?> future = taskScheduler.schedule(
+                () -> cleanUpResources(cloudResourceAccess, groupUniqueName),
+                cronTrigger
+        );
+        scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);
+    }
+
+    private void updateScheduledTask(
+            CloudResourceAccess cloudResourceAccess,
+            GroupUniqueName groupUniqueName
+    ) {
+        cancelScheduledTask(cloudResourceAccess.getCloudResourceAccessId());
+        scheduleTask(cloudResourceAccess, groupUniqueName);
+    }
+
+    private void cancelScheduledTask(CloudResourceAccessId cloudResourceAccessId) {
+        ScheduledFuture<?> scheduledFuture = scheduledTasks.get(cloudResourceAccessId);
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+        }
+        scheduledTasks.remove(cloudResourceAccessId);
     }
 }
