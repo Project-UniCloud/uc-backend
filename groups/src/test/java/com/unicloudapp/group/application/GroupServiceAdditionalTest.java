@@ -78,7 +78,7 @@ class GroupServiceAdditionalTest {
         var dto = service.getCloudResourceAccess(groupId, accessId);
         assertEquals(accessUuid, dto.id());
         assertEquals("0 0 * * * *", dto.cron());
-        assertEquals(new BigDecimal("3"), dto.limit());
+        assertEquals(BigDecimal.TEN, dto.limit());
         assertEquals(LocalDate.of(2025, 12, 31), dto.expiresAt());
     }
 
