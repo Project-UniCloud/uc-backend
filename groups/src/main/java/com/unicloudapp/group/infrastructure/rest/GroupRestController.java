@@ -200,12 +200,9 @@ class GroupRestController {
     @PostMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     void deactivateCloudResourcesAccess(
-            @RequestBody DeactivateCloudResourcesAccessRequest request
+            @PathVariable UUID groupId,
+            @PathVariable UUID cloudAccessId
     ) {
-        groupService.deactivateCloudResourcesAccess(GroupId.of(request.groupId), CloudResourceAccessId.of(request.cloudAccessId));
-    }
-
-    record DeactivateCloudResourcesAccessRequest(UUID groupId, UUID cloudAccessId) {
-
+        groupService.deactivateCloudResourcesAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
     }
 }
