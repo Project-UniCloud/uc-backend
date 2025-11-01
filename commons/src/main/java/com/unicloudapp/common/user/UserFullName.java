@@ -1,8 +1,8 @@
 package com.unicloudapp.common.user;
 
-import com.unicloudapp.common.domain.user.FirstName;
-import com.unicloudapp.common.domain.user.LastName;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.vo.user.FirstName;
+import com.unicloudapp.common.vo.user.LastName;
+import com.unicloudapp.common.vo.user.UserId;
 
 public record UserFullName(
         UserId userId,

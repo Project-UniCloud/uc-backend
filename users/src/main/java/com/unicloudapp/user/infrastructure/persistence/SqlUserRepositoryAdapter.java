@@ -1,8 +1,9 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
-import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.domain.user.UserLogin;
-import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
@@ -88,7 +89,9 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     public List<UserLogin> findAllLoginsByIds(Set<UserId> userIds) {
         return userRepositoryJpa.findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
                 .stream()
-                .map(entity -> UserLogin.of(entity.getLogin()))
+                .map(entity ->
+                        UserLogin.of(entity.getLogin())
+                )
                 .toList();
     }
 
@@ -115,6 +118,17 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     public Optional<User> findByLogin(UserLogin userLogin) {
         return userRepositoryJpa.findByLogin(userLogin.getValue())
                 .map(entity -> userMapper.entityToUser(entity, userFactory));
+    }
+
+    @Override
+    public List<Map.Entry<UserLogin, Email>> findAllLoginsAndEmailsByIds(Set<UserId> userIds) {
+        return userRepositoryJpa.findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
+                .stream()
+                .map(entity ->
+                        Map.entry(UserLogin.of(entity.getLogin()),
+                                Email.of(entity.getEmail()))
+                )
+                .toList();
     }
 }
 

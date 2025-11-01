@@ -17,6 +17,17 @@ spring:
 #      mode: always
   messages:
     basename: messages/messages
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 auth:
   jwt:
     expirationTimeInMs: 1209600000

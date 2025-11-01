@@ -1,7 +1,7 @@
 package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.in.AuthenticationUseCase;
-import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.vo.user.UserRole;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.unicloudapp.common.group;
 
-import com.unicloudapp.common.domain.group.Semester;
+import com.unicloudapp.common.vo.group.Semester;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

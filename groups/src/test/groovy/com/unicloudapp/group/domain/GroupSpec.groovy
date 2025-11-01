@@ -1,12 +1,11 @@
 package com.unicloudapp.group.domain
 
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId
-import com.unicloudapp.common.domain.group.GroupId
-import com.unicloudapp.common.domain.group.GroupName
-import com.unicloudapp.common.domain.group.Semester
-import com.unicloudapp.common.domain.user.UserId
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId
+import com.unicloudapp.common.vo.group.GroupId
+import com.unicloudapp.common.vo.group.GroupName
+import com.unicloudapp.common.vo.group.Semester
+import com.unicloudapp.common.vo.user.UserId
 import spock.lang.Specification
-import spock.lang.Subject
 
 import java.time.LocalDate
 

@@ -1,0 +1,32 @@
+package com.unicloudapp.management.infrastructure.rest;
+
+import lombok.Builder;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+record CloudResourceNameResponse(
+        UUID cloudResourceAccessId,
+        String cloudResourceName
+) {
+
+}
+
+@Builder
+record CloudAccessClientRowView(
+        String cloudAccessClientId,
+        String cloudAccessClientName,
+        BigDecimal costLimit,
+        String defaultCronExpression
+) {
+
+}
+
+@Builder
+record CloudAccessClientDetails(
+        String cloudAccessClientId,
+        String cloudAccessClientName,
+        BigDecimal costLimit,
+        String defaultCronExpression,
+        boolean isActive
+) {}

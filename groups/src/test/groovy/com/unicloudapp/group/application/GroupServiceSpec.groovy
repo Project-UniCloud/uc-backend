@@ -3,18 +3,18 @@ package com.unicloudapp.group.application
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService
 import com.unicloudapp.common.cloud.CloudResourceRowView
-import com.unicloudapp.common.domain.Email
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId
-import com.unicloudapp.common.domain.cloud.CloudResourceType
-import com.unicloudapp.common.domain.cloud.CostLimit
-import com.unicloudapp.common.domain.group.GroupId
-import com.unicloudapp.common.domain.group.GroupName
-import com.unicloudapp.common.domain.group.Semester
-import com.unicloudapp.common.domain.user.FirstName
-import com.unicloudapp.common.domain.user.LastName
-import com.unicloudapp.common.domain.user.UserId
-import com.unicloudapp.common.domain.user.UserLogin
+import com.unicloudapp.common.vo.Email
+import com.unicloudapp.common.vo.cloud.CloudAccessClientId
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId
+import com.unicloudapp.common.vo.cloud.CloudResourceType
+import com.unicloudapp.common.vo.cloud.CostLimit
+import com.unicloudapp.common.vo.group.GroupId
+import com.unicloudapp.common.vo.group.GroupName
+import com.unicloudapp.common.vo.group.Semester
+import com.unicloudapp.common.vo.user.FirstName
+import com.unicloudapp.common.vo.user.LastName
+import com.unicloudapp.common.vo.user.UserId
+import com.unicloudapp.common.vo.user.UserLogin
 import com.unicloudapp.common.user.*
 import com.unicloudapp.group.application.port.GroupRepositoryPort
 import com.unicloudapp.group.domain.*
@@ -361,7 +361,7 @@ class GroupServiceSpec extends Specification {
         1 * group.getName() >> GroupName.of("Test Group")
         1 * group.getSemester() >> Semester.of("2023Z")
         1 * group.getLecturers() >> [UserId.of(UUID.randomUUID())]
-        1 * userQueryService.getUserLoginsByIds(_) >> lecturerLogins
+        1 * userQueryService.getUserLoginsAndEmailsByIds(_) >> lecturerLogins
         1 * cloudResourceAccessQueryService.isCloudGroupExists(_, cloudAccessClientId) >> false
         1 * cloudResourceAccessCommandService.createGroup(_, cloudAccessClientId, lecturerLogins, cloudResourceType)
         1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(cloudAccessClientId, cloudResourceType, _, costLimit) >> cloudResourceAccessId

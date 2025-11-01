@@ -1,6 +1,6 @@
 package com.unicloudapp.common.exception.user;
 
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.vo.user.UserId;
 
 public class UserNotFoundException extends RuntimeException {
 

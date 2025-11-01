@@ -1,8 +1,8 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.group.Semester;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.group.Semester;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.domain.Group;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

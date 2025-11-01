@@ -1,8 +1,8 @@
 package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
-import com.unicloudapp.common.domain.user.UserLogin;
-import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import lombok.RequiredArgsConstructor;

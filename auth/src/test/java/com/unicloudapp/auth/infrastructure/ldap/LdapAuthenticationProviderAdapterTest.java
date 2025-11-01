@@ -2,7 +2,7 @@ package com.unicloudapp.auth.infrastructure.ldap;
 
 import com.unicloudapp.auth.application.AdminProperties;
 import com.unicloudapp.auth.application.LdapProperties;
-import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.common.user.UserQueryService;

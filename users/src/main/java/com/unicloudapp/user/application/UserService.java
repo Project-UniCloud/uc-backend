@@ -1,7 +1,7 @@
 package com.unicloudapp.user.application;
 
-import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.user.*;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
 import com.unicloudapp.common.user.*;
@@ -120,6 +120,11 @@ implements UserValidationService,
     @Override
     public List<UserLogin> getUserLoginsByIds(Set<UserId> userIds) {
         return userRepository.findAllLoginsByIds(userIds);
+    }
+
+    @Override
+    public List<Map.Entry<UserLogin, Email>> getUserLoginsAndEmailsByIds(Set<UserId> userIds) {
+        return userRepository.findAllLoginsAndEmailsByIds(userIds);
     }
 
     @Override

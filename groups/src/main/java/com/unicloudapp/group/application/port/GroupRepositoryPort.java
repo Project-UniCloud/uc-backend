@@ -1,8 +1,8 @@
 package com.unicloudapp.group.application.port;
 
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.group.GroupName;
-import com.unicloudapp.common.domain.group.Semester;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.group.GroupName;
+import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupFilterCriteria;

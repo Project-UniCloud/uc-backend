@@ -1,7 +1,7 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.unicloudapp.auth.application.port.out;
 
-import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.vo.user.UserRole;
 
 public interface AuthenticationProviderPort {
 

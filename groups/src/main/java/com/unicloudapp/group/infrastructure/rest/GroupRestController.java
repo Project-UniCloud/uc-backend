@@ -2,10 +2,10 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
-import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.cloud.*;
-import com.unicloudapp.common.domain.group.GroupId;
-import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.common.vo.group.GroupId;
+import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.*;
 import com.unicloudapp.group.application.port.StudentImporterPort;

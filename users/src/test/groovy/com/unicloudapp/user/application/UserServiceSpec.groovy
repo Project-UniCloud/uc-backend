@@ -1,11 +1,11 @@
 package com.unicloudapp.user.application
 
-import com.unicloudapp.common.domain.Email
-import com.unicloudapp.common.domain.user.FirstName
-import com.unicloudapp.common.domain.user.LastName
-import com.unicloudapp.common.domain.user.UserId
-import com.unicloudapp.common.domain.user.UserLogin
-import com.unicloudapp.common.domain.user.UserRole
+import com.unicloudapp.common.vo.Email
+import com.unicloudapp.common.vo.user.FirstName
+import com.unicloudapp.common.vo.user.LastName
+import com.unicloudapp.common.vo.user.UserId
+import com.unicloudapp.common.vo.user.UserLogin
+import com.unicloudapp.common.vo.user.UserRole
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException
 import com.unicloudapp.common.exception.user.UserNotFoundException
 import com.unicloudapp.common.user.StudentBasicData

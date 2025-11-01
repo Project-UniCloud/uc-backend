@@ -1,6 +1,6 @@
 package com.unicloudapp.user.infrastructure.rest;
 
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.user.UserExternalQueryService;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;

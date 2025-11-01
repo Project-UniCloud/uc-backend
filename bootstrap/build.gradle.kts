@@ -22,10 +22,11 @@ dependencies {
     implementation("org.jetbrains:annotations:26.0.2-1")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
     implementation(project(":users"))
-    implementation(project(":cloud-managment"))
+    implementation(project(":cloud-management"))
     implementation(project(":commons"))
     implementation(project(":groups"))
     implementation(project(":auth"))
+    implementation(project(":notifications"))
     testRuntimeOnly("com.h2database:h2")
     compileOnly("org.projectlombok:lombok:1.18.42")
 

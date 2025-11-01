@@ -3,15 +3,16 @@ package com.unicloudapp.group.application;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
-import com.unicloudapp.common.domain.cloud.CostLimit;
-import com.unicloudapp.common.domain.group.GroupId;
-import com.unicloudapp.common.domain.group.GroupName;
-import com.unicloudapp.common.domain.group.Semester;
-import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.domain.user.UserLogin;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import com.unicloudapp.common.vo.group.GroupId;
+import com.unicloudapp.common.vo.group.GroupName;
+import com.unicloudapp.common.vo.group.Semester;
+import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserCommandService;
@@ -136,7 +137,11 @@ class GroupServiceTest {
         service.addStudent(groupId, s);
 
         verify(group).addStudent(any(UserId.class));
-        verify(cloudCmd).createUsers(eq(CloudAccessClientId.of("clientA")), eq(List.of(UserLogin.of("jsmith"))), eq(GroupUniqueName.fromString("AI 2024L")));
+        verify(cloudCmd).createUsers(
+                eq(CloudAccessClientId.of("clientA")),
+                eq(List.of(Map.entry(UserLogin.of("jsmith"), Email.empty()))),
+                eq(GroupUniqueName.fromString("AI 2024L"))
+        );
         verify(groupRepository).save(group);
     }
 
@@ -181,8 +186,8 @@ class GroupServiceTest {
 
         Map<UserId, UserFullName> map = proj.getLecturers().stream()
                 .collect(Collectors.toMap(UserId::of, id -> UserFullName.of(UserId.of(id),
-                        com.unicloudapp.common.domain.user.FirstName.of("FN"),
-                        com.unicloudapp.common.domain.user.LastName.of("LN"))));
+                        com.unicloudapp.common.vo.user.FirstName.of("FN"),
+                        com.unicloudapp.common.vo.user.LastName.of("LN"))));
         when(userQueryService.getFullNameForUserIds(anyList())).thenReturn(map);
 
         GroupDetailsView view = service.findById(gid);
@@ -400,7 +405,11 @@ class GroupServiceTest {
         when(group.getSemester()).thenReturn(Semester.of("2024L"));
         when(group.getName()).thenReturn(GroupName.of("AI"));
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
-        List<UserLogin> studentLogins = List.of(UserLogin.of("s1"), UserLogin.of("s2"));
+        List<Map.Entry<UserLogin, Email>> students = List.of(
+                Map.entry(UserLogin.of("s1"), Email.empty()),
+                Map.entry(UserLogin.of("s2"), Email.empty())
+        );
+        List<UserLogin> studentLogins = students.stream().map(Map.Entry::getKey).toList();
         when(userQueryService.getUserLoginsByIds(anySet())).thenReturn(studentLogins);
         CloudResourceRowView rowA = CloudResourceRowView.builder()
                 .clientId("clientA")
@@ -427,8 +436,8 @@ class GroupServiceTest {
         service.activate(gid);
 
         verify(group).activate();
-        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
-        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientA"), students, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientB"), students, GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 
