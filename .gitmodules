@@ -1,3 +1,3 @@
-[submodule "cloud-managment/src/main/resources/proto"]
-	path = cloud-managment/src/main/resources/proto
+[submodule "cloud-management/src/main/resources/proto"]
+	path = cloud-management/src/main/resources/proto
 	url = https://github.com/Project-UniCloud/uc-protos.git
