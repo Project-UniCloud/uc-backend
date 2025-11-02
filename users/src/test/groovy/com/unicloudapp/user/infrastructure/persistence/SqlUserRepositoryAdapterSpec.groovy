@@ -1,9 +1,9 @@
 package com.unicloudapp.user.infrastructure.persistence
 
-import com.unicloudapp.common.domain.user.UserRole
+import com.unicloudapp.common.vo.user.UserRole
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.domain.User
-import com.unicloudapp.common.domain.user.UserId
+import com.unicloudapp.common.vo.user.UserId
 import com.unicloudapp.user.domain.UserFactory
 import org.springframework.data.domain.PageRequest
 import spock.lang.Specification

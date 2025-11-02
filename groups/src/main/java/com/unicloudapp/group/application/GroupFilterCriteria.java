@@ -1,8 +1,8 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.domain.cloud.CloudAccessClientId;
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
-import com.unicloudapp.common.domain.group.GroupName;
+import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.group.domain.GroupStatus;
 import lombok.Builder;
 import lombok.Data;

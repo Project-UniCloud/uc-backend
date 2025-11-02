@@ -1,6 +1,6 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
-import com.unicloudapp.common.domain.user.UserRole;
+import com.unicloudapp.common.vo.user.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,7 +1,8 @@
 package com.unicloudapp.common.user;
 
-import com.unicloudapp.common.domain.user.UserId;
-import com.unicloudapp.common.domain.user.UserLogin;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.common.vo.user.UserLogin;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public interface UserQueryService {
     Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
 
     List<UserLogin> getUserLoginsByIds(Set<UserId> userIds);
+
+    List<Map.Entry<UserLogin, Email>> getUserLoginsAndEmailsByIds(Set<UserId> userIds);
 
     Optional<UserDetails> getUserDetailsByUsername(UserLogin userLogin);
 }

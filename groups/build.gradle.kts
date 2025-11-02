@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
     groovy
     id("java")
@@ -16,7 +18,7 @@ val lombokVersion = "1.18.42"
 val mapStructVersion = "1.6.3"
 val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.0.1.Final"
-val opencsv = 5.11
+val opencsv = "5.12.0"
 val spockVersion = "2.3-groovy-4.0"
 
 dependencies {
@@ -48,7 +50,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+tasks.getByName<BootJar>("bootJar") {
     enabled = false
 }
 tasks.getByName<Jar>("jar") {

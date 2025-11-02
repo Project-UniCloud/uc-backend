@@ -1,7 +1,7 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import com.unicloudapp.common.domain.cloud.CloudResourceType;
-import com.unicloudapp.common.domain.group.GroupId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.application.port.StudentImporterPort;

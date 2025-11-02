@@ -1,7 +1,7 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
-import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.user.*;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import org.mapstruct.Context;

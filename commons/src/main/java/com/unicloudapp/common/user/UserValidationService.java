@@ -1,6 +1,6 @@
 package com.unicloudapp.common.user;
 
-import com.unicloudapp.common.domain.user.UserId;
+import com.unicloudapp.common.vo.user.UserId;
 
 public interface UserValidationService {
 

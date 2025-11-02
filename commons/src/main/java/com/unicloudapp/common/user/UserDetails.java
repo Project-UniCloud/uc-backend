@@ -1,7 +1,7 @@
 package com.unicloudapp.common.user;
 
-import com.unicloudapp.common.domain.Email;
-import com.unicloudapp.common.domain.user.*;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.*;
 import lombok.Builder;
 
 @Builder

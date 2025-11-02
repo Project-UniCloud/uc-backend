@@ -2,7 +2,7 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.unicloudapp.common.domain.group.GroupId;
+import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.GroupDTO;

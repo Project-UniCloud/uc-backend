@@ -3,9 +3,11 @@ package com.unicloudapp.group.application;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
-import com.unicloudapp.common.domain.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.domain.group.GroupId;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.user.UserCommandService;
+import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
@@ -34,8 +36,8 @@ class GroupServiceAdditionalTest {
     GroupFactory groupFactory;
     CloudResourceAccessQueryService cloudQuery;
     CloudResourceAccessCommandService cloudCmd;
-    com.unicloudapp.common.user.UserQueryService userQueryService;
-    com.unicloudapp.common.user.UserCommandService userCmd;
+    UserQueryService userQueryService;
+    UserCommandService userCmd;
 
     GroupService service;
 
@@ -125,8 +127,8 @@ class GroupServiceAdditionalTest {
         GroupId groupId = GroupId.of(gid);
         Group group = mock(Group.class);
         when(groupRepository.findById(gid)).thenReturn(Optional.of(group));
-        when(group.getSemester()).thenReturn(com.unicloudapp.common.domain.group.Semester.of("2024L"));
-        when(group.getName()).thenReturn(com.unicloudapp.common.domain.group.GroupName.of("AI"));
+        when(group.getSemester()).thenReturn(com.unicloudapp.common.vo.group.Semester.of("2024L"));
+        when(group.getName()).thenReturn(com.unicloudapp.common.vo.group.GroupName.of("AI"));
 
         var req = com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto.builder()
                 .id(UUID.randomUUID())
