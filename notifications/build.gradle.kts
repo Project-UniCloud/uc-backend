@@ -19,7 +19,7 @@ val lombokVersion = "1.18.42"
 dependencies {
     implementation(project(":commons"))
 
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform("org.junit:junit-bom:6.0.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
