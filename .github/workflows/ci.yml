@@ -85,7 +85,7 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
 
       - name: Build and analyze (PR)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
