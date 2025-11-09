@@ -35,10 +35,9 @@ jobs:
       - name: Update PR title
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ env.SAFE_BRANCH_NAME }}
+          PR_NUMBER: ${{ env.SAFE_PR_NUMBER }}
         run: |
-          BRANCH_NAME="$SAFE_BRANCH_NAME"
-          PR_NUMBER="$SAFE_PR_NUMBER"
-
           TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
           if [ -z "$TICKET" ]; then
             echo "No UC ticket found. Skipping."
@@ -85,10 +84,27 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Build and analyze
+      - name: Build and analyze (PR)
+        if: github.event_name == 'pull_request'
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          ./gradlew build sonar --info \
+            -Dsonar.pullrequest.key="$PR_NUMBER" \
+            -Dsonar.pullrequest.branch="$HEAD_REF" \
+            -Dsonar.pullrequest.base="$BASE_REF"
+
+      - name: Build and analyze (Push)
+        if: github.event_name == 'push'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          ./gradlew build sonar --info \
+            -Dsonar.branch.name="$REF_NAME"
 
   release:
     name: Release (Docker Build & Push)
@@ -109,14 +125,16 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
+        env:
+          REPO_OWNER: ${{ github.repository_owner }}
         run: |
-          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_NAME=ghcr.io/${OWNER_LOWER}/uc-backend:latest
-          docker build -t $IMAGE_NAME .
-          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          OWNER_LOWER=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME="ghcr.io/${OWNER_LOWER}/uc-backend:latest"
+          docker build -t "$IMAGE_NAME" .
+          echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
 
       - name: Push Docker image
-        run: docker push ${{ env.IMAGE_NAME }}
+        run: docker push "${{ env.IMAGE_NAME }}"
 
   deploy:
     name: Deploy (Restart Application)
