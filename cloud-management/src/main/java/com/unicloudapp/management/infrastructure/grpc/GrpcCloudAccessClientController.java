@@ -82,7 +82,7 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
     public void cleanUpResources(GroupUniqueName groupUniqueName, boolean force) {
         AdapterInterface.CleanupGroupRequest request = AdapterInterface.CleanupGroupRequest.newBuilder()
                 .setGroupName(groupUniqueName.toString())
-                .setForce(true)
+                .setForce(force)
                 .build();
         AdapterInterface.CleanupGroupResponse response = stub.cleanupGroupResources(request);
         if (!response.getSuccess()) {

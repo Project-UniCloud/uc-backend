@@ -276,9 +276,9 @@ public class CloudAccessService
     }
 
     @Override
-    public void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientIds, GroupUniqueName groupUniqueName) {
+    public void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientIds, GroupUniqueName groupUniqueName, boolean force) {
         cloudAccessRepository.findAllById(cloudAccessClientIds).forEach(cloudResourceAccess ->
-                cleanUpResources(cloudResourceAccess, groupUniqueName)
+                cleanUpResources(cloudResourceAccess, groupUniqueName, force)
         );
     }
 
@@ -302,14 +302,14 @@ public class CloudAccessService
                 });
     }
 
-    private void cleanUpResources(CloudResourceAccess cloudAccessClient, GroupUniqueName groupUniqueName) {
-        clients.get(cloudAccessClient.getCloudAccessClientId().getValue()).cleanUpResources(groupUniqueName, false);
+    private void cleanUpResources(CloudResourceAccess cloudAccessClient, GroupUniqueName groupUniqueName, boolean force) {
+        clients.get(cloudAccessClient.getCloudAccessClientId().getValue()).cleanUpResources(groupUniqueName, force);
     }
 
     private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
         CronTrigger cronTrigger = new CronTrigger(cloudResourceAccess.getCronExpression().toString());
         ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> cleanUpResources(cloudResourceAccess, groupUniqueName),
+                () -> cleanUpResources(cloudResourceAccess, groupUniqueName, false),
                 cronTrigger
         );
         scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);

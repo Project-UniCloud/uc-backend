@@ -256,7 +256,7 @@ class CloudAccessServiceTest {
         // Run the scheduled cleanup and verify controller cleanup
         when(controllerA.isRunning()).thenReturn(true); // not required but present
         runnableCaptor.getValue().run();
-        verify(controllerA).cleanUpResources(group, true);
+        verify(controllerA).cleanUpResources(group, false);
 
         // Unsupported type
         assertThrows(IllegalArgumentException.class, () ->
@@ -360,7 +360,7 @@ class CloudAccessServiceTest {
 
         // Execute scheduled runnable and verify cleanup
         runnableCaptor.getValue().run();
-        verify(controllerA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), true);
+        verify(controllerA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), false);
     }
 
     @Test

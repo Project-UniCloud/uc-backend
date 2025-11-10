@@ -330,7 +330,7 @@ public class GroupService {
                 .semester(group.getSemester())
                 .groupName(group.getName())
                 .build();
-        cloudResourceAccessCommandService.cleanUpResources(group.getCloudResourceAccesses(), groupUniqueName);
+        cloudResourceAccessCommandService.cleanUpResources(group.getCloudResourceAccesses(), groupUniqueName, false);
         group.getCloudResourceAccesses().forEach(cloudResourceAccessId ->
                 deactivateCloudResourcesAccess(groupId, cloudResourceAccessId)
         );
