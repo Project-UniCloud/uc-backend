@@ -15,7 +15,7 @@ repositories {
 val jetbrainsAnnotationsVersion = "26.0.2-1"
 val lombokVersion = "1.18.42"
 val jakartaValidationVersion = "3.1.1"
-val hibernateValidatorVersion = "9.0.1.Final"
+val hibernateValidatorVersion = "9.1.0.Final"
 val mapStructVersion = "1.6.3"
 val spockVersion = "2.3-groovy-4.0"
 
