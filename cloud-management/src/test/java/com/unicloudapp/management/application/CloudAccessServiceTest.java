@@ -457,4 +457,46 @@ class CloudAccessServiceTest {
         CloudResourceAccess saved = savedCaptor.getValue();
         assertEquals("INACTIVE", saved.getStatus().getStatus().name());
     }
+    
+    @Test
+    @DisplayName("activateCloudResource activates existing access and saves it")
+    void activateCloudResource_activatesAndSaves() {
+        // Arrange
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess existing = CloudResourceAccess.builder()
+                .cloudResourceAccessId(accessId)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(3)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE))
+                .build();
+
+        when(repository.findById(accessId)).thenReturn(Optional.of(existing));
+
+        // Act
+        service.activateCloudResource(accessId);
+
+        // Assert
+        ArgumentCaptor<CloudResourceAccess> savedCaptor = ArgumentCaptor.forClass(CloudResourceAccess.class);
+        verify(repository).save(savedCaptor.capture());
+        CloudResourceAccess saved = savedCaptor.getValue();
+        assertEquals("ACTIVE", saved.getStatus().getStatus().name());
+    }
+
+    @Test
+    @DisplayName("activateCloudResource does nothing when access not found")
+    void activateCloudResource_notFound_doesNothing() {
+        // Arrange
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        when(repository.findById(accessId)).thenReturn(Optional.empty());
+
+        // Act
+        service.activateCloudResource(accessId);
+
+        // Assert
+        verify(repository, org.mockito.Mockito.never()).save(any());
+    }
 }
