@@ -499,4 +499,92 @@ class CloudAccessServiceTest {
         // Assert
         verify(repository, org.mockito.Mockito.never()).save(any());
     }
+
+
+    @Test
+    @DisplayName("cleanUpResources loads accesses by ids and calls corresponding client controllers with force=false")
+    void cleanUpResources_callsControllers_perAccess_forceFalse() {
+        // Arrange
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccessId idB = CloudResourceAccessId.of(UUID.randomUUID());
+
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(10)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        CloudResourceAccess accessB = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idB)
+                .cloudAccessClientId(clientB.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientB.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(5)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        Set<CloudResourceAccessId> ids = Set.of(idA, idB);
+        when(repository.findAllById(ids)).thenReturn(List.of(accessA, accessB));
+
+        // Act
+        service.cleanUpResources(ids, group, false);
+
+        // Assert
+        verify(repository).findAllById(ids);
+        verify(controllerA).cleanUpResources(group, false);
+        verify(controllerB).cleanUpResources(group, false);
+    }
+
+    @Test
+    @DisplayName("cleanUpResources propagates force=true to client controller")
+    void cleanUpResources_forceTrue_propagated() {
+        // Arrange
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(10)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        Set<CloudResourceAccessId> ids = Set.of(idA);
+        when(repository.findAllById(ids)).thenReturn(List.of(accessA));
+
+        // Act
+        service.cleanUpResources(ids, group, true);
+
+        // Assert
+        verify(repository).findAllById(ids);
+        verify(controllerA).cleanUpResources(group, true);
+    }
+
+    @Test
+    @DisplayName("cleanUpResources does nothing when repository returns empty list")
+    void cleanUpResources_noAccesses_noControllerCalls() {
+        // Arrange
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        Set<CloudResourceAccessId> ids = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
+        when(repository.findAllById(ids)).thenReturn(List.of());
+
+        // Act
+        service.cleanUpResources(ids, group, false);
+
+        // Assert
+        verify(repository).findAllById(ids);
+        org.mockito.Mockito.verifyNoInteractions(controllerA, controllerB);
+    }
 }
