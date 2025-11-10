@@ -275,7 +275,15 @@ public class CloudAccessService
         });
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Override
+    public void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientIds, GroupUniqueName groupUniqueName) {
+        cloudAccessRepository.findAllById(cloudAccessClientIds).forEach(cloudResourceAccess ->
+                cleanUpResources(cloudResourceAccess, groupUniqueName)
+        );
+    }
+
+    @Scheduled(cron = "${adapters.costSyncCron}")
+    @Transactional
     protected void updateCostUsed() {
         clients.values()
                 .forEach(cloudAccessClient -> {
@@ -294,9 +302,8 @@ public class CloudAccessService
                 });
     }
 
-    private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
-        clients.get(cloudResourceAccess.getCloudAccessClientId().getValue())
-                .cleanUpResources(groupUniqueName, true);
+    private void cleanUpResources(CloudResourceAccess cloudAccessClient, GroupUniqueName groupUniqueName) {
+        clients.get(cloudAccessClient.getCloudAccessClientId().getValue()).cleanUpResources(groupUniqueName, false);
     }
 
     private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
