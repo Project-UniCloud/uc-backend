@@ -275,7 +275,15 @@ public class CloudAccessService
         });
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Override
+    public void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientIds, GroupUniqueName groupUniqueName, boolean force) {
+        cloudAccessRepository.findAllById(cloudAccessClientIds).forEach(cloudResourceAccess ->
+                cleanUpResources(cloudResourceAccess, groupUniqueName, force)
+        );
+    }
+
+    @Scheduled(cron = "${adapters.costSyncCron}")
+    @Transactional
     protected void updateCostUsed() {
         clients.values()
                 .forEach(cloudAccessClient -> {
@@ -294,15 +302,14 @@ public class CloudAccessService
                 });
     }
 
-    private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
-        clients.get(cloudResourceAccess.getCloudAccessClientId().getValue())
-                .cleanUpResources(groupUniqueName, true);
+    private void cleanUpResources(CloudResourceAccess cloudAccessClient, GroupUniqueName groupUniqueName, boolean force) {
+        clients.get(cloudAccessClient.getCloudAccessClientId().getValue()).cleanUpResources(groupUniqueName, force);
     }
 
     private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
         CronTrigger cronTrigger = new CronTrigger(cloudResourceAccess.getCronExpression().toString());
         ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> cleanUpResources(cloudResourceAccess, groupUniqueName),
+                () -> cleanUpResources(cloudResourceAccess, groupUniqueName, false),
                 cronTrigger
         );
         scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);

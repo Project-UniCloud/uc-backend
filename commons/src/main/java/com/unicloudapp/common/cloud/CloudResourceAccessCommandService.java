@@ -10,6 +10,7 @@ import com.unicloudapp.common.group.GroupUniqueName;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface CloudResourceAccessCommandService {
 
@@ -37,4 +38,6 @@ public interface CloudResourceAccessCommandService {
     void updateGroupCloudResourceAccess(CloudResourceAccessDetailsDto request, GroupUniqueName groupUniqueName);
 
     void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId);
+
+    void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientId, GroupUniqueName groupUniqueName, boolean force);
 }

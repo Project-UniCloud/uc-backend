@@ -24,6 +24,7 @@ spring:
           starttls:
             enable: false
 adapters:
+  costSyncCron: 0 0 * * * *
   clients:
     aws:
       name: AWS adapter
@@ -33,3 +34,5 @@ adapters:
       cronExpression: 0 0 3 * * *
       resourceTypes:
         - ec2
+groups:
+  archiveExpiredGroupsCron: 0 0 0 * * *

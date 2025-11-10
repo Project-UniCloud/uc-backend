@@ -5,11 +5,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupUniqueName;
-import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.common.user.UserCommandService;
-import com.unicloudapp.common.user.UserDetails;
-import com.unicloudapp.common.user.UserFullName;
-import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.user.*;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
@@ -21,26 +17,18 @@ import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
-import com.unicloudapp.group.domain.Description;
-import com.unicloudapp.group.domain.EndDate;
-import com.unicloudapp.group.domain.Group;
-import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupStatus;
-import com.unicloudapp.group.domain.StartDate;
+import com.unicloudapp.group.domain.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Transactional
 public class GroupService {
 
     private final GroupRepositoryPort groupRepository;
@@ -50,7 +38,6 @@ public class GroupService {
     private final CloudResourceAccessCommandService cloudResourceAccessCommandService;
     private final UserCommandService userCommandService;
 
-    @Transactional
     public Group createGroup(GroupDTO groupDTO) {
         if (!groupDTO.endDate().isAfter(groupDTO.startDate())) {
             throw new RuntimeException("Start date cannot be after end date.");
@@ -73,7 +60,6 @@ public class GroupService {
         return groupRepository.save(group);
     }
 
-    @Transactional
     public void addStudent(GroupId groupId, StudentBasicData studentBasicData) {
         boolean isUserExists = userQueryService.existsByLogin(studentBasicData.getLogin());
         UserId userId;
@@ -152,7 +138,6 @@ public class GroupService {
         );
     }
 
-    @Transactional
     public void addStudents(GroupId groupId, List<StudentBasicData> studentBasicData) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
@@ -309,7 +294,6 @@ public class GroupService {
         return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalPages());
     }
 
-    @Transactional
     public void activate(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
@@ -338,11 +322,18 @@ public class GroupService {
     }
 
     //TODO implement taking away cloud resource access to students
-    @Transactional
     public void archive(GroupId groupId) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.archive();
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .semester(group.getSemester())
+                .groupName(group.getName())
+                .build();
+        cloudResourceAccessCommandService.cleanUpResources(group.getCloudResourceAccesses(), groupUniqueName, false);
+        group.getCloudResourceAccesses().forEach(cloudResourceAccessId ->
+                deactivateCloudResourcesAccess(groupId, cloudResourceAccessId)
+        );
         groupRepository.save(group);
     }
 

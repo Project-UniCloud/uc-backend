@@ -256,7 +256,7 @@ class CloudAccessServiceTest {
         // Run the scheduled cleanup and verify controller cleanup
         when(controllerA.isRunning()).thenReturn(true); // not required but present
         runnableCaptor.getValue().run();
-        verify(controllerA).cleanUpResources(group, true);
+        verify(controllerA).cleanUpResources(group, false);
 
         // Unsupported type
         assertThrows(IllegalArgumentException.class, () ->
@@ -360,7 +360,7 @@ class CloudAccessServiceTest {
 
         // Execute scheduled runnable and verify cleanup
         runnableCaptor.getValue().run();
-        verify(controllerA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), true);
+        verify(controllerA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), false);
     }
 
     @Test
@@ -456,5 +456,135 @@ class CloudAccessServiceTest {
         verify(repository).save(savedCaptor.capture());
         CloudResourceAccess saved = savedCaptor.getValue();
         assertEquals("INACTIVE", saved.getStatus().getStatus().name());
+    }
+    
+    @Test
+    @DisplayName("activateCloudResource activates existing access and saves it")
+    void activateCloudResource_activatesAndSaves() {
+        // Arrange
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess existing = CloudResourceAccess.builder()
+                .cloudResourceAccessId(accessId)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(3)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE))
+                .build();
+
+        when(repository.findById(accessId)).thenReturn(Optional.of(existing));
+
+        // Act
+        service.activateCloudResource(accessId);
+
+        // Assert
+        ArgumentCaptor<CloudResourceAccess> savedCaptor = ArgumentCaptor.forClass(CloudResourceAccess.class);
+        verify(repository).save(savedCaptor.capture());
+        CloudResourceAccess saved = savedCaptor.getValue();
+        assertEquals("ACTIVE", saved.getStatus().getStatus().name());
+    }
+
+    @Test
+    @DisplayName("activateCloudResource does nothing when access not found")
+    void activateCloudResource_notFound_doesNothing() {
+        // Arrange
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        when(repository.findById(accessId)).thenReturn(Optional.empty());
+
+        // Act
+        service.activateCloudResource(accessId);
+
+        // Assert
+        verify(repository, org.mockito.Mockito.never()).save(any());
+    }
+
+
+    @Test
+    @DisplayName("cleanUpResources loads accesses by ids and calls corresponding client controllers with force=false")
+    void cleanUpResources_callsControllers_perAccess_forceFalse() {
+        // Arrange
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccessId idB = CloudResourceAccessId.of(UUID.randomUUID());
+
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(10)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        CloudResourceAccess accessB = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idB)
+                .cloudAccessClientId(clientB.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientB.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(5)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        Set<CloudResourceAccessId> ids = Set.of(idA, idB);
+        when(repository.findAllById(ids)).thenReturn(List.of(accessA, accessB));
+
+        // Act
+        service.cleanUpResources(ids, group, false);
+
+        // Assert
+        verify(repository).findAllById(ids);
+        verify(controllerA).cleanUpResources(group, false);
+        verify(controllerB).cleanUpResources(group, false);
+    }
+
+    @Test
+    @DisplayName("cleanUpResources propagates force=true to client controller")
+    void cleanUpResources_forceTrue_propagated() {
+        // Arrange
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudAccessClientId(clientA.getCloudAccessClientId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(clientA.getCronExpression())
+                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(10)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        Set<CloudResourceAccessId> ids = Set.of(idA);
+        when(repository.findAllById(ids)).thenReturn(List.of(accessA));
+
+        // Act
+        service.cleanUpResources(ids, group, true);
+
+        // Assert
+        verify(repository).findAllById(ids);
+        verify(controllerA).cleanUpResources(group, true);
+    }
+
+    @Test
+    @DisplayName("cleanUpResources does nothing when repository returns empty list")
+    void cleanUpResources_noAccesses_noControllerCalls() {
+        // Arrange
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        Set<CloudResourceAccessId> ids = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
+        when(repository.findAllById(ids)).thenReturn(List.of());
+
+        // Act
+        service.cleanUpResources(ids, group, false);
+
+        // Assert
+        verify(repository).findAllById(ids);
+        org.mockito.Mockito.verifyNoInteractions(controllerA, controllerB);
     }
 }
