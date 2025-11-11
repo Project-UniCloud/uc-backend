@@ -20,6 +20,7 @@ class ExpiredGroupsCleaner {
     protected void archiveExpiredGroups() {
         GroupFilterCriteria groupFilterCriteria = GroupFilterCriteria.builder()
                 .status(GroupStatus.of(GroupStatus.Type.ACTIVE))
+                .pastExpiresDate(true)
                 .build();
         Page<GroupRowProjection> allByCriteria = groupRepository.findAllByCriteria(groupFilterCriteria, Pageable.unpaged());
         allByCriteria.forEach(group -> groupService.archive(GroupId.of(group.getUuid())));

@@ -1,10 +1,10 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
-import com.unicloudapp.common.group.GroupCloudDto;
-import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupFilterCriteria;
 import com.unicloudapp.group.application.GroupRowProjection;
@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasCloudResourceAccess;
+import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasPastExpiresDate;
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasStatus;
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.nameLike;
 
@@ -76,43 +77,7 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
 
         if (criteria.getStatus() != null) specs.add(hasStatus(criteria.getStatus()));
         if (criteria.getGroupName() != null) specs.add(nameLike(criteria.getGroupName()));
-
-        Specification<GroupEntity> finalSpec = specs.stream()
-                .reduce(Specification::and)
-                .orElse(null);
-
-        return groupJpaRepository.findAll(finalSpec, pageable)
-                .map(entity -> new GroupRowProjection() {
-                    @Override
-                    public UUID getUuid() {
-                        return entity.getUuid();
-                    }
-
-                    @Override
-                    public String getName() {
-                        return entity.getName();
-                    }
-
-                    @Override
-                    public String getSemester() {
-                        return entity.getSemester();
-                    }
-
-                    @Override
-                    public LocalDate getEndDate() {
-                        return entity.getEndDate();
-                    }
-
-                    @Override
-                    public Set<UUID> getLecturers() {
-                        return entity.getLecturers();
-                    }
-
-                    @Override
-                    public Set<UUID> getCloudResourceAccesses() {
-                        return entity.getCloudResourceAccesses();
-                    }
-                });
+        return getGroupRowProjections(criteria, pageable, specs);
     }
 
     @Override
@@ -131,6 +96,13 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
         }
         if (criteria.getCloudClientId() != null || criteria.getResourceType() != null) {
             specs.add(hasCloudResourceAccess(cloudResourceAccesses));
+        }
+        return getGroupRowProjections(criteria, pageable, specs);
+    }
+
+    private Page<GroupRowProjection> getGroupRowProjections(GroupFilterCriteria criteria, Pageable pageable, List<Specification<GroupEntity>> specs) {
+        if (criteria.getPastExpiresDate() != null) {
+            specs.add(hasPastExpiresDate());
         }
 
         Specification<GroupEntity> finalSpec = specs.stream()

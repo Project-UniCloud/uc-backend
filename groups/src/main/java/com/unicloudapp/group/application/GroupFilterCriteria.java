@@ -15,4 +15,5 @@ public class GroupFilterCriteria {
     private GroupName groupName;
     private CloudAccessClientId cloudClientId;
     private CloudResourceType resourceType;
+    private Boolean pastExpiresDate;
 }

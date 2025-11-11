@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -46,5 +47,12 @@ class GroupSpecifications {
 
             return cb.and(predicates);
         };
+    }
+
+    public static Specification<GroupEntity> hasPastExpiresDate() {
+        return (root, query, cb) -> cb.and(
+                cb.isNotNull(root.get("endDate")),
+                cb.lessThan(root.get("endDate"), LocalDate.now())
+        );
     }
 }
