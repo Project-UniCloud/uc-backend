@@ -9,6 +9,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
+
 @Service
 @RequiredArgsConstructor
 class NotificationService implements NotificationsCommandService {
@@ -23,9 +25,10 @@ class NotificationService implements NotificationsCommandService {
             helper.setTo(sendNotificationCommand.to());
             helper.setSubject(sendNotificationCommand.subject());
             helper.setText(sendNotificationCommand.text(), true);
+            helper.setFrom("notifications@unicloud.projektstudencki.pl", "Unicloud");
             mailSender.send(mimeMessage);
             System.out.println("📨 Wysłano e-mail HTML do " + sendNotificationCommand.to());
-        } catch (MessagingException e) {
+        } catch (MessagingException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
