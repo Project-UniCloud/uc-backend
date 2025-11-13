@@ -405,12 +405,11 @@ class GroupServiceTest {
         when(group.getSemester()).thenReturn(Semester.of("2024L"));
         when(group.getName()).thenReturn(GroupName.of("AI"));
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
-        List<Map.Entry<UserLogin, Email>> students = List.of(
-                Map.entry(UserLogin.of("s1"), Email.empty()),
-                Map.entry(UserLogin.of("s2"), Email.empty())
+        List<Map.Entry<UserLogin, Email>> studentLogins = List.of(
+                Map.entry(UserLogin.of("s1"), Email.of("test@example.com")),
+                Map.entry(UserLogin.of("s2"), Email.of("test@example.com"))
         );
-        List<UserLogin> studentLogins = students.stream().map(Map.Entry::getKey).toList();
-        when(userQueryService.getUserLoginsByIds(anySet())).thenReturn(studentLogins);
+        when(userQueryService.getUserLoginsAndEmailsByIds(anySet())).thenReturn(studentLogins);
         CloudResourceRowView rowA = CloudResourceRowView.builder()
                 .clientId("clientA")
                 .name("S3")
@@ -436,8 +435,8 @@ class GroupServiceTest {
         service.activate(gid);
 
         verify(group).activate();
-        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientA"), students, GroupUniqueName.fromString("AI 2024L"));
-        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientB"), students, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 

@@ -304,10 +304,7 @@ public class GroupService {
                 .build();
         List<CloudResourceRowView> resourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
-        List<UserLogin> userLogins = userQueryService.getUserLoginsByIds(group.getStudents());
-        List<Map.Entry<UserLogin, Email>> studentLogins = userLogins.stream()
-                .map(login -> Map.entry(login, Email.empty()))
-                .toList();
+        List<Map.Entry<UserLogin, Email>> studentLogins = userQueryService.getUserLoginsAndEmailsByIds(group.getStudents());
         if (!studentLogins.isEmpty()) {
             resourceTypesDetails.stream()
                     .map(CloudResourceRowView::clientId)
