@@ -26,4 +26,6 @@ public interface CloudAccessClientController {
     Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate);
 
     void cleanUpResources(GroupUniqueName groupUniqueName, boolean force);
+
+    void removeGroup(GroupUniqueName groupUniqueName);
 }

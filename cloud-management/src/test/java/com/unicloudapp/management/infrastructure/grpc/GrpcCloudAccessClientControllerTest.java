@@ -157,4 +157,35 @@ class GrpcCloudAccessClientControllerTest {
         assertTrue(ex.getMessage().contains("Cleanup group resources failed"));
         assertTrue(ex.getMessage().contains("oops"));
     }
+    
+    @Test
+    @DisplayName("removeGroup success sends request and does not throw")
+    void removeGroup_success() {
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        AdapterInterface.RemoveGroupResponse resp = AdapterInterface.RemoveGroupResponse.newBuilder()
+                .setSuccess(true)
+                .addRemovedUsers("u1")
+                .build();
+        ArgumentCaptor<AdapterInterface.RemoveGroupRequest> captor = ArgumentCaptor.forClass(AdapterInterface.RemoveGroupRequest.class);
+        when(stub.removeGroup(captor.capture())).thenReturn(resp);
+
+        assertDoesNotThrow(() -> controller.removeGroup(group));
+        AdapterInterface.RemoveGroupRequest sent = captor.getValue();
+        assertEquals("AI 2024L", sent.getGroupName());
+    }
+
+    @Test
+    @DisplayName("removeGroup failure throws RuntimeException with message")
+    void removeGroup_failure() {
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        AdapterInterface.RemoveGroupResponse resp = AdapterInterface.RemoveGroupResponse.newBuilder()
+                .setSuccess(false)
+                .setMessage("oops")
+                .build();
+        when(stub.removeGroup(any())).thenReturn(resp);
+
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> controller.removeGroup(group));
+        assertTrue(ex.getMessage().contains("Remove group failed"));
+        assertTrue(ex.getMessage().contains("oops"));
+    }
 }

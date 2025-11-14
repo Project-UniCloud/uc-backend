@@ -282,6 +282,14 @@ public class CloudAccessService
         );
     }
 
+    @Override
+    public void removeGroup(GroupUniqueName groupUniqueName, CloudAccessClientId cloudAccessClientId) {
+        if (!isCloudClientExists(cloudAccessClientId)) {
+            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
+        }
+        clients.get(cloudAccessClientId.getValue()).getController().removeGroup(groupUniqueName);
+    }
+
     @Scheduled(cron = "${adapters.costSyncCron}")
     @Transactional
     protected void updateCostUsed() {

@@ -156,6 +156,7 @@ class GroupServiceAdditionalTest {
         GroupId groupId = GroupId.of(gid);
         when(groupRepository.findById(gid)).thenReturn(Optional.of(mock(Group.class)));
         CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        when(cloudQuery.getCloudResourceDetails(Set.of(accessId))).thenReturn(List.of(CloudResourceRowView.builder().clientId("testClientId").build()));
 
         service.deactivateCloudResourcesAccess(groupId, accessId);
         verify(cloudCmd).deactivateCloudResourceAccess(accessId);

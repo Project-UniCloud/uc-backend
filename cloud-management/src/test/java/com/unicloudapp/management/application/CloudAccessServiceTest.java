@@ -587,4 +587,22 @@ class CloudAccessServiceTest {
         verify(repository).findAllById(ids);
         org.mockito.Mockito.verifyNoInteractions(controllerA, controllerB);
     }
+    
+    @Test
+    @DisplayName("removeGroup delegates to controller when client exists")
+    void removeGroup_delegates() {
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        service.removeGroup(group, CloudAccessClientId.of("a-client"));
+        verify(controllerA).removeGroup(group);
+    }
+
+    @Test
+    @DisplayName("removeGroup throws when client does not exist")
+    void removeGroup_missingClient_throws() {
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> service.removeGroup(group, CloudAccessClientId.of("missing")));
+        assertTrue(ex.getMessage().contains("CloudAccessClientId"));
+        assertTrue(ex.getMessage().contains("does not exist"));
+    }
 }

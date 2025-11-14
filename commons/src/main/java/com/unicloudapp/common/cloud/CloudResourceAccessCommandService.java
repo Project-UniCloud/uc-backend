@@ -40,4 +40,6 @@ public interface CloudResourceAccessCommandService {
     void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId);
 
     void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientId, GroupUniqueName groupUniqueName, boolean force);
+
+    void removeGroup(GroupUniqueName groupUniqueName, CloudAccessClientId cloudAccessClientId);
 }
