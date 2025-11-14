@@ -93,4 +93,19 @@ class GrpcCloudAccessClientController implements CloudAccessClientController {
                 String.join(", ", response.getDeletedResourcesList())
         );
     }
+
+    @Override
+    public void removeGroup(GroupUniqueName groupUniqueName) {
+        AdapterInterface.RemoveGroupRequest request = AdapterInterface.RemoveGroupRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .build();
+        AdapterInterface.RemoveGroupResponse response = stub.removeGroup(request);
+        if (!response.getSuccess()) {
+            throw new RuntimeException("Remove group failed. Message: " + response.getMessage());
+        }
+        log.info("Remove group successful for group: {}. Removed users: {}",
+                groupUniqueName,
+                String.join(", ", response.getRemovedUsersList())
+        );
+    }
 }

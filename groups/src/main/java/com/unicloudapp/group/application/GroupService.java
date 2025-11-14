@@ -367,8 +367,15 @@ public class GroupService {
     }
 
     public void deactivateCloudResourcesAccess(GroupId groupId, CloudResourceAccessId cloudResourceAccessId) {
-        groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .groupName(group.getName())
+                .semester(group.getSemester())
+                .build();
+        List<CloudResourceRowView> cloudResourceDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(Set.of(cloudResourceAccessId));
+        cloudResourceAccessCommandService.removeGroup(groupUniqueName, CloudAccessClientId.of(cloudResourceDetails.getFirst().clientId()));
         cloudResourceAccessCommandService.deactivateCloudResourceAccess(cloudResourceAccessId);
     }
 }
