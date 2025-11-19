@@ -3,7 +3,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.dependency.graph.generator") version "0.8.0"
     id("jacoco")
-    id("com.diffplug.spotless") version "8.0.0"
+    id("com.diffplug.spotless") version "8.1.0"
     id("org.sonarqube") version "7.0.1.6134"
 }
 
