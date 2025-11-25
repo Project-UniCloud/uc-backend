@@ -1,0 +1,6 @@
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/1.0
+      relativeToChangelogFile: true
+  - include:
+      file: db/changelog/1.0/0001-init-tables.sql
