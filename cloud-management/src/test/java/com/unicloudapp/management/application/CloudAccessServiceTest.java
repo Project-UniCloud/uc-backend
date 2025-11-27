@@ -400,6 +400,9 @@ class CloudAccessServiceTest {
                 .limit(new BigDecimal("99.99"))
                 .cron("0 */15 * * * *")
                 .expiresAt(LocalDate.now().plusDays(30))
+                .notificationLevel1(50)
+                .notificationLevel2(80)
+                .notificationLevel3(95)
                 .build();
 
         when(repository.findById(accessId)).thenReturn(Optional.of(existing));

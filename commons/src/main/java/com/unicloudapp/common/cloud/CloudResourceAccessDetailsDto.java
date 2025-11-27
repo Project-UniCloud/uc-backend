@@ -13,5 +13,8 @@ public record CloudResourceAccessDetailsDto(
         BigDecimal limit,
         String cron,
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate expiresAt,
-        String status
+        String status,
+        Integer notificationLevel1,
+        Integer notificationLevel2,
+        Integer notificationLevel3
 ) { }
