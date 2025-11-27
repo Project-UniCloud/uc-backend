@@ -21,6 +21,9 @@ public class CloudResourceAccess {
     private CronExpression cronExpression;
     private ExpiresDate expiresAt;
     private CloudResourcesAccessStatus status;
+    private NotificationLevel notificationLevel1;
+    private NotificationLevel notificationLevel2;
+    private NotificationLevel notificationLevel3;
 
     public void updateUsedLimit(UsedLimit newUsedCost) {
         if (newUsedCost == null || newUsedCost.getValue().intValue() < usedLimit.getValue().intValue()) {
@@ -50,5 +53,8 @@ public class CloudResourceAccess {
         this.costLimit = CostLimit.of(request.limit());
         this.cronExpression = CronExpression.parse(request.cron());
         this.expiresAt = ExpiresDate.of(request.expiresAt());
+        this.notificationLevel1 = NotificationLevel.of(request.notificationLevel1());
+        this.notificationLevel2 = NotificationLevel.of(request.notificationLevel2());
+        this.notificationLevel3 = NotificationLevel.of(request.notificationLevel3());
     }
 }

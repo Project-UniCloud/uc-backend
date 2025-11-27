@@ -42,4 +42,10 @@ class CloudResourceAccessEntity {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private CloudResourcesAccessStatus.Status status;
+
+    private Integer notificationLevel1;
+
+    private Integer notificationLevel2;
+
+    private Integer notificationLevel3;
 }
