@@ -105,8 +105,8 @@ tasks.register<JacocoReport>("jacocoRootReport") {
         include("com/unicloudapp/**/*.class")
         exclude(
             "**/*Config.class",
-            "**/config/**",
-            "**/*Configuration.class"
+            "**/*Configuration.class",
+            "**/*Exception.class"
         )
     })
 
