@@ -5,22 +5,12 @@ plugins {
     id("jacoco")
     id("com.diffplug.spotless") version "8.1.0"
     id("org.sonarqube") version "7.1.0.6387"
-    id("org.openrewrite.rewrite") version("latest.release")
 }
 
 allprojects {
     repositories {
         mavenCentral() // NOSONAR - Trusted official Maven repository
     }
-}
-
-dependencies {
-    rewrite("org.openrewrite.recipe:rewrite-spring:6.19.0")
-}
-
-rewrite {
-    activeRecipe("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
-    setExportDatatables(true)
 }
 
 jacoco {
@@ -40,7 +30,6 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "jacoco")
 
-    // Configure Java Toolchain to use Java 25 for all subprojects
     extensions.configure<JavaPluginExtension> {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(25))
@@ -84,6 +73,7 @@ subprojects {
 tasks.register<JacocoReport>("jacocoRootReport") {
     group = "verification"
     description = "Generuje zagregowany raport pokrycia kodu dla wszystkich podmodułów."
+    notCompatibleWithConfigurationCache("Aggregates subprojects using script object references; opt-out until refactored for CC.")
 
     val executionDataFiles = subprojects.flatMap { subproject ->
         subproject.tasks.withType<Test>().mapNotNull { testTask ->
