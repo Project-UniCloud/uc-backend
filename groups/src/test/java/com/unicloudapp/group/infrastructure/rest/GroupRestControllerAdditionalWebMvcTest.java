@@ -1,7 +1,6 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
@@ -14,14 +13,13 @@ import com.unicloudapp.group.application.port.StudentImporterPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -38,8 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@ContextConfiguration(classes = GroupRestController.class)
-@ExtendWith(org.springframework.test.context.junit.jupiter.SpringExtension.class)
+@SpringJUnitConfig(classes = GroupRestController.class)
 class GroupRestControllerAdditionalWebMvcTest {
 
     @Autowired
@@ -60,7 +57,6 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     private ObjectMapper mapper() {
         ObjectMapper om = new ObjectMapper();
-        om.registerModule(new JavaTimeModule());
         return om;
     }
 

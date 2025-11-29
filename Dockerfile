@@ -1,4 +1,4 @@
-FROM gradle:8.5-jdk21 AS build
+FROM gradle:9.2.1-jdk25 AS build
 
 WORKDIR /build
 
@@ -6,7 +6,7 @@ COPY . .
 
 RUN gradle :bootstrap:bootJar
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 
 RUN useradd -r -u 1001 appuser
 

@@ -26,7 +26,7 @@ dependencies {
     implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
-    implementation("javax.annotation:javax.annotation-api:$javaxAnnotationsVersion")
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
     implementation(project(":commons"))
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")

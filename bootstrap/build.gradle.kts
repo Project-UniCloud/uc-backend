@@ -14,6 +14,8 @@ repositories {
 val postgresVersion = "42.7.8"
 
 dependencies {
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+
     runtimeOnly("org.postgresql:postgresql:$postgresVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")

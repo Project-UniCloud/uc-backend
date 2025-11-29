@@ -1,7 +1,8 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
@@ -12,14 +13,12 @@ import com.unicloudapp.group.domain.Group;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -67,7 +66,6 @@ class GroupRestControllerDiffblueTest {
                 .contentType(MediaType.APPLICATION_JSON);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
         HashSet<UUID> lecturers = new HashSet<>();
         LocalDate startDate = LocalDate.of(1970,
                 1,

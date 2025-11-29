@@ -23,7 +23,6 @@ import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -202,7 +201,7 @@ public class CloudAccessService
                     .build();
             notificationsCommandService.sendNotification(sendNotificationCommand);
         });
-        val lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
+        final var lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
         clients.get(cloudAccessClientId.getValue()).createGroup(groupUniqueName, lecturerLogins, resourceType);
     }
 
@@ -223,7 +222,7 @@ public class CloudAccessService
 
     @Override
     public String createUsers(CloudAccessClientId cloudAccessClientId, List<Map.Entry<UserLogin, Email>> users, GroupUniqueName groupUniqueName) {
-        val logins = users.stream().map(Map.Entry::getKey).toList();
+        final var logins = users.stream().map(Map.Entry::getKey).toList();
         String createdUserLogin = clients.get(cloudAccessClientId.getValue()).createUsers(logins, groupUniqueName);
         users.forEach(user -> {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()

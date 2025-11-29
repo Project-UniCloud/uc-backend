@@ -19,13 +19,15 @@ val mapStructVersion = "1.6.3"
 val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.1.0.Final"
 val opencsv = "5.12.0"
-val spockVersion = "2.3-groovy-4.0"
+val spockVersion = "2.4-M7-groovy-5.0"
 
 dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
 
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
+
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
     implementation(project(":commons"))
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -35,8 +37,9 @@ dependencies {
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     implementation("jakarta.validation:jakarta.validation-api:$jakartaValidationVersion")
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("tools.jackson.core:jackson-databind")
     implementation("com.opencsv:opencsv:$opencsv")
+    implementation("org.jspecify:jspecify:1.0.0")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

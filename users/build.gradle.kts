@@ -17,7 +17,7 @@ val lombokVersion = "1.18.42"
 val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.1.0.Final"
 val mapStructVersion = "1.6.3"
-val spockVersion = "2.3-groovy-4.0"
+val spockVersion = "2.4-M7-groovy-5.0"
 
 dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
@@ -34,6 +34,8 @@ dependencies {
     implementation("org.hibernate.validator:hibernate-validator:$hibernateValidatorVersion")
     implementation("org.mapstruct:mapstruct:$mapStructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapStructVersion")
+
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")

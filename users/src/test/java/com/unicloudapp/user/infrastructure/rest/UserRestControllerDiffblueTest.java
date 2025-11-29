@@ -1,6 +1,8 @@
 package com.unicloudapp.user.infrastructure.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.common.user.UserExternalQueryService;
@@ -12,14 +14,12 @@ import com.unicloudapp.user.domain.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -93,7 +93,7 @@ class UserRestControllerDiffblueTest {
                 .content((new ObjectMapper()).writeValueAsString(createLecturerRequest));
 
         // Act and Assert
-        var result = String.format("{\"lecturerId\":\"%s\"}",
+        var result = "{\"lecturerId\":\"%s\"}".formatted(
                 uuid
         );
         MockMvcBuilders.standaloneSetup(userRestController)
@@ -198,7 +198,7 @@ class UserRestControllerDiffblueTest {
                 .andExpect(MockMvcResultMatchers.content()
                         .contentType("application/json"))
                 .andExpect(MockMvcResultMatchers.content()
-                        .string(String.format("{\"studentId\":\"%s\"}", randomUUIDResult)));
+                        .string("{\"studentId\":\"%s\"}".formatted(randomUUIDResult)));
     }
 
     /**
@@ -286,7 +286,7 @@ class UserRestControllerDiffblueTest {
                         .string(String.format(
                                 "{\"userId\":\"%s\",\"login\":\"Login\",\"firstName\":\"Jane\",\"lastName\":\"Doe\""
                                         + ",\"email\":\"jane.doe@example.org\"," +
-                                        "\"lastLoginAt\":[1970,1,1,0,0],\"userRole\":\"ADMIN\"}", randomUUIDResult)));
+                                        "\"lastLoginAt\":\"1970-01-01T00:00:00\",\"userRole\":\"ADMIN\"}", randomUUIDResult)));
     }
 
     /**

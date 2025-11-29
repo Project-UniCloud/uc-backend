@@ -5,6 +5,6 @@ import com.unicloudapp.common.vo.user.UserId;
 public class UserNotFoundException extends RuntimeException {
 
     public UserNotFoundException(UserId userId) {
-        super(String.format("User with id %s not found", userId));
+        super("User with id %s not found".formatted(userId));
     }
 }

@@ -5,6 +5,7 @@ plugins {
     id("jacoco")
     id("com.diffplug.spotless") version "8.1.0"
     id("org.sonarqube") version "7.1.0.6387"
+    id("org.openrewrite.rewrite") version("latest.release")
 }
 
 allprojects {
@@ -13,8 +14,17 @@ allprojects {
     }
 }
 
+dependencies {
+    rewrite("org.openrewrite.recipe:rewrite-spring:6.19.0")
+}
+
+rewrite {
+    activeRecipe("org.openrewrite.java.spring.boot4.UpgradeSpringBoot_4_0")
+    setExportDatatables(true)
+}
+
 jacoco {
-    toolVersion = "0.8.12"
+    toolVersion = "0.8.14"
 }
 
 sonar {
@@ -29,6 +39,13 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "java")
     apply(plugin = "jacoco")
+
+    // Configure Java Toolchain to use Java 25 for all subprojects
+    extensions.configure<JavaPluginExtension> {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(25))
+        }
+    }
 
     jacoco {
         toolVersion = rootProject.extensions.getByType<JacocoPluginExtension>().toolVersion
