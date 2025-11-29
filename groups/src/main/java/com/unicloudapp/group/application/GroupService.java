@@ -353,6 +353,9 @@ public class GroupService {
                 .limit(cloudResourceDetailsFirst.costLimit())
                 .expiresAt(cloudResourceDetailsFirst.expiresAt())
                 .status(cloudResourceDetailsFirst.status())
+                .notificationLevel1(cloudResourceDetailsFirst.notificationLevel1())
+                .notificationLevel2(cloudResourceDetailsFirst.notificationLevel2())
+                .notificationLevel3(cloudResourceDetailsFirst.notificationLevel3())
                 .build();
     }
 

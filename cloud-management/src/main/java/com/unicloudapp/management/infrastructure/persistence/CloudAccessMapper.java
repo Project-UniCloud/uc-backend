@@ -33,6 +33,9 @@ class CloudAccessMapper {
                         .getValue())
                 .expiresAt(domain.getExpiresAt().getValue())
                 .status(domain.getStatus().getStatus())
+                .notificationLevel1(domain.getNotificationLevel1().level())
+                .notificationLevel2(domain.getNotificationLevel2().level())
+                .notificationLevel3(domain.getNotificationLevel3().level())
                 .build();
     }
 

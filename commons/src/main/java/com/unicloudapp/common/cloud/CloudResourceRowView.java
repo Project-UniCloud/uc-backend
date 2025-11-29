@@ -18,7 +18,10 @@ public record CloudResourceRowView(
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate expiresAt,
         @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss") LocalDateTime lastUsedAt,
         String cronCleanupSchedule,
-        String status
+        String status,
+        Integer notificationLevel1,
+        Integer notificationLevel2,
+        Integer notificationLevel3
 ) {
 
 }

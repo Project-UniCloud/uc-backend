@@ -12,7 +12,6 @@ public class CloudResourceAccessFactory {
             CostLimit costLimit,
             CronExpression cronExpression,
             ExpiresDate expiresAt
-
     ) {
         if (!isValid(cloudResourceAccessId, cloudAccessClientId, cloudResourceType, costLimit)) {
             throw new IllegalArgumentException("Invalid parameters for creating CloudResourceAccess");
@@ -25,7 +24,10 @@ public class CloudResourceAccessFactory {
                 UsedLimit.empty(),
                 cronExpression,
                 expiresAt,
-                CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE)
+                CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE),
+                NotificationLevel.of(50),
+                NotificationLevel.of(80),
+                NotificationLevel.of(95)
         );
     }
 

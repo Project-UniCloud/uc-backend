@@ -4,6 +4,7 @@ import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.management.domain.CloudResourceAccess;
 import com.unicloudapp.management.domain.CloudResourcesAccessStatus;
 import com.unicloudapp.management.domain.ExpiresDate;
+import com.unicloudapp.management.domain.NotificationLevel;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -75,6 +76,9 @@ class CloudAccessMapperTest {
                 .expiresAt(ExpiresDate.expirable(expiresAt))
                 .status(CloudResourcesAccessStatus.of(status))
                 .cronExpression(CronExpression.parse(cron))
+                .notificationLevel1(NotificationLevel.of(50))
+                .notificationLevel2(NotificationLevel.of(60))
+                .notificationLevel3(NotificationLevel.of(70))
                 .build();
 
         // when
