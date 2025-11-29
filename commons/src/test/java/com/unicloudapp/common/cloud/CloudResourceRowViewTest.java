@@ -1,23 +1,22 @@
 package com.unicloudapp.common.cloud;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CloudResourceRowViewTest {
 
     @Test
     @DisplayName("Builder sets fields and JSON serialization respects @JsonFormat patterns")
-    void builderAndJsonFormat() throws JsonProcessingException {
+    void builderAndJsonFormat() throws JacksonException {
         CloudResourceRowView view = CloudResourceRowView.builder()
                 .clientId("client-123")
                 .name("VM")
@@ -39,8 +38,6 @@ class CloudResourceRowViewTest {
         assertEquals("ACTIVE", view.status());
 
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         String json = mapper.writeValueAsString(view);
 

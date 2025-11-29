@@ -1,5 +1,5 @@
 plugins {
-    id("org.springframework.boot") version "3.5.7" apply false
+    id("org.springframework.boot") version "4.0.0" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.dependency.graph.generator") version "0.8.0"
     id("jacoco")
@@ -14,7 +14,7 @@ allprojects {
 }
 
 jacoco {
-    toolVersion = "0.8.12"
+    toolVersion = "0.8.14"
 }
 
 sonar {
@@ -29,6 +29,12 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "java")
     apply(plugin = "jacoco")
+
+    extensions.configure<JavaPluginExtension> {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(25))
+        }
+    }
 
     jacoco {
         toolVersion = rootProject.extensions.getByType<JacocoPluginExtension>().toolVersion
@@ -67,6 +73,7 @@ subprojects {
 tasks.register<JacocoReport>("jacocoRootReport") {
     group = "verification"
     description = "Generuje zagregowany raport pokrycia kodu dla wszystkich podmodułów."
+    notCompatibleWithConfigurationCache("Aggregates subprojects using script object references; opt-out until refactored for CC.")
 
     val executionDataFiles = subprojects.flatMap { subproject ->
         subproject.tasks.withType<Test>().mapNotNull { testTask ->
@@ -98,8 +105,8 @@ tasks.register<JacocoReport>("jacocoRootReport") {
         include("com/unicloudapp/**/*.class")
         exclude(
             "**/*Config.class",
-            "**/config/**",
-            "**/*Configuration.class"
+            "**/*Configuration.class",
+            "**/*Exception.class"
         )
     })
 
