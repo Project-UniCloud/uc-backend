@@ -1,4 +1,4 @@
-package com.unicloudapp.cloud.domain;
+package com.unicloudapp.cloud.domain.vo;
 
 public record NotificationLevel(Integer level) {
 

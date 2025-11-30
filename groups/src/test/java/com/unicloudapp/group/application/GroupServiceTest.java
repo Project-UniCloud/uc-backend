@@ -4,7 +4,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
@@ -140,7 +140,7 @@ class GroupServiceTest {
 
         verify(group).addStudent(any(UserId.class));
         verify(cloudCmd).createUsers(
-                eq(CloudVendorConnectorId.of("clientA")),
+                eq(CloudConnectorId.of("clientA")),
                 eq(List.of(Map.entry(UserLogin.of("jsmith"), Email.empty()))),
                 eq(GroupUniqueName.fromString("AI 2024L"))
         );
@@ -253,7 +253,7 @@ class GroupServiceTest {
 
         verify(group, times(1)).addStudent(id1);
         verify(group, times(1)).addStudent(id2);
-        verify(cloudCmd).createUsers(eq(CloudVendorConnectorId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
+        verify(cloudCmd).createUsers(eq(CloudConnectorId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
         verify(groupRepository).save(group);
     }
 
@@ -269,7 +269,7 @@ class GroupServiceTest {
         when(group.getLecturers()).thenReturn(Set.of(UserId.of(UUID.randomUUID())));
         when(group.getCloudResourceAccesses()).thenReturn(Set.of());
 
-        CloudVendorConnectorId clientId = CloudVendorConnectorId.of("clientX");
+        CloudConnectorId clientId = CloudConnectorId.of("clientX");
         CloudResourceType type = CloudResourceType.of("S3");
         CostLimit limit = CostLimit.of(new BigDecimal("5"));
 
@@ -382,16 +382,16 @@ class GroupServiceTest {
         assertTrue(row.lecturers().contains("Prof X"));
 
         // With clientId only -> uses getCloudResourceAccessesByCloudClientId then repository.findAllByCriteriaAndContainsCloudResourceAccess
-        GroupFilterCriteria withClient = GroupFilterCriteria.builder().cloudClientId(CloudVendorConnectorId.of("client1")).build();
+        GroupFilterCriteria withClient = GroupFilterCriteria.builder().cloudClientId(CloudConnectorId.of("client1")).build();
         Set<CloudResourceAccessId> foundIds = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
-        when(cloudQuery.getCloudResourceAccessesByCloudClientId(CloudVendorConnectorId.of("client1"))).thenReturn(foundIds);
+        when(cloudQuery.getCloudResourceAccessesByCloudClientId(CloudConnectorId.of("client1"))).thenReturn(foundIds);
         when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds)).thenReturn(page);
         service.getGroupsByFilter(withClient, pageable);
         verify(groupRepository).findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds);
 
         // With clientId + resourceType -> other branch
-        GroupFilterCriteria withType = GroupFilterCriteria.builder().cloudClientId(CloudVendorConnectorId.of("client1")).resourceType(CloudResourceType.of("S3")).build();
-        when(cloudQuery.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudVendorConnectorId.of("client1"), CloudResourceType.of("S3")))
+        GroupFilterCriteria withType = GroupFilterCriteria.builder().cloudClientId(CloudConnectorId.of("client1")).resourceType(CloudResourceType.of("S3")).build();
+        when(cloudQuery.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudConnectorId.of("client1"), CloudResourceType.of("S3")))
                 .thenReturn(foundIds);
         when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withType, pageable, foundIds)).thenReturn(page);
         service.getGroupsByFilter(withType, pageable);
@@ -437,8 +437,8 @@ class GroupServiceTest {
         service.activate(gid);
 
         verify(group).activate();
-        verify(cloudCmd).createUsers(CloudVendorConnectorId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
-        verify(cloudCmd).createUsers(CloudVendorConnectorId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudConnectorId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudConnectorId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 

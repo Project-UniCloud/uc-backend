@@ -1,14 +1,14 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
-import com.unicloudapp.cloud.domain.ExpiresDate;
-import com.unicloudapp.cloud.domain.NotificationLevel;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.NotificationLevel;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -50,7 +50,7 @@ class CloudResourceAccessMapperTest {
 
         // then
         assertThat(domain.getCloudResourceAccessId().getValue()).isEqualTo(id);
-        assertThat(domain.getCloudVendorConnectorId().id()).isEqualTo(clientId);
+        assertThat(domain.getCloudConnectorId().id()).isEqualTo(clientId);
         assertThat(domain.getCloudResourceType().getName()).isEqualTo(resourceType);
         assertThat(domain.getCostLimit().getCost()).isEqualByComparingTo(costLimit);
         assertThat(domain.getUsedLimit().getValue()).isEqualByComparingTo(usedLimit);
@@ -73,7 +73,7 @@ class CloudResourceAccessMapperTest {
 
         CloudResourceAccess domain = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(id))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of(clientId))
+                .cloudConnectorId(CloudConnectorId.of(clientId))
                 .cloudResourceType(CloudResourceType.of(resourceType))
                 .costLimit(CostLimit.of(costLimit))
                 .usedLimit(UsedLimit.of(usedLimit))
@@ -101,7 +101,7 @@ class CloudResourceAccessMapperTest {
         // round-trip: entity -> domain again
         CloudResourceAccess roundTrip = mapper.toDomain(entity);
         assertThat(roundTrip.getCloudResourceAccessId().getValue()).isEqualTo(id);
-        assertThat(roundTrip.getCloudVendorConnectorId().id()).isEqualTo(clientId);
+        assertThat(roundTrip.getCloudConnectorId().id()).isEqualTo(clientId);
         assertThat(roundTrip.getCloudResourceType().getName()).isEqualTo(resourceType);
         assertThat(roundTrip.getCostLimit().getCost()).isEqualByComparingTo(costLimit);
         assertThat(roundTrip.getUsedLimit().getValue()).isEqualByComparingTo(usedLimit);

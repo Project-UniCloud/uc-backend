@@ -1,9 +1,10 @@
 package com.unicloudapp.cloud.domain.access;
 
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.cloud.domain.ExpiresDate;
-import com.unicloudapp.cloud.domain.NotificationLevel;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.NotificationLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import org.springframework.scheduling.support.CronExpression;
 public class CloudResourceAccess {
 
     private final CloudResourceAccessId cloudResourceAccessId;
-    private final CloudVendorConnectorId cloudVendorConnectorId;
+    private final CloudConnectorId cloudConnectorId;
     private final CloudResourceType cloudResourceType;
     private CostLimit costLimit;
     private UsedLimit usedLimit;

@@ -84,7 +84,7 @@ class GroupRestController {
         GroupFilterCriteria criteria = GroupFilterCriteria.builder()
                 .status(status != null ? GroupStatus.of(status) : null)
                 .groupName(groupName != null ? GroupName.of(groupName) : null)
-                .cloudClientId(cloudClientId != null ? CloudVendorConnectorId.of(cloudClientId) : null)
+                .cloudClientId(cloudClientId != null ? CloudConnectorId.of(cloudClientId) : null)
                 .resourceType(resourceType != null ? CloudResourceType.of(resourceType) : null)
                 .build();
 
@@ -129,7 +129,7 @@ class GroupRestController {
     ) {
         return groupService.grantCloudResourceAccess(
                 GroupId.of(groupId),
-                CloudVendorConnectorId.of(request.CloudVendorConnectorId()),
+                CloudConnectorId.of(request.CloudVendorConnectorId()),
                 CloudResourceType.of(request.cloudResourceType()),
                 request.costLimit() == null ? CostLimit.zero() : CostLimit.of(request.costLimit())
         );

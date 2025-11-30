@@ -1,19 +1,19 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
-import com.unicloudapp.cloud.domain.vendor_connector.CloudVendorConnector;
+import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import org.mapstruct.Mapper;
 import org.springframework.scheduling.support.CronExpression;
 
 @Mapper(componentModel = "spring")
 public interface CloudResourceAccessClientMapper {
 
-    default CloudAccessClientEntity toEntity(CloudVendorConnector domain) {
+    default CloudAccessClientEntity toEntity(CloudConnector domain) {
         if (domain == null) return null;
         return CloudAccessClientEntity.builder()
-                .CloudVendorConnectorId(domain.getCloudVendorConnectorId() != null ? domain.getCloudVendorConnectorId().id() : null)
+                .CloudVendorConnectorId(domain.getCloudConnectorId() != null ? domain.getCloudConnectorId().id() : null)
                 .name(domain.getName())
                 .host(domain.getHost())
                 .port(parsePort(domain.getPort()))
@@ -23,10 +23,10 @@ public interface CloudResourceAccessClientMapper {
                 .build();
     }
 
-    default CloudVendorConnector toDomain(CloudAccessClientEntity entity) {
+    default CloudConnector toDomain(CloudAccessClientEntity entity) {
         if (entity == null) return null;
-        return CloudVendorConnector.builder()
-                .cloudVendorConnectorId(entity.getCloudVendorConnectorId() != null ? CloudVendorConnectorId.of(entity.getCloudVendorConnectorId()) : null)
+        return CloudConnector.builder()
+                .cloudConnectorId(entity.getCloudVendorConnectorId() != null ? CloudConnectorId.of(entity.getCloudVendorConnectorId()) : null)
                 .name(entity.getName())
                 .host(entity.getHost())
                 .port(entity.getPort() != null ? entity.getPort().toString() : null)

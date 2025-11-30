@@ -5,20 +5,20 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CloudVendorConnectorIdTest {
+class CloudConnectorIdTest {
 
     @Test
     @DisplayName("of(null) and of(empty string) throw IllegalArgumentException")
     void invalidValuesThrow() {
-        assertThrows(IllegalArgumentException.class, () -> CloudVendorConnectorId.of(null));
-        assertThrows(IllegalArgumentException.class, () -> CloudVendorConnectorId.of(""));
+        assertThrows(IllegalArgumentException.class, () -> CloudConnectorId.of(null));
+        assertThrows(IllegalArgumentException.class, () -> CloudConnectorId.of(""));
     }
 
     @Test
     @DisplayName("of(non-empty) stores value and toString returns it")
     void validValue() {
-        CloudVendorConnectorId id1 = CloudVendorConnectorId.of("client-1");
-        CloudVendorConnectorId id2 = CloudVendorConnectorId.of("client-1");
+        CloudConnectorId id1 = CloudConnectorId.of("client-1");
+        CloudConnectorId id2 = CloudConnectorId.of("client-1");
 
         assertEquals("client-1", id1.id());
         assertEquals(id1, id2);

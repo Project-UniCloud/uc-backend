@@ -1,9 +1,9 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
 import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.cloud.domain.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -105,7 +105,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     @Test
     void findAllByCloudClientIdAndResourceType_delegates_and_maps() {
         // given
-        CloudVendorConnectorId clientId = CloudVendorConnectorId.of("client-A");
+        CloudConnectorId clientId = CloudConnectorId.of("client-A");
         CloudResourceType resourceType = CloudResourceType.of("S3");
         when(repository.findAllByCloudVendorConnectorIdAndResourceType("client-A", "S3")).thenReturn(Set.of(entity1));
         when(mapper.toDomain(entity1)).thenReturn(domain1);
@@ -121,7 +121,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     @Test
     void findAllByCloudClientId_delegates_and_maps() {
         // given
-        CloudVendorConnectorId clientId = CloudVendorConnectorId.of("client-B");
+        CloudConnectorId clientId = CloudConnectorId.of("client-B");
         when(repository.findAllByCloudVendorConnectorId("client-B")).thenReturn(Set.of(entity2));
         when(mapper.toDomain(entity2)).thenReturn(domain2);
 
@@ -172,8 +172,8 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
         // when / then
         assertThat(adapter.getCloudResourceAccesses(Set.of())).isEmpty();
         assertThat(adapter.findAllById(Set.of())).isEmpty();
-        assertThat(adapter.findAllByCloudClientIdAndResourceType(CloudVendorConnectorId.of("x"), CloudResourceType.of("y"))).isEmpty();
-        assertThat(adapter.findAllByCloudClientId(CloudVendorConnectorId.of("x"))).isEmpty();
+        assertThat(adapter.findAllByCloudClientIdAndResourceType(CloudConnectorId.of("x"), CloudResourceType.of("y"))).isEmpty();
+        assertThat(adapter.findAllByCloudClientId(CloudConnectorId.of("x"))).isEmpty();
         assertThat(adapter.findAllByStatus(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))).isEmpty();
     }
 
@@ -208,7 +208,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
                                       CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(id))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of(clientId))
+                .cloudConnectorId(CloudConnectorId.of(clientId))
                 .cloudResourceType(CloudResourceType.of(resourceType))
                 .costLimit(CostLimit.of(cost))
                 .usedLimit(UsedLimit.of(used))

@@ -4,7 +4,7 @@ import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
 
@@ -15,20 +15,20 @@ import java.util.Set;
 public interface CloudResourceAccessCommandService {
 
     CloudResourceAccessId giveGroupCloudResourceAccess(
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             CloudResourceType cloudResourceAccessId,
             GroupUniqueName groupUniqueName,
             CostLimit costLimit
     );
 
     void createGroup(GroupUniqueName groupUniqueName,
-                     CloudVendorConnectorId cloudVendorConnectorId,
+                     CloudConnectorId cloudConnectorId,
                      List<Map.Entry<UserLogin, Email>> lecturerLogins,
                      CloudResourceType resourceType
     );
 
     String createUsers(
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             List<Map.Entry<UserLogin, Email>> users,
             GroupUniqueName groupUniqueName
     );
@@ -41,5 +41,5 @@ public interface CloudResourceAccessCommandService {
 
     void cleanUpResources(Set<CloudResourceAccessId> cloudVendorConnectorId, GroupUniqueName groupUniqueName, boolean force);
 
-    void removeGroup(GroupUniqueName groupUniqueName, CloudVendorConnectorId cloudVendorConnectorId);
+    void removeGroup(GroupUniqueName groupUniqueName, CloudConnectorId cloudConnectorId);
 }

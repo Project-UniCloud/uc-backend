@@ -1,8 +1,8 @@
 package com.unicloudapp.cloud.application.port;
 
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 
@@ -20,11 +20,11 @@ public interface CloudResourceAccessRepositoryPort {
     List<CloudResourceAccess> findAllById(Set<CloudResourceAccessId> cloudResourceAccessIds);
 
     Set<CloudResourceAccess> findAllByCloudClientIdAndResourceType(
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             CloudResourceType resourceType
     );
 
-    Set<CloudResourceAccess> findAllByCloudClientId(CloudVendorConnectorId cloudVendorConnectorId);
+    Set<CloudResourceAccess> findAllByCloudClientId(CloudConnectorId cloudConnectorId);
 
     Map<CloudResourceAccessId, CloudResourceAccess> findAllByStatus(CloudResourcesAccessStatus status);
 

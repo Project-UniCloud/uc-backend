@@ -3,7 +3,7 @@ package com.unicloudapp.cloud.application;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
 import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.notifications.NotificationsCommandService;
-import com.unicloudapp.cloud.application.port.CloudResourceAccessClientRepositoryPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,11 +18,11 @@ class CloudResourceAccessServiceConfig {
             ThreadPoolTaskScheduler taskScheduler,
             GroupQueryService groupQueryService,
             NotificationsCommandService notificationsCommandService,
-            CloudResourceAccessClientRepositoryPort cloudResourceAccessClientRepositoryPort
+            CloudConnectorRepositoryPort cloudConnectorRepositoryPort
     ) {
         return new CloudResourceAccessService(
                 taskScheduler,
-                cloudResourceAccessClientRepositoryPort,
+                cloudConnectorRepositoryPort,
                 repository,
                 groupQueryService,
                 notificationsCommandService,

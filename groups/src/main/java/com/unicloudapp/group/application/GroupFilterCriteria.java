@@ -1,6 +1,6 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.group.domain.vo.GroupStatus;
@@ -13,7 +13,7 @@ public class GroupFilterCriteria {
 
     private GroupStatus status;
     private GroupName groupName;
-    private CloudVendorConnectorId cloudClientId;
+    private CloudConnectorId cloudClientId;
     private CloudResourceType resourceType;
     private Boolean pastExpiresDate;
 }

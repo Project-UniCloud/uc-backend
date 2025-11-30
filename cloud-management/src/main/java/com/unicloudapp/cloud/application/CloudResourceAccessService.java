@@ -1,21 +1,23 @@
 package com.unicloudapp.cloud.application;
 
+import com.unicloudapp.cloud.application.port.CloudConnectorClientFactoryPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
 import com.unicloudapp.common.notifications.NotificationType;
 import com.unicloudapp.common.notifications.SendNotificationCommand;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.cloud.application.port.CloudResourceAccessClientRepositoryPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
-import com.unicloudapp.cloud.domain.vendor_connector.CloudVendorConnector;
+import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
-import com.unicloudapp.cloud.domain.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.notifications.NotificationsCommandService;
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
@@ -26,6 +28,7 @@ import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -36,12 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
@@ -51,13 +49,15 @@ public class CloudResourceAccessService
         implements CloudResourceAccessQueryService, CloudResourceAccessCommandService {
 
     private final Map<CloudResourceAccessId, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+    private final Map<CloudConnectorId, CloudConnectorClientPort> cloudConnectorClients = new ConcurrentHashMap<>();
 
     private final TaskScheduler taskScheduler;
-    private final CloudResourceAccessClientRepositoryPort cloudResourceAccessClientRepositoryPort;
+    private final CloudConnectorRepositoryPort cloudConnectorRepositoryPort;
     private final CloudResourceAccessRepositoryPort cloudResourceAccessRepository;
     private final GroupQueryService groupQueryService;
     private final NotificationsCommandService notificationsCommandService;
     private final CloudResourceAccessFactory cloudResourceAccessFactory;
+    private final CloudConnectorClientFactoryPort cloudConnectorClientFactoryPort;
 
     @PostConstruct
     protected void init() {
@@ -75,24 +75,31 @@ public class CloudResourceAccessService
                             scheduleTask(activeCloudResourcesAccesses.get(cloudResourceAccessId), groupCloudDto.groupUniqueName())
                         )
         );
+        cloudConnectorRepositoryPort.findAll()
+                .forEach(cloudConnector -> {
+                    cloudConnectorClients.put(
+                            cloudConnector.getCloudConnectorId(),
+                            cloudConnectorClientFactoryPort.create(cloudConnector.getHost(), cloudConnector.getPort())
+                    );
+                });
     }
 
-    public boolean isRunning(CloudVendorConnectorId cloudVendorConnectorId) {
-        CloudVendorConnector CloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        return CloudVendorConnector.getController().isRunning();
+    public boolean isRunning(CloudConnectorId cloudConnectorId) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        return cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).isRunning();
     }
 
-    public boolean isCloudClientExists(CloudVendorConnectorId cloudVendorConnectorId) {
-        return cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId).isPresent();
+    public boolean isCloudClientExists(CloudConnectorId cloudConnectorId) {
+        return cloudConnectorRepositoryPort.findByClientId(cloudConnectorId).isPresent();
     }
 
     public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
-            CloudVendorConnectorId cloudVendorConnectorId
+            CloudConnectorId cloudConnectorId
     ) {
-        CloudVendorConnector CloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        return CloudVendorConnector.getResourceTypes();
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        return cloudConnector.getResourceTypes();
     }
 
     @Override
@@ -105,11 +112,11 @@ public class CloudResourceAccessService
 
     @Override
     public boolean isCloudGroupExists(GroupUniqueName groupUniqueName,
-                                      CloudVendorConnectorId cloudVendorConnectorId
+                                      CloudConnectorId cloudConnectorId
     ) {
-        CloudVendorConnector CloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        return CloudVendorConnector.isCloudGroupExists(groupUniqueName);
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        return cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).isCloudGroupExists(groupUniqueName);
     }
 
     @Override
@@ -120,7 +127,7 @@ public class CloudResourceAccessService
                         .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
                         .name(cloudResourceAccess.getCloudResourceType().getName())
                         .costLimit(cloudResourceAccess.getCostLimit().getCost())
-                        .clientId(cloudResourceAccess.getCloudVendorConnectorId().id())
+                        .clientId(cloudResourceAccess.getCloudConnectorId().id())
                         .status(cloudResourceAccess.getStatus().getStatus().name())
                         .cronCleanupSchedule(cloudResourceAccess.getCronExpression().toString())
                         .lastUsedAt(LocalDateTime.now())
@@ -133,41 +140,41 @@ public class CloudResourceAccessService
 
     @Override
     public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             CloudResourceType resourceType
     ) {
-        return cloudResourceAccessRepository.findAllByCloudClientIdAndResourceType(cloudVendorConnectorId, resourceType)
+        return cloudResourceAccessRepository.findAllByCloudClientIdAndResourceType(cloudConnectorId, resourceType)
                 .stream()
                 .map(CloudResourceAccess::getCloudResourceAccessId)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(CloudVendorConnectorId cloudVendorConnectorId) {
-        return cloudResourceAccessRepository.findAllByCloudClientId(cloudVendorConnectorId)
+    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(CloudConnectorId cloudConnectorId) {
+        return cloudResourceAccessRepository.findAllByCloudClientId(cloudConnectorId)
                 .stream()
                 .map(CloudResourceAccess::getCloudResourceAccessId)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public CloudResourceAccessId giveGroupCloudResourceAccess(CloudVendorConnectorId cloudVendorConnectorId,
+    public CloudResourceAccessId giveGroupCloudResourceAccess(CloudConnectorId cloudConnectorId,
                                                               CloudResourceType cloudResourceType,
                                                               GroupUniqueName groupUniqueName,
                                                               CostLimit costLimit
     ) {
-        CloudVendorConnector cloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        if (!cloudVendorConnector.containsResourceType(cloudResourceType)) {
-            throw new IllegalArgumentException("CloudResourceType " + cloudResourceType + " is not supported by client " + cloudVendorConnectorId);
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        if (!cloudConnector.containsResourceType(cloudResourceType)) {
+            throw new IllegalArgumentException("CloudResourceType " + cloudResourceType + " is not supported by client " + cloudConnectorId);
         }
         CloudResourceAccess cloudResourceAccess = cloudResourceAccessFactory
                 .create(
                         CloudResourceAccessId.of(UUID.randomUUID()),
-                        cloudVendorConnector.getCloudVendorConnectorId(),
+                        cloudConnector.getCloudConnectorId(),
                         cloudResourceType,
                         costLimit,
-                        cloudVendorConnector.getCronExpression(),
+                        cloudConnector.getCronExpression(),
                         ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
                 );
         cloudResourceAccessRepository.save(cloudResourceAccess);
@@ -177,7 +184,7 @@ public class CloudResourceAccessService
 
     @Override
     public void createGroup(GroupUniqueName groupUniqueName,
-                            CloudVendorConnectorId cloudVendorConnectorId,
+                            CloudConnectorId cloudConnectorId,
                             List<Map.Entry<UserLogin, Email>> lecturers,
                             CloudResourceType resourceType
     ) {
@@ -193,30 +200,30 @@ public class CloudResourceAccessService
                     .build();
             notificationsCommandService.sendNotification(sendNotificationCommand);
         });
-        final var lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
-        CloudVendorConnector CloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        CloudVendorConnector.createGroup(groupUniqueName, lecturerLogins, resourceType);
+        val lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).createGroup(groupUniqueName, lecturerLogins, resourceType);
     }
 
-    public Page<CloudVendorConnector> getCloudResourceAccessClients(Pageable pageable) {
-        List<CloudVendorConnector> all = cloudResourceAccessClientRepositoryPort.findAll().stream()
-                .sorted(Comparator.comparing(c -> c.getCloudVendorConnectorId().id()))
+    public Page<CloudConnector> getCloudResourceAccessClients(Pageable pageable) {
+        List<CloudConnector> all = cloudConnectorRepositoryPort.findAll().stream()
+                .sorted(Comparator.comparing(c -> c.getCloudConnectorId().id()))
                 .toList();
         return new PageImpl<>(all, pageable, all.size());
     }
 
-    public CloudVendorConnector getCloudResourceAccessClientDetails(CloudVendorConnectorId clientId) {
-        return cloudResourceAccessClientRepositoryPort.findByClientId(clientId)
+    public CloudConnector getCloudResourceAccessClientDetails(CloudConnectorId clientId) {
+        return cloudConnectorRepositoryPort.findByClientId(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + clientId + " does not exist"));
     }
 
     @Override
-    public String createUsers(CloudVendorConnectorId cloudVendorConnectorId, List<Map.Entry<UserLogin, Email>> users, GroupUniqueName groupUniqueName) {
+    public String createUsers(CloudConnectorId cloudConnectorId, List<Map.Entry<UserLogin, Email>> users, GroupUniqueName groupUniqueName) {
         final var logins = users.stream().map(Map.Entry::getKey).toList();
-        CloudVendorConnector CloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        String createdUserLogin = CloudVendorConnector.createUsers(logins, groupUniqueName);
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        String createdUserLogin = cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).createUsers(logins, groupUniqueName);
         users.forEach(user -> {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(user.getValue().getValue())
@@ -275,22 +282,22 @@ public class CloudResourceAccessService
     }
 
     @Override
-    public void removeGroup(GroupUniqueName groupUniqueName, CloudVendorConnectorId cloudVendorConnectorId) {
-        CloudVendorConnector CloudVendorConnector = cloudResourceAccessClientRepositoryPort.findByClientId(cloudVendorConnectorId)
-                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudVendorConnectorId + " does not exist"));
-        CloudVendorConnector.getController().removeGroup(groupUniqueName);
+    public void removeGroup(GroupUniqueName groupUniqueName, CloudConnectorId cloudConnectorId) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).removeGroup(groupUniqueName);
     }
 
     @Scheduled(cron = "${adapters.costSyncCron}")
     @Transactional
     protected void updateCostUsed() {
-        cloudResourceAccessClientRepositoryPort.findAll()
-                .forEach(CloudResourceAccessClient -> {
-                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = CloudResourceAccessClient.updateUsedCost();
+        cloudConnectorRepositoryPort.findAll()
+                .forEach(cloudResourceAccessClient -> {
+                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId()).updateUsedCost();
                     groupUniqueNameUsedLimitMap.forEach((groupUniqueName, usedLimit) -> {
                         Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
-                                CloudResourceAccessClient.getCloudVendorConnectorId(),
-                                CloudResourceAccessClient.getResourceTypes().getFirst()
+                                cloudResourceAccessClient.getCloudConnectorId(),
+                                cloudResourceAccessClient.getResourceTypes().getFirst()
                         );
                         List<CloudResourceAccess> allById = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
                         allById.forEach(CloudResourceAccess -> {
@@ -302,8 +309,9 @@ public class CloudResourceAccessService
     }
 
     private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName, boolean force) {
-        cloudResourceAccessClientRepositoryPort.findByClientId(cloudResourceAccess.getCloudVendorConnectorId())
-                .orElseThrow()
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudResourceAccess.getCloudConnectorId())
+                .orElseThrow();
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId())
                 .cleanUpResources(groupUniqueName, force);
     }
 

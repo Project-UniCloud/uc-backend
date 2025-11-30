@@ -1,9 +1,9 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.cloud.domain.*;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ class CloudResourceAccessMapper {
     CloudResourceAccess toDomain(CloudResourceAccessEntity entity) {
         return CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(entity.getCloudResourceAccessId()))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of(entity.getCloudVendorConnectorId()))
+                .cloudConnectorId(CloudConnectorId.of(entity.getCloudVendorConnectorId()))
                 .cloudResourceType(CloudResourceType.of(entity.getResourceType()))
                 .costLimit(CostLimit.of(entity.getCostLimit()))
                 .usedLimit(UsedLimit.of(entity.getUsedLimit()))
@@ -26,7 +26,7 @@ class CloudResourceAccessMapper {
     CloudResourceAccessEntity toEntity(CloudResourceAccess domain) {
         return CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(domain.getCloudResourceAccessId().getValue())
-                .CloudVendorConnectorId(domain.getCloudVendorConnectorId().id())
+                .CloudVendorConnectorId(domain.getCloudConnectorId().id())
                 .resourceType(domain.getCloudResourceType().getName())
                 .costLimit(domain.getCostLimit().getCost())
                 .cronExpression(domain.getCronExpression().toString())

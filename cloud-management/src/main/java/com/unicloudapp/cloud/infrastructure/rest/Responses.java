@@ -5,9 +5,9 @@ import lombok.Builder;
 import java.math.BigDecimal;
 
 @Builder
-record CloudResourceAccessClientRowView(
-        String CloudVendorConnectorId,
-        String CloudResourceAccessClientName,
+record CloudConnectorRowView(
+        String cloudVendorConnectorId,
+        String cloudResourceAccessClientName,
         BigDecimal costLimit,
         String defaultCronExpression
 ) {
@@ -15,9 +15,9 @@ record CloudResourceAccessClientRowView(
 }
 
 @Builder
-record CloudResourceAccessClientDetails(
-        String CloudVendorConnectorId,
-        String CloudResourceAccessClientName,
+record CloudConnectorDetailsDto(
+        String cloudConnectorId,
+        String name,
         BigDecimal costLimit,
         String defaultCronExpression,
         boolean isActive

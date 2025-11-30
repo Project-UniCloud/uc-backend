@@ -4,7 +4,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService
 import com.unicloudapp.common.cloud.CloudResourceRowView
 import com.unicloudapp.common.vo.Email
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId
+import com.unicloudapp.common.vo.cloud.CloudConnectorId
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId
 import com.unicloudapp.common.vo.cloud.CloudResourceType
 import com.unicloudapp.common.vo.cloud.CostLimit
@@ -349,7 +349,7 @@ class GroupServiceSpec extends Specification {
     def "should give cloud resource access to group"() {
         given:
         def groupId = GroupId.of(UUID.randomUUID())
-        def CloudVendorConnectorId = CloudVendorConnectorId.of("aws")
+        def CloudVendorConnectorId = CloudConnectorId.of("aws")
         def cloudResourceType = CloudResourceType.of("ec2")
         def group = Mock(Group)
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())

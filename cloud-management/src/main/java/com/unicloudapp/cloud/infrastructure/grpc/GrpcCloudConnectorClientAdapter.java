@@ -2,7 +2,7 @@ package com.unicloudapp.cloud.infrastructure.grpc;
 
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
-import com.unicloudapp.cloud.domain.vendor_connector.CloudVendorClientPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.user.UserLogin;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @Log4j2
 @RequiredArgsConstructor
-class GrpcCloudVendorClientAdapter implements CloudVendorClientPort {
+class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
 
     private final CloudAdapterGrpc.CloudAdapterBlockingStub stub;
 

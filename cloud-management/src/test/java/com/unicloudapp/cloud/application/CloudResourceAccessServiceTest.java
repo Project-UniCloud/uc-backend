@@ -1,13 +1,13 @@
 package com.unicloudapp.cloud.application;
 
-import com.unicloudapp.cloud.application.port.CloudResourceAccessClientRepositoryPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
-import com.unicloudapp.cloud.domain.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
-import com.unicloudapp.cloud.domain.vendor_connector.CloudVendorClientPort;
-import com.unicloudapp.cloud.domain.vendor_connector.CloudVendorConnector;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
+import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupCloudDto;
@@ -41,13 +41,13 @@ class CloudResourceAccessServiceTest {
     NotificationsCommandService notificationsCommandService;
     TaskScheduler taskScheduler;
     CloudResourceAccessRepositoryPort repository;
-    CloudResourceAccessClientRepositoryPort cloudResourceAccessClientRepository;
+    CloudConnectorRepositoryPort cloudResourceAccessClientRepository;
     GroupQueryService groupQueryService;
 
-    CloudVendorClientPort controllerA;
-    CloudVendorClientPort controllerB;
-    CloudVendorConnector clientA;
-    CloudVendorConnector clientB;
+    CloudConnectorClientPort controllerA;
+    CloudConnectorClientPort controllerB;
+    CloudConnector clientA;
+    CloudConnector clientB;
     CloudResourceAccessFactory cloudResourceAccessFactory;
 
     CloudResourceAccessService service;
@@ -56,24 +56,24 @@ class CloudResourceAccessServiceTest {
     void setUp() {
         taskScheduler = mock(TaskScheduler.class);
         repository = mock(CloudResourceAccessRepositoryPort.class);
-        cloudResourceAccessClientRepository = mock(CloudResourceAccessClientRepositoryPort.class);
+        cloudResourceAccessClientRepository = mock(CloudConnectorRepositoryPort.class);
         groupQueryService = mock(GroupQueryService.class);
         notificationsCommandService = mock(NotificationsCommandService.class);
         cloudResourceAccessFactory = mock(CloudResourceAccessFactory.class);
 
-        controllerA = mock(CloudVendorClientPort.class);
-        controllerB = mock(CloudVendorClientPort.class);
+        controllerA = mock(CloudConnectorClientPort.class);
+        controllerB = mock(CloudConnectorClientPort.class);
 
-        clientA = CloudVendorConnector.builder()
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("a-client"))
+        clientA = CloudConnector.builder()
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
                 .controller(controllerA)
                 .name("A")
                 .resourceTypes(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")))
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.TEN))
                 .build();
-        clientB = CloudVendorConnector.builder()
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("b-client"))
+        clientB = CloudConnector.builder()
+                .cloudConnectorId(CloudConnectorId.of("b-client"))
                 .controller(controllerB)
                 .name("B")
                 .resourceTypes(List.of(CloudResourceType.of("S3")))
@@ -81,9 +81,9 @@ class CloudResourceAccessServiceTest {
                 .defaultCostLimit(CostLimit.of(BigDecimal.ONE))
                 .build();
 
-        when(cloudResourceAccessClientRepository.findByClientId(CloudVendorConnectorId.of("b-client")))
+        when(cloudResourceAccessClientRepository.findByClientId(CloudConnectorId.of("b-client")))
                 .thenReturn(Optional.ofNullable(clientB));
-        when(cloudResourceAccessClientRepository.findByClientId(CloudVendorConnectorId.of("a-client")))
+        when(cloudResourceAccessClientRepository.findByClientId(CloudConnectorId.of("a-client")))
                 .thenReturn(Optional.ofNullable(clientA));
         when(cloudResourceAccessClientRepository.findAll()).thenReturn(List.of(clientA, clientB));
 
@@ -93,27 +93,27 @@ class CloudResourceAccessServiceTest {
     @Test
     @DisplayName("isCloudClientExists returns true/false")
     void isCloudClientExists() {
-        assertTrue(service.isCloudClientExists(CloudVendorConnectorId.of("a-client")));
-        assertFalse(service.isCloudClientExists(CloudVendorConnectorId.of("missing")));
+        assertTrue(service.isCloudClientExists(CloudConnectorId.of("a-client")));
+        assertFalse(service.isCloudClientExists(CloudConnectorId.of("missing")));
     }
 
     @Test
     @DisplayName("isRunning delegates to controller when client exists; throws when not")
     void isRunning_behavior() {
         when(controllerA.isRunning()).thenReturn(true);
-        assertTrue(service.isRunning(CloudVendorConnectorId.of("a-client")));
+        assertTrue(service.isRunning(CloudConnectorId.of("a-client")));
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.isRunning(CloudVendorConnectorId.of("missing")));
+                () -> service.isRunning(CloudConnectorId.of("missing")));
         assertTrue(ex.getMessage().contains("does not exist"));
     }
 
     @Test
     @DisplayName("getCloudResourceTypesForCloudResourceAccessClient returns types; throws when client missing")
     void getCloudResourceTypesForCloudResourceAccessClient_behavior() {
-        List<CloudResourceType> types = service.getCloudResourceTypesForCloudResourceAccessClient(CloudVendorConnectorId.of("a-client"));
+        List<CloudResourceType> types = service.getCloudResourceTypesForCloudResourceAccessClient(CloudConnectorId.of("a-client"));
         assertEquals(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")), types);
         assertThrows(IllegalArgumentException.class,
-                () -> service.getCloudResourceTypesForCloudResourceAccessClient(CloudVendorConnectorId.of("missing")));
+                () -> service.getCloudResourceTypesForCloudResourceAccessClient(CloudConnectorId.of("missing")));
     }
 
     @Test
@@ -121,7 +121,7 @@ class CloudResourceAccessServiceTest {
     void getCloudResourceTypes_maps() {
         CloudResourceAccess cra1 = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("a-client"))
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -131,7 +131,7 @@ class CloudResourceAccessServiceTest {
                 .build();
         CloudResourceAccess cra2 = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("b-client"))
+                .cloudConnectorId(CloudConnectorId.of("b-client"))
                 .cloudResourceType(CloudResourceType.of("EC2"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -151,9 +151,9 @@ class CloudResourceAccessServiceTest {
     void isCloudGroupExists_behavior() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         when(controllerA.isCloudGroupExists(group)).thenReturn(true);
-        assertTrue(service.isCloudGroupExists(group, CloudVendorConnectorId.of("a-client")));
+        assertTrue(service.isCloudGroupExists(group, CloudConnectorId.of("a-client")));
         assertThrows(IllegalArgumentException.class,
-                () -> service.isCloudGroupExists(group, CloudVendorConnectorId.of("missing")));
+                () -> service.isCloudGroupExists(group, CloudConnectorId.of("missing")));
     }
 
     @Test
@@ -161,7 +161,7 @@ class CloudResourceAccessServiceTest {
     void getCloudResourceDetails_maps() {
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("a-client"))
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.of(new BigDecimal("123.45")))
                 .usedLimit(UsedLimit.of(new BigDecimal("10")))
@@ -189,7 +189,7 @@ class CloudResourceAccessServiceTest {
     void getCloudResourceAccesses_queries() {
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("a-client"))
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -197,15 +197,15 @@ class CloudResourceAccessServiceTest {
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
-        when(repository.findAllByCloudClientIdAndResourceType(eq(CloudVendorConnectorId.of("a-client")), eq(CloudResourceType.of("S3"))))
+        when(repository.findAllByCloudClientIdAndResourceType(eq(CloudConnectorId.of("a-client")), eq(CloudResourceType.of("S3"))))
                 .thenReturn(Set.of(cra));
-        when(repository.findAllByCloudClientId(eq(CloudVendorConnectorId.of("a-client"))))
+        when(repository.findAllByCloudClientId(eq(CloudConnectorId.of("a-client"))))
                 .thenReturn(Set.of(cra));
 
         assertEquals(Set.of(cra.getCloudResourceAccessId()),
-                service.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudVendorConnectorId.of("a-client"), CloudResourceType.of("S3")));
+                service.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudConnectorId.of("a-client"), CloudResourceType.of("S3")));
         assertEquals(Set.of(cra.getCloudResourceAccessId()),
-                service.getCloudResourceAccessesByCloudClientId(CloudVendorConnectorId.of("a-client")));
+                service.getCloudResourceAccessesByCloudClientId(CloudConnectorId.of("a-client")));
     }
 
     @Test
@@ -226,18 +226,18 @@ class CloudResourceAccessServiceTest {
         when(cloudResourceAccessFactory.create(any(), any(), any(), any(), any(), any()))
                 .thenReturn(CloudResourceAccess.builder()
                         .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                        .cloudVendorConnectorId(CloudVendorConnectorId.of("a-client"))
+                        .cloudConnectorId(CloudConnectorId.of("a-client"))
                         .cloudResourceType(type)
                         .costLimit(limit)
                         .usedLimit(UsedLimit.empty())
                         .cronExpression(clientA.getCronExpression())
                         .build());
 
-        CloudResourceAccessId returnedId = service.giveGroupCloudResourceAccess(CloudVendorConnectorId.of("a-client"), type, group, limit);
+        CloudResourceAccessId returnedId = service.giveGroupCloudResourceAccess(CloudConnectorId.of("a-client"), type, group, limit);
 
         CloudResourceAccess saved = savedCaptor.getValue();
         assertNotNull(saved);
-        assertEquals("a-client", saved.getCloudVendorConnectorId().id());
+        assertEquals("a-client", saved.getCloudConnectorId().id());
         assertEquals(type, saved.getCloudResourceType());
         assertEquals(limit, saved.getCostLimit());
         assertEquals(clientA.getCronExpression(), saved.getCronExpression());
@@ -253,10 +253,10 @@ class CloudResourceAccessServiceTest {
 
         // Unsupported type
         assertThrows(IllegalArgumentException.class, () ->
-                service.giveGroupCloudResourceAccess(CloudVendorConnectorId.of("b-client"), CloudResourceType.of("EC2"), group, limit));
+                service.giveGroupCloudResourceAccess(CloudConnectorId.of("b-client"), CloudResourceType.of("EC2"), group, limit));
         // Missing client
         assertThrows(IllegalArgumentException.class, () ->
-                service.giveGroupCloudResourceAccess(CloudVendorConnectorId.of("missing"), type, group, limit));
+                service.giveGroupCloudResourceAccess(CloudConnectorId.of("missing"), type, group, limit));
     }
 
     @Test
@@ -264,24 +264,24 @@ class CloudResourceAccessServiceTest {
     void createGroup_behavior() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         List<Map.Entry<UserLogin, Email>> lecturers = List.of(Map.entry(UserLogin.of("john"), Email.empty()));
-        service.createGroup(group, CloudVendorConnectorId.of("a-client"), lecturers, CloudResourceType.of("EC2"));
+        service.createGroup(group, CloudConnectorId.of("a-client"), lecturers, CloudResourceType.of("EC2"));
         List<UserLogin> lecturerLogins = lecturers.stream()
                 .map(Map.Entry::getKey)
                 .toList();
         verify(controllerA).createGroup(group, lecturerLogins, CloudResourceType.of("EC2"));
         assertThrows(IllegalArgumentException.class, () ->
-                service.createGroup(group, CloudVendorConnectorId.of("missing"), lecturers, CloudResourceType.of("EC2")));
+                service.createGroup(group, CloudConnectorId.of("missing"), lecturers, CloudResourceType.of("EC2")));
     }
 
     @Test
     @DisplayName("getCloudResourceAccessClients returns sorted page and details lookup works")
     void clients_listing_and_details() {
-        Page<CloudVendorConnector> page = service.getCloudResourceAccessClients(PageRequest.of(0, 10));
-        List<CloudVendorConnector> list = page.getContent();
+        Page<CloudConnector> page = service.getCloudResourceAccessClients(PageRequest.of(0, 10));
+        List<CloudConnector> list = page.getContent();
         // Sorted by id string: a-client then b-client
-        assertEquals("a-client", list.get(0).getCloudVendorConnectorId().id());
-        assertEquals("b-client", list.get(1).getCloudVendorConnectorId().id());
-        assertSame(clientA, service.getCloudResourceAccessClientDetails(CloudVendorConnectorId.of("a-client")));
+        assertEquals("a-client", list.get(0).getCloudConnectorId().id());
+        assertEquals("b-client", list.get(1).getCloudConnectorId().id());
+        assertSame(clientA, service.getCloudResourceAccessClientDetails(CloudConnectorId.of("a-client")));
     }
 
     @Test
@@ -290,7 +290,7 @@ class CloudResourceAccessServiceTest {
         List<Map.Entry<UserLogin, Email>> users = List.of(Map.entry(UserLogin.of("u1"), Email.empty()));
         List<UserLogin> logins = users.stream().map(Map.Entry::getKey).toList();
         when(controllerB.createUsers(logins, GroupUniqueName.fromString("AI 2024L"))).thenReturn("ok");
-        String res = service.createUsers(CloudVendorConnectorId.of("b-client"), users, GroupUniqueName.fromString("AI 2024L"));
+        String res = service.createUsers(CloudConnectorId.of("b-client"), users, GroupUniqueName.fromString("AI 2024L"));
         assertEquals("ok", res);
         verify(controllerB).createUsers(logins, GroupUniqueName.fromString("AI 2024L"));
     }
@@ -304,7 +304,7 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudVendorConnectorId(CloudVendorConnectorId.of("a-client"))
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
                 .cloudResourceType(clientA.getResourceTypes().getFirst())
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -313,7 +313,7 @@ class CloudResourceAccessServiceTest {
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
-        when(repository.findAllByCloudClientIdAndResourceType(clientA.getCloudVendorConnectorId(), clientA.getResourceTypes().getFirst()))
+        when(repository.findAllByCloudClientIdAndResourceType(clientA.getCloudConnectorId(), clientA.getResourceTypes().getFirst()))
                 .thenReturn(Set.of(cra));
         when(repository.findAllById(Set.of(cra.getCloudResourceAccessId()))).thenReturn(List.of(cra));
 
@@ -334,7 +334,7 @@ class CloudResourceAccessServiceTest {
         // Prepare repository active map returning our CloudResourceAccess
         CloudResourceAccess access = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudVendorConnectorId(clientA.getCloudVendorConnectorId())
+                .cloudConnectorId(clientA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -366,7 +366,7 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess existing = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudVendorConnectorId(clientA.getCloudVendorConnectorId())
+                .cloudConnectorId(clientA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.of(new BigDecimal("10")))
                 .usedLimit(UsedLimit.empty())
@@ -422,7 +422,7 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess existing = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudVendorConnectorId(clientA.getCloudVendorConnectorId())
+                .cloudConnectorId(clientA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -461,7 +461,7 @@ class CloudResourceAccessServiceTest {
         CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
         CloudResourceAccess existing = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudVendorConnectorId(clientA.getCloudVendorConnectorId())
+                .cloudConnectorId(clientA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -507,7 +507,7 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess accessA = CloudResourceAccess.builder()
                 .cloudResourceAccessId(idA)
-                .cloudVendorConnectorId(clientA.getCloudVendorConnectorId())
+                .cloudConnectorId(clientA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -518,7 +518,7 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess accessB = CloudResourceAccess.builder()
                 .cloudResourceAccessId(idB)
-                .cloudVendorConnectorId(clientB.getCloudVendorConnectorId())
+                .cloudConnectorId(clientB.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -548,7 +548,7 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess accessA = CloudResourceAccess.builder()
                 .cloudResourceAccessId(idA)
-                .cloudVendorConnectorId(clientA.getCloudVendorConnectorId())
+                .cloudConnectorId(clientA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
@@ -588,7 +588,7 @@ class CloudResourceAccessServiceTest {
     @DisplayName("removeGroup delegates to controller when client exists")
     void removeGroup_delegates() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
-        service.removeGroup(group, CloudVendorConnectorId.of("a-client"));
+        service.removeGroup(group, CloudConnectorId.of("a-client"));
         verify(controllerA).removeGroup(group);
     }
 
@@ -597,7 +597,7 @@ class CloudResourceAccessServiceTest {
     void removeGroup_missingClient_throws() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> service.removeGroup(group, CloudVendorConnectorId.of("missing")));
+                () -> service.removeGroup(group, CloudConnectorId.of("missing")));
         assertTrue(ex.getMessage().contains("CloudVendorConnectorId"));
         assertTrue(ex.getMessage().contains("does not exist"));
     }

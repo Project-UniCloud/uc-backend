@@ -2,8 +2,8 @@ package com.unicloudapp.cloud.infrastructure.persistence;
 
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
-import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import lombok.RequiredArgsConstructor;
@@ -47,18 +47,18 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 
     @Override
     public Set<CloudResourceAccess> findAllByCloudClientIdAndResourceType(
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             CloudResourceType resourceType
     ) {
-        return repository.findAllByCloudVendorConnectorIdAndResourceType(cloudVendorConnectorId.id(), resourceType.getName())
+        return repository.findAllByCloudVendorConnectorIdAndResourceType(cloudConnectorId.id(), resourceType.getName())
                 .stream()
                 .map(CloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public Set<CloudResourceAccess> findAllByCloudClientId(CloudVendorConnectorId cloudVendorConnectorId) {
-        return repository.findAllByCloudVendorConnectorId(cloudVendorConnectorId.id())
+    public Set<CloudResourceAccess> findAllByCloudClientId(CloudConnectorId cloudConnectorId) {
+        return repository.findAllByCloudVendorConnectorId(cloudConnectorId.id())
                 .stream()
                 .map(CloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());

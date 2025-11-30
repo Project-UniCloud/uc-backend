@@ -1,4 +1,4 @@
-package com.unicloudapp.cloud.domain.vendor_connector;
+package com.unicloudapp.cloud.application.port;
 
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-public interface CloudVendorClientPort {
+public interface CloudConnectorClientPort {
 
     void createGroup(
             GroupUniqueName groupUniqueName,

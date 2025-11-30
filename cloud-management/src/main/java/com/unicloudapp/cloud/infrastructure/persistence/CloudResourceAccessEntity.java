@@ -1,6 +1,6 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.cloud.domain.access.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

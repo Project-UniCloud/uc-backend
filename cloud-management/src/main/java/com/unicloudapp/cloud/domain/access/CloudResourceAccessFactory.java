@@ -1,26 +1,27 @@
 package com.unicloudapp.cloud.domain.access;
 
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.cloud.domain.ExpiresDate;
-import com.unicloudapp.cloud.domain.NotificationLevel;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.NotificationLevel;
 import org.springframework.scheduling.support.CronExpression;
 
 public class CloudResourceAccessFactory {
 
     public CloudResourceAccess create(
             CloudResourceAccessId cloudResourceAccessId,
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             CloudResourceType cloudResourceType,
             CostLimit costLimit,
             CronExpression cronExpression,
             ExpiresDate expiresAt
     ) {
-        if (!isValid(cloudResourceAccessId, cloudVendorConnectorId, cloudResourceType, costLimit)) {
+        if (!isValid(cloudResourceAccessId, cloudConnectorId, cloudResourceType, costLimit)) {
             throw new IllegalArgumentException("Invalid parameters for creating CloudResourceAccess");
         }
         return CloudResourceAccess.builder()
                 .cloudResourceAccessId(cloudResourceAccessId)
-                .cloudVendorConnectorId(cloudVendorConnectorId)
+                .cloudConnectorId(cloudConnectorId)
                 .cloudResourceType(cloudResourceType)
                 .costLimit(costLimit)
                 .usedLimit(UsedLimit.empty())
@@ -35,12 +36,12 @@ public class CloudResourceAccessFactory {
 
     private boolean isValid(
             CloudResourceAccessId cloudResourceAccessId,
-            CloudVendorConnectorId cloudVendorConnectorId,
+            CloudConnectorId cloudConnectorId,
             CloudResourceType cloudResourceType,
             CostLimit costLimit
     ) {
         return cloudResourceAccessId != null &&
-                cloudVendorConnectorId != null &&
+                cloudConnectorId != null &&
                 cloudResourceType != null &&
                 costLimit != null;
     }
