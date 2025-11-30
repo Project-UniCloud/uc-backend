@@ -17,7 +17,7 @@ record CloudConnectorRowView(
 @Builder
 record CloudConnectorDetailsDto(
         String cloudConnectorId,
-        String name,
+        String cloudConnectorName,
         BigDecimal costLimit,
         String defaultCronExpression,
         boolean isActive
