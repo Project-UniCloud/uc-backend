@@ -36,7 +36,7 @@ class CloudResourceAccessMapperTest {
 
         CloudResourceAccessEntity entity = CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(id)
-                .CloudVendorConnectorId(clientId)
+                .cloudConnectorId(clientId)
                 .resourceType(resourceType)
                 .costLimit(costLimit)
                 .usedLimit(usedLimit)
@@ -90,7 +90,7 @@ class CloudResourceAccessMapperTest {
 
         // then
         assertThat(entity.getCloudResourceAccessId()).isEqualTo(id);
-        assertThat(entity.getCloudVendorConnectorId()).isEqualTo(clientId);
+        assertThat(entity.getCloudConnectorId()).isEqualTo(clientId);
         assertThat(entity.getResourceType()).isEqualTo(resourceType);
         assertThat(entity.getCostLimit()).isEqualByComparingTo(costLimit);
         assertThat(entity.getUsedLimit()).isEqualByComparingTo(usedLimit);
@@ -123,7 +123,7 @@ class CloudResourceAccessMapperTest {
 
         CloudResourceAccessEntity entity = CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(id)
-                .CloudVendorConnectorId(clientId)
+                .cloudConnectorId(clientId)
                 .resourceType(resourceType)
                 .costLimit(costLimit)
                 .usedLimit(usedLimit)

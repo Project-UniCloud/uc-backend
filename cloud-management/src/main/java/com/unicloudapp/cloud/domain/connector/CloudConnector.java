@@ -28,6 +28,9 @@ public class CloudConnector {
     }
 
     public void addResourceType(CloudResourceType resourceType) {
+        if (containsResourceType(resourceType)) {
+            return;
+        }
         resourceTypes.add(resourceType);
     }
 }

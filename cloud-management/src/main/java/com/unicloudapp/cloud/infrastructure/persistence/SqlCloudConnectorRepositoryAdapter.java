@@ -34,5 +34,5 @@ class SqlCloudConnectorRepositoryAdapter implements CloudConnectorRepositoryPort
 }
 
 @Repository
-interface CloudResourceAccessClientJpaRepository extends JpaRepository<CloudAccessClientEntity, String> {
+interface CloudResourceAccessClientJpaRepository extends JpaRepository<CloudConnectorEntity, String> {
 }

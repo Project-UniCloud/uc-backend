@@ -22,7 +22,7 @@ class CloudResourceAccessEntity {
     private UUID cloudResourceAccessId;
 
     @Column(nullable = false)
-    private String CloudVendorConnectorId;
+    private String cloudConnectorId;
 
     @Column(nullable = false)
     private String resourceType;

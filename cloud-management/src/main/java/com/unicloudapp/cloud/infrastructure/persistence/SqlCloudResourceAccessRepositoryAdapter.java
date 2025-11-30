@@ -50,7 +50,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
             CloudConnectorId cloudConnectorId,
             CloudResourceType resourceType
     ) {
-        return repository.findAllByCloudVendorConnectorIdAndResourceType(cloudConnectorId.id(), resourceType.getName())
+        return repository.findAllByCloudConnectorIdAndResourceType(cloudConnectorId.id(), resourceType.getName())
                 .stream()
                 .map(CloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
@@ -58,7 +58,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 
     @Override
     public Set<CloudResourceAccess> findAllByCloudClientId(CloudConnectorId cloudConnectorId) {
-        return repository.findAllByCloudVendorConnectorId(cloudConnectorId.id())
+        return repository.findAllByCloudConnectorId(cloudConnectorId.id())
                 .stream()
                 .map(CloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
@@ -85,12 +85,12 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 @Repository
 interface CloudResourceAccessJpaRepository extends JpaRepository<CloudResourceAccessEntity, UUID> {
 
-    Set<CloudResourceAccessEntity> findAllByCloudVendorConnectorIdAndResourceType(
+    Set<CloudResourceAccessEntity> findAllByCloudConnectorIdAndResourceType(
             String CloudVendorConnectorId,
             String resourceType
     );
 
-    Set<CloudResourceAccessEntity> findAllByCloudVendorConnectorId(String CloudVendorConnectorId);
+    Set<CloudResourceAccessEntity> findAllByCloudConnectorId(String CloudVendorConnectorId);
 
     Set<CloudResourceAccessEntity> findAllByStatus(CloudResourcesAccessStatus.Status status);
 }

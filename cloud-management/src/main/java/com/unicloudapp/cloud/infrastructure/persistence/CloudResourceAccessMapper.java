@@ -13,7 +13,7 @@ class CloudResourceAccessMapper {
     CloudResourceAccess toDomain(CloudResourceAccessEntity entity) {
         return CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(entity.getCloudResourceAccessId()))
-                .cloudConnectorId(CloudConnectorId.of(entity.getCloudVendorConnectorId()))
+                .cloudConnectorId(CloudConnectorId.of(entity.getCloudConnectorId()))
                 .cloudResourceType(CloudResourceType.of(entity.getResourceType()))
                 .costLimit(CostLimit.of(entity.getCostLimit()))
                 .usedLimit(UsedLimit.of(entity.getUsedLimit()))
@@ -26,7 +26,7 @@ class CloudResourceAccessMapper {
     CloudResourceAccessEntity toEntity(CloudResourceAccess domain) {
         return CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(domain.getCloudResourceAccessId().getValue())
-                .CloudVendorConnectorId(domain.getCloudConnectorId().id())
+                .cloudConnectorId(domain.getCloudConnectorId().id())
                 .resourceType(domain.getCloudResourceType().getName())
                 .costLimit(domain.getCostLimit().getCost())
                 .cronExpression(domain.getCronExpression().toString())

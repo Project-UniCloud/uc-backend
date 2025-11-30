@@ -1,5 +1,6 @@
 package com.unicloudapp.cloud.application;
 
+import com.unicloudapp.cloud.application.port.CloudConnectorClientFactoryPort;
 import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.TaskScheduler;
@@ -44,11 +46,12 @@ class CloudResourceAccessServiceTest {
     CloudConnectorRepositoryPort cloudResourceAccessClientRepository;
     GroupQueryService groupQueryService;
 
-    CloudConnectorClientPort controllerA;
-    CloudConnectorClientPort controllerB;
-    CloudConnector clientA;
-    CloudConnector clientB;
+    CloudConnectorClientPort cloudConnectorClientA;
+    CloudConnectorClientPort cloudConnectorClientB;
+    CloudConnector cloudConnectorA;
+    CloudConnector cloudConnectorB;
     CloudResourceAccessFactory cloudResourceAccessFactory;
+    CloudConnectorClientFactoryPort cloudControllerClientFactoryPort;
 
     CloudResourceAccessService service;
 
@@ -60,34 +63,51 @@ class CloudResourceAccessServiceTest {
         groupQueryService = mock(GroupQueryService.class);
         notificationsCommandService = mock(NotificationsCommandService.class);
         cloudResourceAccessFactory = mock(CloudResourceAccessFactory.class);
+        cloudControllerClientFactoryPort = mock(CloudConnectorClientFactoryPort.class);
 
-        controllerA = mock(CloudConnectorClientPort.class);
-        controllerB = mock(CloudConnectorClientPort.class);
+        cloudConnectorClientA = mock(CloudConnectorClientPort.class);
+        cloudConnectorClientB = mock(CloudConnectorClientPort.class);
 
-        clientA = CloudConnector.builder()
+        when(cloudControllerClientFactoryPort.create("localhost", 1234))
+                .thenReturn(cloudConnectorClientA);
+        when(cloudControllerClientFactoryPort.create("localhost", 1235))
+                .thenReturn(cloudConnectorClientB);
+
+        cloudConnectorA = CloudConnector.builder()
                 .cloudConnectorId(CloudConnectorId.of("a-client"))
-                .controller(controllerA)
                 .name("A")
+                .host("localhost")
+                .port(1234)
                 .resourceTypes(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")))
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.TEN))
                 .build();
-        clientB = CloudConnector.builder()
+        cloudConnectorB = CloudConnector.builder()
                 .cloudConnectorId(CloudConnectorId.of("b-client"))
-                .controller(controllerB)
                 .name("B")
+                .host("localhost")
+                .port(1235)
                 .resourceTypes(List.of(CloudResourceType.of("S3")))
                 .cronExpression(CronExpression.parse("0 */5 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.ONE))
                 .build();
 
         when(cloudResourceAccessClientRepository.findByClientId(CloudConnectorId.of("b-client")))
-                .thenReturn(Optional.ofNullable(clientB));
+                .thenReturn(Optional.ofNullable(cloudConnectorB));
         when(cloudResourceAccessClientRepository.findByClientId(CloudConnectorId.of("a-client")))
-                .thenReturn(Optional.ofNullable(clientA));
-        when(cloudResourceAccessClientRepository.findAll()).thenReturn(List.of(clientA, clientB));
+                .thenReturn(Optional.ofNullable(cloudConnectorA));
+        when(cloudResourceAccessClientRepository.findAll()).thenReturn(List.of(cloudConnectorA, cloudConnectorB));
 
-        service = new CloudResourceAccessService(taskScheduler, cloudResourceAccessClientRepository, repository, groupQueryService, notificationsCommandService, cloudResourceAccessFactory);
+        service = new CloudResourceAccessService(
+                taskScheduler,
+                cloudResourceAccessClientRepository,
+                repository,
+                groupQueryService,
+                notificationsCommandService,
+                cloudResourceAccessFactory,
+                cloudControllerClientFactoryPort
+        );
+        service.init();
     }
 
     @Test
@@ -100,7 +120,7 @@ class CloudResourceAccessServiceTest {
     @Test
     @DisplayName("isRunning delegates to controller when client exists; throws when not")
     void isRunning_behavior() {
-        when(controllerA.isRunning()).thenReturn(true);
+        when(cloudConnectorClientA.isRunning()).thenReturn(true);
         assertTrue(service.isRunning(CloudConnectorId.of("a-client")));
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
                 () -> service.isRunning(CloudConnectorId.of("missing")));
@@ -150,7 +170,7 @@ class CloudResourceAccessServiceTest {
     @DisplayName("isCloudGroupExists delegates; throws when client missing")
     void isCloudGroupExists_behavior() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
-        when(controllerA.isCloudGroupExists(group)).thenReturn(true);
+        when(cloudConnectorClientA.isCloudGroupExists(group)).thenReturn(true);
         assertTrue(service.isCloudGroupExists(group, CloudConnectorId.of("a-client")));
         assertThrows(IllegalArgumentException.class,
                 () -> service.isCloudGroupExists(group, CloudConnectorId.of("missing")));
@@ -230,7 +250,7 @@ class CloudResourceAccessServiceTest {
                         .cloudResourceType(type)
                         .costLimit(limit)
                         .usedLimit(UsedLimit.empty())
-                        .cronExpression(clientA.getCronExpression())
+                        .cronExpression(cloudConnectorA.getCronExpression())
                         .build());
 
         CloudResourceAccessId returnedId = service.giveGroupCloudResourceAccess(CloudConnectorId.of("a-client"), type, group, limit);
@@ -240,16 +260,16 @@ class CloudResourceAccessServiceTest {
         assertEquals("a-client", saved.getCloudConnectorId().id());
         assertEquals(type, saved.getCloudResourceType());
         assertEquals(limit, saved.getCostLimit());
-        assertEquals(clientA.getCronExpression(), saved.getCronExpression());
+        assertEquals(cloudConnectorA.getCronExpression(), saved.getCronExpression());
         assertEquals(saved.getCloudResourceAccessId(), returnedId);
 
         // Scheduled trigger based on client's cron
-        assertEquals(clientA.getCronExpression().toString(), triggerCaptor.getValue().getExpression());
+        assertEquals(cloudConnectorA.getCronExpression().toString(), triggerCaptor.getValue().getExpression());
 
         // Run the scheduled cleanup and verify controller cleanup
-        when(controllerA.isRunning()).thenReturn(true); // not required but present
+        when(cloudConnectorClientA.isRunning()).thenReturn(true); // not required but present
         runnableCaptor.getValue().run();
-        verify(controllerA).cleanUpResources(group, false);
+        verify(cloudConnectorClientA).cleanUpResources(group, false);
 
         // Unsupported type
         assertThrows(IllegalArgumentException.class, () ->
@@ -268,7 +288,7 @@ class CloudResourceAccessServiceTest {
         List<UserLogin> lecturerLogins = lecturers.stream()
                 .map(Map.Entry::getKey)
                 .toList();
-        verify(controllerA).createGroup(group, lecturerLogins, CloudResourceType.of("EC2"));
+        verify(cloudConnectorClientA).createGroup(group, lecturerLogins, CloudResourceType.of("EC2"));
         assertThrows(IllegalArgumentException.class, () ->
                 service.createGroup(group, CloudConnectorId.of("missing"), lecturers, CloudResourceType.of("EC2")));
     }
@@ -281,7 +301,7 @@ class CloudResourceAccessServiceTest {
         // Sorted by id string: a-client then b-client
         assertEquals("a-client", list.get(0).getCloudConnectorId().id());
         assertEquals("b-client", list.get(1).getCloudConnectorId().id());
-        assertSame(clientA, service.getCloudResourceAccessClientDetails(CloudConnectorId.of("a-client")));
+        assertSame(cloudConnectorA, service.getCloudResourceAccessClientDetails(CloudConnectorId.of("a-client")));
     }
 
     @Test
@@ -289,10 +309,10 @@ class CloudResourceAccessServiceTest {
     void createUsers_delegate() {
         List<Map.Entry<UserLogin, Email>> users = List.of(Map.entry(UserLogin.of("u1"), Email.empty()));
         List<UserLogin> logins = users.stream().map(Map.Entry::getKey).toList();
-        when(controllerB.createUsers(logins, GroupUniqueName.fromString("AI 2024L"))).thenReturn("ok");
+        when(cloudConnectorClientB.createUsers(logins, GroupUniqueName.fromString("AI 2024L"))).thenReturn("ok");
         String res = service.createUsers(CloudConnectorId.of("b-client"), users, GroupUniqueName.fromString("AI 2024L"));
         assertEquals("ok", res);
-        verify(controllerB).createUsers(logins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudConnectorClientB).createUsers(logins, GroupUniqueName.fromString("AI 2024L"));
     }
 
     @Test
@@ -300,20 +320,20 @@ class CloudResourceAccessServiceTest {
     void updateCostUsed_updatesAndSaves() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         UsedLimit newUsed = UsedLimit.of(new BigDecimal("42"));
-        when(controllerA.updateUsedCost(any(), any())).thenReturn(Map.of(group, newUsed));
+        when(cloudConnectorClientA.updateUsedCost(any(), any())).thenReturn(Map.of(group, newUsed));
 
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
                 .cloudConnectorId(CloudConnectorId.of("a-client"))
-                .cloudResourceType(clientA.getResourceTypes().getFirst())
+                .cloudResourceType(cloudConnectorA.getResourceTypes().getFirst())
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
-        when(repository.findAllByCloudClientIdAndResourceType(clientA.getCloudConnectorId(), clientA.getResourceTypes().getFirst()))
+        when(repository.findAllByCloudClientIdAndResourceType(cloudConnectorA.getCloudConnectorId(), cloudConnectorA.getResourceTypes().getFirst()))
                 .thenReturn(Set.of(cra));
         when(repository.findAllById(Set.of(cra.getCloudResourceAccessId()))).thenReturn(List.of(cra));
 
@@ -334,11 +354,11 @@ class CloudResourceAccessServiceTest {
         // Prepare repository active map returning our CloudResourceAccess
         CloudResourceAccess access = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudConnectorId(clientA.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
@@ -353,7 +373,7 @@ class CloudResourceAccessServiceTest {
 
         // Execute scheduled runnable and verify cleanup
         runnableCaptor.getValue().run();
-        verify(controllerA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), false);
+        verify(cloudConnectorClientA).cleanUpResources(GroupUniqueName.fromString("AI 2024L"), false);
     }
 
     @Test
@@ -366,11 +386,11 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess existing = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudConnectorId(clientA.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.of(new BigDecimal("10")))
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
@@ -422,11 +442,11 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess existing = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudConnectorId(clientA.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(7)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
@@ -461,11 +481,11 @@ class CloudResourceAccessServiceTest {
         CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
         CloudResourceAccess existing = CloudResourceAccess.builder()
                 .cloudResourceAccessId(accessId)
-                .cloudConnectorId(clientA.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(3)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE))
                 .build();
@@ -507,22 +527,22 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess accessA = CloudResourceAccess.builder()
                 .cloudResourceAccessId(idA)
-                .cloudConnectorId(clientA.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(10)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
         CloudResourceAccess accessB = CloudResourceAccess.builder()
                 .cloudResourceAccessId(idB)
-                .cloudConnectorId(clientB.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorB.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientB.getCronExpression())
+                .cronExpression(cloudConnectorB.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(5)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
@@ -535,8 +555,8 @@ class CloudResourceAccessServiceTest {
 
         // Assert
         verify(repository).findAllById(ids);
-        verify(controllerA).cleanUpResources(group, false);
-        verify(controllerB).cleanUpResources(group, false);
+        verify(cloudConnectorClientA).cleanUpResources(group, false);
+        verify(cloudConnectorClientB).cleanUpResources(group, false);
     }
 
     @Test
@@ -548,11 +568,11 @@ class CloudResourceAccessServiceTest {
 
         CloudResourceAccess accessA = CloudResourceAccess.builder()
                 .cloudResourceAccessId(idA)
-                .cloudConnectorId(clientA.getCloudConnectorId())
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
                 .cloudResourceType(CloudResourceType.of("S3"))
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
-                .cronExpression(clientA.getCronExpression())
+                .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(10)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
@@ -565,7 +585,7 @@ class CloudResourceAccessServiceTest {
 
         // Assert
         verify(repository).findAllById(ids);
-        verify(controllerA).cleanUpResources(group, true);
+        verify(cloudConnectorClientA).cleanUpResources(group, true);
     }
 
     @Test
@@ -581,7 +601,7 @@ class CloudResourceAccessServiceTest {
 
         // Assert
         verify(repository).findAllById(ids);
-        org.mockito.Mockito.verifyNoInteractions(controllerA, controllerB);
+        Mockito.verifyNoInteractions(cloudConnectorClientB, cloudConnectorClientB);
     }
 
     @Test
@@ -589,7 +609,7 @@ class CloudResourceAccessServiceTest {
     void removeGroup_delegates() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         service.removeGroup(group, CloudConnectorId.of("a-client"));
-        verify(controllerA).removeGroup(group);
+        verify(cloudConnectorClientA).removeGroup(group);
     }
 
     @Test

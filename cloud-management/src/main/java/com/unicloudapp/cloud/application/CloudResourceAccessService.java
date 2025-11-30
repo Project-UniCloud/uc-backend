@@ -76,12 +76,10 @@ public class CloudResourceAccessService
                         )
         );
         cloudConnectorRepositoryPort.findAll()
-                .forEach(cloudConnector -> {
-                    cloudConnectorClients.put(
-                            cloudConnector.getCloudConnectorId(),
-                            cloudConnectorClientFactoryPort.create(cloudConnector.getHost(), cloudConnector.getPort())
-                    );
-                });
+                .forEach(cloudConnector -> cloudConnectorClients.put(
+                        cloudConnector.getCloudConnectorId(),
+                        cloudConnectorClientFactoryPort.create(cloudConnector.getHost(), cloudConnector.getPort())
+                ));
     }
 
     public boolean isRunning(CloudConnectorId cloudConnectorId) {
@@ -293,7 +291,7 @@ public class CloudResourceAccessService
     protected void updateCostUsed() {
         cloudConnectorRepositoryPort.findAll()
                 .forEach(cloudResourceAccessClient -> {
-                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId()).updateUsedCost();
+                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId()).updateUsedCost(LocalDate.EPOCH, LocalDate.now());
                     groupUniqueNameUsedLimitMap.forEach((groupUniqueName, usedLimit) -> {
                         Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
                                 cloudResourceAccessClient.getCloudConnectorId(),

@@ -107,7 +107,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
         // given
         CloudConnectorId clientId = CloudConnectorId.of("client-A");
         CloudResourceType resourceType = CloudResourceType.of("S3");
-        when(repository.findAllByCloudVendorConnectorIdAndResourceType("client-A", "S3")).thenReturn(Set.of(entity1));
+        when(repository.findAllByCloudConnectorIdAndResourceType("client-A", "S3")).thenReturn(Set.of(entity1));
         when(mapper.toDomain(entity1)).thenReturn(domain1);
 
         // when
@@ -115,14 +115,14 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
 
         // then
         assertThat(result).containsExactly(domain1);
-        verify(repository).findAllByCloudVendorConnectorIdAndResourceType("client-A", "S3");
+        verify(repository).findAllByCloudConnectorIdAndResourceType("client-A", "S3");
     }
 
     @Test
     void findAllByCloudClientId_delegates_and_maps() {
         // given
         CloudConnectorId clientId = CloudConnectorId.of("client-B");
-        when(repository.findAllByCloudVendorConnectorId("client-B")).thenReturn(Set.of(entity2));
+        when(repository.findAllByCloudConnectorId("client-B")).thenReturn(Set.of(entity2));
         when(mapper.toDomain(entity2)).thenReturn(domain2);
 
         // when
@@ -130,7 +130,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
 
         // then
         assertThat(result).containsExactly(domain2);
-        verify(repository).findAllByCloudVendorConnectorId("client-B");
+        verify(repository).findAllByCloudConnectorId("client-B");
     }
 
     @Test
@@ -165,8 +165,8 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     void emptyRepositoryResults_returnEmptyCollections() {
         // given
         when(repository.findAllById(any(Iterable.class))).thenReturn(Collections.emptyList());
-        when(repository.findAllByCloudVendorConnectorIdAndResourceType(anyString(), anyString())).thenReturn(Collections.emptySet());
-        when(repository.findAllByCloudVendorConnectorId(anyString())).thenReturn(Collections.emptySet());
+        when(repository.findAllByCloudConnectorIdAndResourceType(anyString(), anyString())).thenReturn(Collections.emptySet());
+        when(repository.findAllByCloudConnectorId(anyString())).thenReturn(Collections.emptySet());
         when(repository.findAllByStatus(any())).thenReturn(Collections.emptySet());
 
         // when / then
@@ -188,7 +188,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
                                             CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(id)
-                .CloudVendorConnectorId(clientId)
+                .cloudConnectorId(clientId)
                 .resourceType(resourceType)
                 .costLimit(cost)
                 .usedLimit(used)

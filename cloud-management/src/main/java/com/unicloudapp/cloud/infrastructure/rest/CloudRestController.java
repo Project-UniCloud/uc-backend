@@ -1,15 +1,16 @@
 package com.unicloudapp.cloud.infrastructure.rest;
 
-import com.unicloudapp.cloud.application.CloudResourceAccessService;
 import com.unicloudapp.cloud.application.CloudConnectorService;
+import com.unicloudapp.cloud.application.CloudResourceAccessService;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,17 +67,32 @@ class CloudRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/connector")
-    @ResponseStatus(HttpStatus.OK)
-    ResponseEntity<Void> postCloudConnector(
+    @ResponseStatus(HttpStatus.CREATED)
+    void postCloudConnector(
             @RequestBody CloudConnectorSaveRequestDto request
     ) {
-        var connector = CloudConnector.builder()
-                .cloudConnectorId(CloudConnectorId.of(request.cloudConnectorId()))
-                .name(request.name())
-                .host(request.host())
-                .port(request.port())
-                .controller()
-                .build();
-        cloudConnectorService.createConnector();
+        cloudConnectorService.createConnector(
+                CloudConnectorId.of(request.cloudConnectorId()),
+                request.host(),
+                request.port(),
+                CostLimit.of(request.defaultCostLimit()),
+                CronExpression.parse(request.cronExpression()),
+                request.name()
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/connector")
+    @ResponseStatus(HttpStatus.OK)
+    void patchCloudConnector(
+            @RequestBody PatchCloudConnectorRequestDto request
+    ) {
+        cloudConnectorService.setResourceType(
+                CloudConnectorId.of(request.cloudConnectorId()),
+                request.resourceTypes()
+                        .stream()
+                        .map(CloudResourceType::of)
+                        .toList()
+        );
     }
 }
