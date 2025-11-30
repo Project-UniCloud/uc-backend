@@ -18,32 +18,41 @@ val grpcVersion = "1.77.0"
 val protobufJavaVersion = "4.33.1"
 val lombokVersion = "1.18.42"
 val javaxAnnotationsVersion = "1.3.2"
+val lombokMapstructBindingVersion = "0.2.0"
+val mapstructVersion = "1.6.2"
+val jakartaAnnotationVersion = "2.1.1"
 
 dependencies {
+    // Implementation dependencies (application runtime + compile)
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation(project(":commons"))
+
+    // gRPC and Protobuf
     implementation("com.google.protobuf:protobuf-java:$protobufJavaVersion")
     implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
-    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
-    implementation(project(":commons"))
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // MapStruct for mappers
-    implementation("org.mapstruct:mapstruct:1.6.2")
-    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.2")
-    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+    // Jakarta annotations API (provided by JDK at runtime; used at compile)
+    implementation("jakarta.annotation:jakarta.annotation-api:$jakartaAnnotationVersion")
 
+    // MapStruct (API + processors for annotation processing)
+    implementation("org.mapstruct:mapstruct:$mapstructVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion")
+
+    // Lombok (compileOnly) and its processor
     compileOnly("org.projectlombok:lombok:$lombokVersion")
-    testCompileOnly("org.projectlombok:lombok:$lombokVersion")
-
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
+    // Test-only dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
+    testCompileOnly("org.projectlombok:lombok:$lombokVersion")
 }
 
 tasks.test {

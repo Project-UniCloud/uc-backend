@@ -29,7 +29,7 @@ interface CloudResourceAccessClientMapper {
                 .cloudConnectorId(entity.getId() != null ? CloudConnectorId.of(entity.getId()) : null)
                 .name(entity.getName())
                 .host(entity.getHost())
-                .port(entity.getPort() != null ? entity.getPort() : null)
+                .port(entity.getPort())
                 .defaultCostLimit(entity.getDefaultCostLimit() != null ? CostLimit.of(entity.getDefaultCostLimit()) : null)
                 .cronExpression(entity.getDefaultCleanUpCron() != null ? CronExpression.parse(entity.getDefaultCleanUpCron()) : null)
                 .resourceTypes(entity.getResourceTypes() != null ? entity.getResourceTypes().stream().map(CloudResourceType::of).toList() : null)
