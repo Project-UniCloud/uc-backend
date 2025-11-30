@@ -17,7 +17,7 @@ import java.util.List;
 class CloudAccessClientEntity {
 
     @Id
-    private String CloudAccessClientId;
+    private String cloudAccessClientId;
 
     @Column(nullable = false)
     private String name;
@@ -35,7 +35,10 @@ class CloudAccessClientEntity {
     private String defaultCleanUpCron;
 
     @ElementCollection
-    @CollectionTable(name = "cloud_resource_types", joinColumns = @JoinColumn(name = "uuid"))
-    @Column(name = "cloud_resource_type_uuid", nullable = false)
+    @CollectionTable(
+            name = "cloud_access_client_resource_types",
+            joinColumns = @JoinColumn(name = "client_id")
+    )
+    @Column(name = "resource_type", nullable = false)
     private List<String> resourceTypes;
 }

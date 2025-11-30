@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,8 +18,8 @@ class SqlCloudResourceAccessClientRepositoryAdapter implements CloudResourceAcce
     private final CloudResourceAccessClientMapper mapper;
 
     @Override
-    public void save(CloudResourceAccessClient CloudResourceAccessClient) {
-        repository.save(mapper.toEntity(CloudResourceAccessClient));
+    public void save(CloudResourceAccessClient cloudResourceAccessClient) {
+        repository.save(mapper.toEntity(cloudResourceAccessClient));
     }
 
     @Override
@@ -27,7 +28,7 @@ class SqlCloudResourceAccessClientRepositoryAdapter implements CloudResourceAcce
     }
 
     @Override
-    public java.util.List<CloudResourceAccessClient> findAll() {
+    public List<CloudResourceAccessClient> findAll() {
         return repository.findAll().stream().map(mapper::toDomain).toList();
     }
 }

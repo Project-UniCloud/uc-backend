@@ -154,18 +154,18 @@ public class CloudResourceAccessService
                                                               GroupUniqueName groupUniqueName,
                                                               CostLimit costLimit
     ) {
-        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+        CloudResourceAccessClient cloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
                 .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
-        if (!CloudResourceAccessClient.containsResourceType(cloudResourceType)) {
+        if (!cloudResourceAccessClient.containsResourceType(cloudResourceType)) {
             throw new IllegalArgumentException("CloudResourceType " + cloudResourceType + " is not supported by client " + CloudAccessClientId);
         }
-        CloudResourceAccess CloudResourceAccess = CloudResourceAccessClient.getCloudResourceAccessFactory()
+        CloudResourceAccess CloudResourceAccess = cloudResourceAccessClient.getCloudResourceAccessFactory()
                 .create(
                         CloudResourceAccessId.of(UUID.randomUUID()),
-                        CloudResourceAccessClient.getCloudAccessClientId(),
+                        cloudResourceAccessClient.getCloudAccessClientId(),
                         cloudResourceType,
                         costLimit,
-                        CloudResourceAccessClient.getCronExpression(),
+                        cloudResourceAccessClient.getCronExpression(),
                         ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
                 );
         cloudResourceAccessRepository.save(CloudResourceAccess);

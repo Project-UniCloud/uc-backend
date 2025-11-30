@@ -35,6 +35,10 @@ public class CloudResourceAccessClient {
         return resourceTypes.contains(resourceType);
     }
 
+    public void addResourceType(CloudResourceType resourceType) {
+        resourceTypes.add(resourceType);
+    }
+
     public void createGroup(
             GroupUniqueName groupUniqueName,
             List<UserLogin> lecturerLogins,

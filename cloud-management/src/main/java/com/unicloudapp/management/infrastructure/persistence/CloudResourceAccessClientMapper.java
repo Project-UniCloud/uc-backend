@@ -13,7 +13,7 @@ public interface CloudResourceAccessClientMapper {
     default CloudAccessClientEntity toEntity(CloudResourceAccessClient domain) {
         if (domain == null) return null;
         return CloudAccessClientEntity.builder()
-                .CloudAccessClientId(domain.getCloudAccessClientId() != null ? domain.getCloudAccessClientId().getValue() : null)
+                .cloudAccessClientId(domain.getCloudAccessClientId() != null ? domain.getCloudAccessClientId().getValue() : null)
                 .name(domain.getName())
                 .host(domain.getHost())
                 .port(parsePort(domain.getPort()))
