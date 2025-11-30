@@ -1,7 +1,7 @@
 package com.unicloudapp.group.application;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import lombok.Builder;
 
 import java.time.LocalDate;

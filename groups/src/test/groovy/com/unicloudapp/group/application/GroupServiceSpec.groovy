@@ -4,7 +4,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService
 import com.unicloudapp.common.cloud.CloudResourceRowView
 import com.unicloudapp.common.vo.Email
-import com.unicloudapp.common.vo.cloud.CloudAccessClientId
+import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId
 import com.unicloudapp.common.vo.cloud.CloudResourceType
 import com.unicloudapp.common.vo.cloud.CostLimit
@@ -18,6 +18,10 @@ import com.unicloudapp.common.vo.user.UserLogin
 import com.unicloudapp.common.user.*
 import com.unicloudapp.group.application.port.GroupRepositoryPort
 import com.unicloudapp.group.domain.*
+import com.unicloudapp.group.domain.vo.Description
+import com.unicloudapp.group.domain.vo.EndDate
+import com.unicloudapp.group.domain.vo.GroupStatus
+import com.unicloudapp.group.domain.vo.StartDate
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
@@ -345,7 +349,7 @@ class GroupServiceSpec extends Specification {
     def "should give cloud resource access to group"() {
         given:
         def groupId = GroupId.of(UUID.randomUUID())
-        def CloudAccessClientId = CloudAccessClientId.of("aws")
+        def CloudVendorConnectorId = CloudVendorConnectorId.of("aws")
         def cloudResourceType = CloudResourceType.of("ec2")
         def group = Mock(Group)
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
@@ -354,7 +358,7 @@ class GroupServiceSpec extends Specification {
         def costLimit = CostLimit.zero()
 
         when:
-        def result = groupService.giveCloudResourceAccess(groupId, CloudAccessClientId, cloudResourceType, costLimit)
+        def result = groupService.grantCloudResourceAccess(groupId, CloudVendorConnectorId, cloudResourceType, costLimit)
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
@@ -362,10 +366,10 @@ class GroupServiceSpec extends Specification {
         1 * group.getSemester() >> Semester.of("2023Z")
         1 * group.getLecturers() >> [UserId.of(UUID.randomUUID())]
         1 * userQueryService.getUserLoginsAndEmailsByIds(_) >> lecturerLogins
-        1 * cloudResourceAccessQueryService.isCloudGroupExists(_, CloudAccessClientId) >> false
-        1 * cloudResourceAccessCommandService.createGroup(_, CloudAccessClientId, lecturerLogins, cloudResourceType)
-        1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(CloudAccessClientId, cloudResourceType, _, costLimit) >> cloudResourceAccessId
-        1 * group.giveCloudResourceAccess(cloudResourceAccessId)
+        1 * cloudResourceAccessQueryService.isCloudGroupExists(_, CloudVendorConnectorId) >> false
+        1 * cloudResourceAccessCommandService.createGroup(_, CloudVendorConnectorId, lecturerLogins, cloudResourceType)
+        1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(CloudVendorConnectorId, cloudResourceType, _, costLimit) >> cloudResourceAccessId
+        1 * group.grantCloudResourceAccess(cloudResourceAccessId)
         1 * groupRepository.save(group)
 
         and:

@@ -150,10 +150,10 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     @Test
     @DisplayName("POST /groups/{id}/cloud-access returns created id")
-    void giveCloudResourceAccess_success() throws Exception {
+    void grantCloudResourceAccess_success() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID created = UUID.randomUUID();
-        when(groupService.giveCloudResourceAccess(eq(GroupId.of(gid)), any(), any(), any())).thenReturn(CloudResourceAccessId.of(created));
+        when(groupService.grantCloudResourceAccess(eq(GroupId.of(gid)), any(), any(), any())).thenReturn(CloudResourceAccessId.of(created));
 
         GiveCloudResourceAccessRequest req = new GiveCloudResourceAccessRequest("clientA", CloudResourceType.of("S3").toString(), BigDecimal.TEN);
 

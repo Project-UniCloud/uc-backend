@@ -7,9 +7,9 @@ import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.user.*;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CloudVendorConnectorId;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
@@ -17,7 +17,12 @@ import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
-import com.unicloudapp.group.domain.*;
+import com.unicloudapp.group.domain.Group;
+import com.unicloudapp.group.domain.GroupFactory;
+import com.unicloudapp.group.domain.vo.Description;
+import com.unicloudapp.group.domain.vo.EndDate;
+import com.unicloudapp.group.domain.vo.GroupStatus;
+import com.unicloudapp.group.domain.vo.StartDate;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -91,7 +96,7 @@ public class GroupService {
                             }
                         }
                         cloudResourceAccessCommandService.createUsers(
-                                CloudAccessClientId.of(s),
+                                CloudVendorConnectorId.of(s),
                                 List.of(Map.entry(UserLogin.of(studentBasicData.getLogin()), email)),
                                 GroupUniqueName.builder()
                                         .semester(group.getSemester())
@@ -150,7 +155,7 @@ public class GroupService {
                     .map(CloudResourceRowView::clientId)
                     .collect(Collectors.toSet());
             collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
-                            CloudAccessClientId.of(s),
+                            CloudVendorConnectorId.of(s),
                             studentBasicData.stream()
                                     .map(studentBasic ->
                                             Map.entry(UserLogin.of(studentBasic.getLogin()), Email.of(studentBasicData.getFirst().getEmail())))
@@ -165,9 +170,10 @@ public class GroupService {
         groupRepository.save(group);
     }
 
-    public CloudResourceAccessId giveCloudResourceAccess(
+    @Transactional
+    public CloudResourceAccessId grantCloudResourceAccess(
             GroupId groupId,
-            CloudAccessClientId CloudAccessClientId,
+            CloudVendorConnectorId cloudVendorConnectorId,
             CloudResourceType cloudResourceType,
             CostLimit costLimit
     ) {
@@ -181,7 +187,7 @@ public class GroupService {
                 .stream()
                 .anyMatch(cloudResourceTypeRowView ->
                         cloudResourceTypeRowView.name().equals(cloudResourceType.getName())
-                                && cloudResourceTypeRowView.clientId().equals(CloudAccessClientId.getValue())
+                                && cloudResourceTypeRowView.clientId().equals(cloudVendorConnectorId.id())
                 );
         if (hasGroupCloudResourceType) {
             throw new RuntimeException("Group already has access to cloud resource type: " + cloudResourceType.getName());
@@ -189,16 +195,16 @@ public class GroupService {
         List<Map.Entry<UserLogin, Email>> lecturers = userQueryService.getUserLoginsAndEmailsByIds(
                 group.getLecturers()
         );
-        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, CloudAccessClientId)) {
-            cloudResourceAccessCommandService.createGroup(groupUniqueName, CloudAccessClientId, lecturers, cloudResourceType);
+        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudVendorConnectorId)) {
+            cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudVendorConnectorId, lecturers, cloudResourceType);
         }
         CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
-                CloudAccessClientId,
+                cloudVendorConnectorId,
                 cloudResourceType,
                 groupUniqueName,
                 costLimit
         );
-        group.giveCloudResourceAccess(cloudResourceAccessId);
+        group.grantCloudResourceAccess(cloudResourceAccessId);
         groupRepository.save(group);
         return cloudResourceAccessId;
     }
@@ -309,7 +315,7 @@ public class GroupService {
             resourceTypesDetails.stream()
                     .map(CloudResourceRowView::clientId)
                     .forEach(s -> cloudResourceAccessCommandService.createUsers(
-                            CloudAccessClientId.of(s),
+                            CloudVendorConnectorId.of(s),
                             studentLogins,
                             groupUniqueName
                     ));
@@ -378,7 +384,7 @@ public class GroupService {
                 .build();
         List<CloudResourceRowView> cloudResourceDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(Set.of(cloudResourceAccessId));
-        cloudResourceAccessCommandService.removeGroup(groupUniqueName, CloudAccessClientId.of(cloudResourceDetails.getFirst().clientId()));
+        cloudResourceAccessCommandService.removeGroup(groupUniqueName, CloudVendorConnectorId.of(cloudResourceDetails.getFirst().clientId()));
         cloudResourceAccessCommandService.deactivateCloudResourceAccess(cloudResourceAccessId);
     }
 }

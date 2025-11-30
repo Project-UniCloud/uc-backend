@@ -1,6 +1,6 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

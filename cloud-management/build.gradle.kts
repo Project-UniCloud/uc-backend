@@ -8,7 +8,7 @@ plugins {
     id("org.springframework.boot")
 }
 
-group = "com.unicloudapp"
+group = "com.unicloudapp.cloud"
 version = "1.0-SNAPSHOT"
 
 repositories {

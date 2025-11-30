@@ -34,7 +34,7 @@ interface GroupToDtoMapper {
                 .collect(Collectors.toSet());
     }
 
-    default Set<UUID> toCloudAccessClientIdSet(Set<UserId> ids) {
+    default Set<UUID> toCloudVendorConnectorIdSet(Set<UserId> ids) {
         if (ids == null) return Collections.emptySet();
         return ids.stream().map(UserId::getValue).collect(Collectors.toSet());
     }
