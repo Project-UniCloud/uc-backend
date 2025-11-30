@@ -58,7 +58,7 @@ class CloudRestController {
         CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of(cloudConnectorId));
         return CloudConnectorDetailsDto.builder()
                 .cloudConnectorId(details.getCloudConnectorId().id())
-                .name(details.getName())
+                .cloudConnectorName(details.getName())
                 .costLimit(details.getDefaultCostLimit().getCost())
                 .defaultCronExpression(details.getCronExpression().toString())
                 .isActive(false)
