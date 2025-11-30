@@ -41,11 +41,11 @@ class CloudRestController {
             @RequestParam(defaultValue = "10") int pageSize
     ) {
         return cloudResourceAccessService.getCloudResourceAccessClients(PageRequest.of(page, pageSize))
-                .map(client -> CloudConnectorRowView.builder()
-                        .cloudVendorConnectorId(client.getCloudConnectorId().id())
-                        .cloudResourceAccessClientName(client.getName())
-                        .costLimit(client.getDefaultCostLimit().getCost())
-                        .defaultCronExpression(client.getCronExpression().toString())
+                .map(cloudConnector -> CloudConnectorRowView.builder()
+                        .cloudConnectorId(cloudConnector.getCloudConnectorId().id())
+                        .cloudConnectorName(cloudConnector.getName())
+                        .costLimit(cloudConnector.getDefaultCostLimit().getCost())
+                        .defaultCronExpression(cloudConnector.getCronExpression().toString())
                         .build());
     }
 

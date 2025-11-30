@@ -6,8 +6,8 @@ import java.math.BigDecimal;
 
 @Builder
 record CloudConnectorRowView(
-        String cloudVendorConnectorId,
-        String cloudResourceAccessClientName,
+        String cloudConnectorId,
+        String cloudConnectorName,
         BigDecimal costLimit,
         String defaultCronExpression
 ) {
