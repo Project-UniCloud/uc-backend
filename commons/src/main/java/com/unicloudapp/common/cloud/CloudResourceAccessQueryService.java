@@ -12,15 +12,15 @@ public interface CloudResourceAccessQueryService {
 
     Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds);
 
-    boolean isCloudGroupExists(GroupUniqueName groupId, CloudAccessClientId cloudAccessClientId);
+    boolean isCloudGroupExists(GroupUniqueName groupId, CloudAccessClientId CloudAccessClientId);
 
     List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
 
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
-            CloudAccessClientId cloudAccessClientId, CloudResourceType resourceType
+            CloudAccessClientId CloudAccessClientId, CloudResourceType resourceType
     );
 
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(
-            CloudAccessClientId cloudAccessClientId
+            CloudAccessClientId CloudAccessClientId
     );
 }

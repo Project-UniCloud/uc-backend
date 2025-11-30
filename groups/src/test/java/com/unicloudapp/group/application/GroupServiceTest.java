@@ -375,7 +375,7 @@ class GroupServiceTest {
         assertEquals(1, result.getContent().size());
         GroupRowView row = result.getContent().getFirst();
         assertEquals("AI", row.name());
-        assertTrue(row.cloudAccesses().contains("S3"));
+        assertTrue(row.CloudResourceAccesses().contains("S3"));
         assertTrue(row.lecturers().contains("Prof X"));
 
         // With clientId only -> uses getCloudResourceAccessesByCloudClientId then repository.findAllByCriteriaAndContainsCloudResourceAccess

@@ -22,7 +22,7 @@ record CreateGroupRequest(
 ) { }
 
 record GiveCloudResourceAccessRequest(
-        @NotBlank String cloudAccessClientId,
+        @NotBlank String CloudAccessClientId,
         @NotBlank String cloudResourceType,
         @PositiveOrZero BigDecimal costLimit
 ) {}

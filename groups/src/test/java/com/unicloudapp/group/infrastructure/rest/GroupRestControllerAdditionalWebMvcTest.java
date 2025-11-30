@@ -56,8 +56,7 @@ class GroupRestControllerAdditionalWebMvcTest {
     }
 
     private ObjectMapper mapper() {
-        ObjectMapper om = new ObjectMapper();
-        return om;
+        return new ObjectMapper();
     }
 
     @Test
@@ -99,7 +98,7 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     @Test
     @DisplayName("GET /groups/{id}/cloud-access/{accessId} returns details with dd-MM-yyyy date")
-    void getCloudAccessDetails_success() throws Exception {
+    void getCloudResourceAccessDetails_success() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();
         CloudResourceAccessDetailsDto dto = CloudResourceAccessDetailsDto.builder()
@@ -120,7 +119,7 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     @Test
     @DisplayName("PUT /groups/{id}/cloud-access accepts dd-MM-yyyy and delegates; wrong date 400")
-    void updateCloudAccess_dateFormat() throws Exception {
+    void updateCloudResourceAccess_dateFormat() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();
         // Correct format
@@ -151,7 +150,7 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     @Test
     @DisplayName("POST /groups/{id}/cloud-access returns created id")
-    void giveCloudAccess_success() throws Exception {
+    void giveCloudResourceAccess_success() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID created = UUID.randomUUID();
         when(groupService.giveCloudResourceAccess(eq(GroupId.of(gid)), any(), any(), any())).thenReturn(CloudResourceAccessId.of(created));
@@ -167,7 +166,7 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     @Test
     @DisplayName("GET /groups/{id}/cloud-access returns list")
-    void listCloudAccess_success() throws Exception {
+    void listCloudResourceAccess_success() throws Exception {
         UUID gid = UUID.randomUUID();
         CloudResourceRowView row = CloudResourceRowView.builder()
                 .id(UUID.randomUUID())
@@ -199,11 +198,11 @@ class GroupRestControllerAdditionalWebMvcTest {
 
     @Test
     @DisplayName("POST /groups/{gid}/cloud-access/{aid}/deactivate delegates")
-    void deactivateCloudAccess_endpoint() throws Exception {
+    void deactivateCloudResourceAccess_endpoint() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/cloud-access/{cloudAccessId}/deactivate", gid, aid))
+        mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/cloud-access/{CloudResourceAccessId}/deactivate", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

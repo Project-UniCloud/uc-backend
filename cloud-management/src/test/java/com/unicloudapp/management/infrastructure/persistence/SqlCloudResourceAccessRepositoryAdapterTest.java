@@ -1,8 +1,8 @@
 package com.unicloudapp.management.infrastructure.persistence;
 
 import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.management.domain.CloudResourceAccess;
-import com.unicloudapp.management.domain.CloudResourcesAccessStatus;
+import com.unicloudapp.management.domain.access.CloudResourceAccess;
+import com.unicloudapp.management.domain.access.CloudResourcesAccessStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,10 +23,10 @@ import static org.mockito.Mockito.*;
 class SqlCloudResourceAccessRepositoryAdapterTest {
 
     @Mock
-    private CloudAccessMapper mapper;
+    private CloudResourceAccessMapper mapper;
 
     @Mock
-    private CloudAccessJpaRepository repository;
+    private CloudResourceAccessJpaRepository repository;
 
     @InjectMocks
     private SqlCloudResourceAccessRepositoryAdapter adapter;
@@ -178,13 +178,13 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
 
     // Helpers
     private static CloudResourceAccessEntity entity(UUID id,
-                                                    String clientId,
-                                                    String resourceType,
-                                                    BigDecimal cost,
-                                                    BigDecimal used,
-                                                    LocalDate expiresAt,
-                                                    String cron,
-                                                    CloudResourcesAccessStatus.Status status) {
+                                            String clientId,
+                                            String resourceType,
+                                            BigDecimal cost,
+                                            BigDecimal used,
+                                            LocalDate expiresAt,
+                                            String cron,
+                                            CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(id)
                 .cloudAccessClientId(clientId)
@@ -198,13 +198,13 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     }
 
     private static CloudResourceAccess domain(UUID id,
-                                              String clientId,
-                                              String resourceType,
-                                              BigDecimal cost,
-                                              BigDecimal used,
-                                              LocalDate expiresAt,
-                                              String cron,
-                                              CloudResourcesAccessStatus.Status status) {
+                                      String clientId,
+                                      String resourceType,
+                                      BigDecimal cost,
+                                      BigDecimal used,
+                                      LocalDate expiresAt,
+                                      String cron,
+                                      CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(id))
                 .cloudAccessClientId(CloudAccessClientId.of(clientId))

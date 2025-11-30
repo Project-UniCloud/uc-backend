@@ -3,19 +3,11 @@ package com.unicloudapp.management.infrastructure.rest;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.util.UUID;
-
-record CloudResourceNameResponse(
-        UUID cloudResourceAccessId,
-        String cloudResourceName
-) {
-
-}
 
 @Builder
-record CloudAccessClientRowView(
-        String cloudAccessClientId,
-        String cloudAccessClientName,
+record CloudResourceAccessClientRowView(
+        String CloudAccessClientId,
+        String CloudResourceAccessClientName,
         BigDecimal costLimit,
         String defaultCronExpression
 ) {
@@ -23,9 +15,9 @@ record CloudAccessClientRowView(
 }
 
 @Builder
-record CloudAccessClientDetails(
-        String cloudAccessClientId,
-        String cloudAccessClientName,
+record CloudResourceAccessClientDetails(
+        String CloudAccessClientId,
+        String CloudResourceAccessClientName,
         BigDecimal costLimit,
         String defaultCronExpression,
         boolean isActive

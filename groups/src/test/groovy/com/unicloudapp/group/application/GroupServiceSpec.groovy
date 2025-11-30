@@ -345,7 +345,7 @@ class GroupServiceSpec extends Specification {
     def "should give cloud resource access to group"() {
         given:
         def groupId = GroupId.of(UUID.randomUUID())
-        def cloudAccessClientId = CloudAccessClientId.of("aws")
+        def CloudAccessClientId = CloudAccessClientId.of("aws")
         def cloudResourceType = CloudResourceType.of("ec2")
         def group = Mock(Group)
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
@@ -354,7 +354,7 @@ class GroupServiceSpec extends Specification {
         def costLimit = CostLimit.zero()
 
         when:
-        def result = groupService.giveCloudResourceAccess(groupId, cloudAccessClientId, cloudResourceType, costLimit)
+        def result = groupService.giveCloudResourceAccess(groupId, CloudAccessClientId, cloudResourceType, costLimit)
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
@@ -362,9 +362,9 @@ class GroupServiceSpec extends Specification {
         1 * group.getSemester() >> Semester.of("2023Z")
         1 * group.getLecturers() >> [UserId.of(UUID.randomUUID())]
         1 * userQueryService.getUserLoginsAndEmailsByIds(_) >> lecturerLogins
-        1 * cloudResourceAccessQueryService.isCloudGroupExists(_, cloudAccessClientId) >> false
-        1 * cloudResourceAccessCommandService.createGroup(_, cloudAccessClientId, lecturerLogins, cloudResourceType)
-        1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(cloudAccessClientId, cloudResourceType, _, costLimit) >> cloudResourceAccessId
+        1 * cloudResourceAccessQueryService.isCloudGroupExists(_, CloudAccessClientId) >> false
+        1 * cloudResourceAccessCommandService.createGroup(_, CloudAccessClientId, lecturerLogins, cloudResourceType)
+        1 * cloudResourceAccessCommandService.giveGroupCloudResourceAccess(CloudAccessClientId, cloudResourceType, _, costLimit) >> cloudResourceAccessId
         1 * group.giveCloudResourceAccess(cloudResourceAccessId)
         1 * groupRepository.save(group)
 

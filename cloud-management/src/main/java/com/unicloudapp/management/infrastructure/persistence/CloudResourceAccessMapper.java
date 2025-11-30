@@ -2,11 +2,13 @@ package com.unicloudapp.management.infrastructure.persistence;
 
 import com.unicloudapp.management.domain.*;
 import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.management.domain.access.CloudResourceAccess;
+import com.unicloudapp.management.domain.access.CloudResourcesAccessStatus;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
 @Component
-class CloudAccessMapper {
+class CloudResourceAccessMapper {
 
     CloudResourceAccess toDomain(CloudResourceAccessEntity entity) {
         return CloudResourceAccess.builder()
@@ -23,14 +25,12 @@ class CloudAccessMapper {
 
     CloudResourceAccessEntity toEntity(CloudResourceAccess domain) {
         return CloudResourceAccessEntity.builder()
-                .cloudResourceAccessId(domain.getCloudResourceAccessId()
-                        .getValue())
+                .cloudResourceAccessId(domain.getCloudResourceAccessId().getValue())
                 .cloudAccessClientId(domain.getCloudAccessClientId().getValue())
                 .resourceType(domain.getCloudResourceType().getName())
                 .costLimit(domain.getCostLimit().getCost())
                 .cronExpression(domain.getCronExpression().toString())
-                .usedLimit(domain.getUsedLimit()
-                        .getValue())
+                .usedLimit(domain.getUsedLimit().getValue())
                 .expiresAt(domain.getExpiresAt().getValue())
                 .status(domain.getStatus().getStatus())
                 .notificationLevel1(domain.getNotificationLevel1().level())

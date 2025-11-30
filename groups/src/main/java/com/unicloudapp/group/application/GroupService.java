@@ -167,7 +167,7 @@ public class GroupService {
 
     public CloudResourceAccessId giveCloudResourceAccess(
             GroupId groupId,
-            CloudAccessClientId cloudAccessClientId,
+            CloudAccessClientId CloudAccessClientId,
             CloudResourceType cloudResourceType,
             CostLimit costLimit
     ) {
@@ -181,7 +181,7 @@ public class GroupService {
                 .stream()
                 .anyMatch(cloudResourceTypeRowView ->
                         cloudResourceTypeRowView.name().equals(cloudResourceType.getName())
-                                && cloudResourceTypeRowView.clientId().equals(cloudAccessClientId.getValue())
+                                && cloudResourceTypeRowView.clientId().equals(CloudAccessClientId.getValue())
                 );
         if (hasGroupCloudResourceType) {
             throw new RuntimeException("Group already has access to cloud resource type: " + cloudResourceType.getName());
@@ -189,11 +189,11 @@ public class GroupService {
         List<Map.Entry<UserLogin, Email>> lecturers = userQueryService.getUserLoginsAndEmailsByIds(
                 group.getLecturers()
         );
-        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudAccessClientId)) {
-            cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudAccessClientId, lecturers, cloudResourceType);
+        if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, CloudAccessClientId)) {
+            cloudResourceAccessCommandService.createGroup(groupUniqueName, CloudAccessClientId, lecturers, cloudResourceType);
         }
         CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
-                cloudAccessClientId,
+                CloudAccessClientId,
                 cloudResourceType,
                 groupUniqueName,
                 costLimit

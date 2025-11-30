@@ -3,9 +3,11 @@ package com.unicloudapp.management.application;
 import com.unicloudapp.common.notifications.NotificationType;
 import com.unicloudapp.common.notifications.SendNotificationCommand;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.management.domain.CloudAccessClient;
-import com.unicloudapp.management.domain.CloudResourceAccess;
-import com.unicloudapp.management.domain.CloudResourcesAccessStatus;
+import com.unicloudapp.management.application.port.CloudResourceAccessClientRepositoryPort;
+import com.unicloudapp.management.application.port.CloudResourceAccessRepositoryPort;
+import com.unicloudapp.management.domain.access_client.CloudResourceAccessClient;
+import com.unicloudapp.management.domain.access.CloudResourceAccess;
+import com.unicloudapp.management.domain.access.CloudResourcesAccessStatus;
 import com.unicloudapp.management.domain.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
@@ -44,14 +46,14 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class CloudAccessService
+public class CloudResourceAccessService
         implements CloudResourceAccessQueryService, CloudResourceAccessCommandService {
 
     private final Map<CloudResourceAccessId, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
 
     private final TaskScheduler taskScheduler;
-    private final Map<String, CloudAccessClient> clients;
-    private final CloudResourceAccessRepositoryPort cloudAccessRepository;
+    private final CloudResourceAccessClientRepositoryPort cloudResourceAccessClientRepositoryPort;
+    private final CloudResourceAccessRepositoryPort cloudResourceAccessRepository;
     private final GroupQueryService groupQueryService;
     private final NotificationsCommandService notificationsCommandService;
 
@@ -62,7 +64,7 @@ public class CloudAccessService
                 CloudResourcesAccessStatus.Status.ACTIVE
         );
         Map<CloudResourceAccessId, CloudResourceAccess> activeCloudResourcesAccesses =
-                cloudAccessRepository.findAllByStatus(activeStatus);
+                cloudResourceAccessRepository.findAllByStatus(activeStatus);
         groupCloudDtoList.forEach(groupCloudDto ->
                 groupCloudDto.cloudResourceAccesses()
                         .stream()
@@ -73,31 +75,27 @@ public class CloudAccessService
         );
     }
 
-    public boolean isRunning(CloudAccessClientId cloudAccessClientId) {
-        if (!isCloudClientExists(cloudAccessClientId)) {
-            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
-        }
-        CloudAccessClient cloudAccessClient = clients.get(cloudAccessClientId.getValue());
-        return cloudAccessClient.getController().isRunning();
+    public boolean isRunning(CloudAccessClientId CloudAccessClientId) {
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        return CloudResourceAccessClient.getController().isRunning();
     }
 
-    public boolean isCloudClientExists(CloudAccessClientId cloudAccessClientId) {
-        return clients.containsKey(cloudAccessClientId.getValue());
+    public boolean isCloudClientExists(CloudAccessClientId CloudAccessClientId) {
+        return cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId).isPresent();
     }
 
-    public List<CloudResourceType> getCloudResourceTypesForCloudAccessClient(
-            CloudAccessClientId cloudAccessClientId
+    public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            CloudAccessClientId CloudAccessClientId
     ) {
-        if (!isCloudClientExists(cloudAccessClientId)) {
-            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
-        }
-        CloudAccessClient cloudAccessClient = clients.get(cloudAccessClientId.getValue());
-        return cloudAccessClient.getResourceTypes();
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        return CloudResourceAccessClient.getResourceTypes();
     }
 
     @Override
     public Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds) {
-        return cloudAccessRepository.getCloudResourceAccesses(cloudResourceAccessIds)
+        return cloudResourceAccessRepository.getCloudResourceAccesses(cloudResourceAccessIds)
                 .stream()
                 .map(CloudResourceAccess::getCloudResourceType)
                 .collect(Collectors.toSet());
@@ -105,20 +103,17 @@ public class CloudAccessService
 
     @Override
     public boolean isCloudGroupExists(GroupUniqueName groupUniqueName,
-                                      CloudAccessClientId cloudAccessClientId
+                                      CloudAccessClientId CloudAccessClientId
     ) {
-
-        if (!isCloudClientExists(cloudAccessClientId)) {
-            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
-        }
-        CloudAccessClient cloudAccessClient = clients.get(cloudAccessClientId.getValue());
-        return cloudAccessClient.isCloudGroupExists(groupUniqueName);
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        return CloudResourceAccessClient.isCloudGroupExists(groupUniqueName);
     }
 
     @Override
     public List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
-        List<CloudResourceAccess> cloudResourceAccesses = cloudAccessRepository.findAllById(cloudResourceAccessIds);
-        return cloudResourceAccesses.stream()
+        List<CloudResourceAccess> CloudResourceAccesses = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
+        return CloudResourceAccesses.stream()
                 .map(cloudResourceAccess -> CloudResourceRowView.builder()
                         .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
                         .name(cloudResourceAccess.getCloudResourceType().getName())
@@ -136,59 +131,54 @@ public class CloudAccessService
 
     @Override
     public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
-            CloudAccessClientId cloudAccessClientId,
+            CloudAccessClientId CloudAccessClientId,
             CloudResourceType resourceType
     ) {
-        return cloudAccessRepository.findAllByCloudClientIdAndResourceType(cloudAccessClientId, resourceType)
+        return cloudResourceAccessRepository.findAllByCloudClientIdAndResourceType(CloudAccessClientId, resourceType)
                 .stream()
                 .map(CloudResourceAccess::getCloudResourceAccessId)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(CloudAccessClientId cloudAccessClientId) {
-        return cloudAccessRepository.findAllByCloudClientId(cloudAccessClientId)
+    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(CloudAccessClientId CloudAccessClientId) {
+        return cloudResourceAccessRepository.findAllByCloudClientId(CloudAccessClientId)
                 .stream()
                 .map(CloudResourceAccess::getCloudResourceAccessId)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public CloudResourceAccessId giveGroupCloudResourceAccess(CloudAccessClientId cloudAccessClientId,
+    public CloudResourceAccessId giveGroupCloudResourceAccess(CloudAccessClientId CloudAccessClientId,
                                                               CloudResourceType cloudResourceType,
                                                               GroupUniqueName groupUniqueName,
                                                               CostLimit costLimit
     ) {
-        if (!isCloudClientExists(cloudAccessClientId)) {
-            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        if (!CloudResourceAccessClient.containsResourceType(cloudResourceType)) {
+            throw new IllegalArgumentException("CloudResourceType " + cloudResourceType + " is not supported by client " + CloudAccessClientId);
         }
-        CloudAccessClient cloudAccessClient = clients.get(cloudAccessClientId.getValue());
-        if (!cloudAccessClient.containsResourceType(cloudResourceType)) {
-            throw new IllegalArgumentException("CloudResourceType " + cloudResourceType + " is not supported by client " + cloudAccessClientId);
-        }
-        CloudResourceAccess cloudResourceAccess = cloudAccessClient.getCloudResourceAccessFactory()
+        CloudResourceAccess CloudResourceAccess = CloudResourceAccessClient.getCloudResourceAccessFactory()
                 .create(
                         CloudResourceAccessId.of(UUID.randomUUID()),
-                        cloudAccessClient.getCloudAccessClientId(),
+                        CloudResourceAccessClient.getCloudAccessClientId(),
                         cloudResourceType,
                         costLimit,
-                        cloudAccessClient.getCronExpression(),
+                        CloudResourceAccessClient.getCronExpression(),
                         ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
                 );
-        cloudAccessRepository.save(cloudResourceAccess);
-        scheduleTask(cloudResourceAccess, groupUniqueName);
-        return cloudResourceAccess.getCloudResourceAccessId();
+        cloudResourceAccessRepository.save(CloudResourceAccess);
+        scheduleTask(CloudResourceAccess, groupUniqueName);
+        return CloudResourceAccess.getCloudResourceAccessId();
     }
 
     @Override
     public void createGroup(GroupUniqueName groupUniqueName,
-                            CloudAccessClientId cloudAccessClientId,
+                            CloudAccessClientId CloudAccessClientId,
                             List<Map.Entry<UserLogin, Email>> lecturers,
                             CloudResourceType resourceType
     ) {
-        if (!isCloudClientExists(cloudAccessClientId)) {
-            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
-        }
         lecturers.forEach(lecturer -> {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(lecturer.getValue().getValue())
@@ -202,28 +192,29 @@ public class CloudAccessService
             notificationsCommandService.sendNotification(sendNotificationCommand);
         });
         final var lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
-        clients.get(cloudAccessClientId.getValue()).createGroup(groupUniqueName, lecturerLogins, resourceType);
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        CloudResourceAccessClient.createGroup(groupUniqueName, lecturerLogins, resourceType);
     }
 
-    public Page<CloudAccessClient> getCloudAccessClients(Pageable pageable) {
-        return new PageImpl<>(
-                clients.values().stream()
-                        .sorted(Comparator.comparing(c -> c.getCloudAccessClientId()
-                                .getValue()))
-                        .toList(),
-                pageable,
-                clients.size()
-        );
+    public Page<CloudResourceAccessClient> getCloudResourceAccessClients(Pageable pageable) {
+        List<CloudResourceAccessClient> all = cloudResourceAccessClientRepositoryPort.findAll().stream()
+                .sorted(Comparator.comparing(c -> c.getCloudAccessClientId().getValue()))
+                .toList();
+        return new PageImpl<>(all, pageable, all.size());
     }
 
-    public CloudAccessClient getCloudAccessClientDetails(CloudAccessClientId clientId) {
-        return clients.get(clientId.getValue());
+    public CloudResourceAccessClient getCloudResourceAccessClientDetails(CloudAccessClientId clientId) {
+        return cloudResourceAccessClientRepositoryPort.findByClientId(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + clientId + " does not exist"));
     }
 
     @Override
-    public String createUsers(CloudAccessClientId cloudAccessClientId, List<Map.Entry<UserLogin, Email>> users, GroupUniqueName groupUniqueName) {
+    public String createUsers(CloudAccessClientId CloudAccessClientId, List<Map.Entry<UserLogin, Email>> users, GroupUniqueName groupUniqueName) {
         final var logins = users.stream().map(Map.Entry::getKey).toList();
-        String createdUserLogin = clients.get(cloudAccessClientId.getValue()).createUsers(logins, groupUniqueName);
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        String createdUserLogin = CloudResourceAccessClient.createUsers(logins, groupUniqueName);
         users.forEach(user -> {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(user.getValue().getValue())
@@ -242,92 +233,93 @@ public class CloudAccessService
     @Override
     @Transactional
     public void activateCloudResource(CloudResourceAccessId cloudResourceAccessId) {
-        Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(cloudResourceAccessId);
+        Optional<CloudResourceAccess> resourceAccess = cloudResourceAccessRepository.findById(cloudResourceAccessId);
         resourceAccess.ifPresent(cloudResourceAccess -> {
             cloudResourceAccess.active();
-            cloudAccessRepository.save(cloudResourceAccess);
+            cloudResourceAccessRepository.save(cloudResourceAccess);
         });
     }
 
     @Transactional
     @Override
     public void updateGroupCloudResourceAccess(CloudResourceAccessDetailsDto request, GroupUniqueName groupUniqueName) {
-        Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(CloudResourceAccessId.of(request.id()));
+        Optional<CloudResourceAccess> resourceAccess = cloudResourceAccessRepository.findById(CloudResourceAccessId.of(request.id()));
         resourceAccess.ifPresent(cloudResourceAccess -> {
             cloudResourceAccess.update(request);
             updateScheduledTask(
                     cloudResourceAccess,
                     groupUniqueName
             );
-            cloudAccessRepository.save(cloudResourceAccess);
+            cloudResourceAccessRepository.save(cloudResourceAccess);
         });
     }
 
     @Transactional
     @Override
     public void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
-        Optional<CloudResourceAccess> resourceAccess = cloudAccessRepository.findById(cloudResourceAccessId);
+        Optional<CloudResourceAccess> resourceAccess = cloudResourceAccessRepository.findById(cloudResourceAccessId);
         resourceAccess.ifPresent(cloudResourceAccess -> {
             cloudResourceAccess.deactivate();
             cancelScheduledTask(cloudResourceAccessId);
-            cloudAccessRepository.save(cloudResourceAccess);
+            cloudResourceAccessRepository.save(cloudResourceAccess);
         });
     }
 
     @Override
-    public void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientIds, GroupUniqueName groupUniqueName, boolean force) {
-        cloudAccessRepository.findAllById(cloudAccessClientIds).forEach(cloudResourceAccess ->
+    public void cleanUpResources(Set<CloudResourceAccessId> CloudAccessClientIds, GroupUniqueName groupUniqueName, boolean force) {
+        cloudResourceAccessRepository.findAllById(CloudAccessClientIds).forEach(cloudResourceAccess ->
                 cleanUpResources(cloudResourceAccess, groupUniqueName, force)
         );
     }
 
     @Override
-    public void removeGroup(GroupUniqueName groupUniqueName, CloudAccessClientId cloudAccessClientId) {
-        if (!isCloudClientExists(cloudAccessClientId)) {
-            throw new IllegalArgumentException("CloudAccessClientId " + cloudAccessClientId + " does not exist");
-        }
-        clients.get(cloudAccessClientId.getValue()).getController().removeGroup(groupUniqueName);
+    public void removeGroup(GroupUniqueName groupUniqueName, CloudAccessClientId CloudAccessClientId) {
+        CloudResourceAccessClient CloudResourceAccessClient = cloudResourceAccessClientRepositoryPort.findByClientId(CloudAccessClientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudAccessClientId " + CloudAccessClientId + " does not exist"));
+        CloudResourceAccessClient.getController().removeGroup(groupUniqueName);
     }
 
     @Scheduled(cron = "${adapters.costSyncCron}")
     @Transactional
     protected void updateCostUsed() {
-        clients.values()
-                .forEach(cloudAccessClient -> {
-                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudAccessClient.updateUsedCost();
+        cloudResourceAccessClientRepositoryPort.findAll()
+                .forEach(CloudResourceAccessClient -> {
+                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = CloudResourceAccessClient.updateUsedCost();
                     groupUniqueNameUsedLimitMap.forEach((groupUniqueName, usedLimit) -> {
                         Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
-                                cloudAccessClient.getCloudAccessClientId(),
-                                cloudAccessClient.getResourceTypes().getFirst()
+                                CloudResourceAccessClient.getCloudAccessClientId(),
+                                CloudResourceAccessClient.getResourceTypes().getFirst()
                         );
-                        List<CloudResourceAccess> allById = cloudAccessRepository.findAllById(cloudResourceAccessIds);
-                        allById.forEach(cloudAccess -> {
-                            cloudAccess.updateUsedLimit(usedLimit);
-                            cloudAccessRepository.save(cloudAccess);
+                        List<CloudResourceAccess> allById = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
+                        allById.forEach(CloudResourceAccess -> {
+                            CloudResourceAccess.updateUsedLimit(usedLimit);
+                            cloudResourceAccessRepository.save(CloudResourceAccess);
                         });
                     });
                 });
     }
 
-    private void cleanUpResources(CloudResourceAccess cloudAccessClient, GroupUniqueName groupUniqueName, boolean force) {
-        clients.get(cloudAccessClient.getCloudAccessClientId().getValue()).cleanUpResources(groupUniqueName, force);
+    private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName, boolean force) {
+        cloudResourceAccessClientRepositoryPort.findByClientId(cloudResourceAccess.getCloudAccessClientId())
+                .orElseThrow()
+                .cleanUpResources(groupUniqueName, force);
     }
 
-    private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
-        CronTrigger cronTrigger = new CronTrigger(cloudResourceAccess.getCronExpression().toString());
+    private void scheduleTask(CloudResourceAccess CloudResourceAccess, GroupUniqueName groupUniqueName) {
+        CronTrigger cronTrigger = new CronTrigger(CloudResourceAccess.getCronExpression().toString());
         ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> cleanUpResources(cloudResourceAccess, groupUniqueName, false),
+                () -> cleanUpResources(CloudResourceAccess, groupUniqueName, false),
                 cronTrigger
         );
-        scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);
+        scheduledTasks.put(CloudResourceAccess.getCloudResourceAccessId(), future);
     }
 
     private void updateScheduledTask(
-            CloudResourceAccess cloudResourceAccess,
+            CloudResourceAccess CloudResourceAccess,
             GroupUniqueName groupUniqueName
     ) {
-        cancelScheduledTask(cloudResourceAccess.getCloudResourceAccessId());
-        scheduleTask(cloudResourceAccess, groupUniqueName);
+        cancelScheduledTask(CloudResourceAccess.getCloudResourceAccessId());
+        scheduleTask(CloudResourceAccess, groupUniqueName);
     }
 
     private void cancelScheduledTask(CloudResourceAccessId cloudResourceAccessId) {

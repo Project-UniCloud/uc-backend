@@ -15,20 +15,20 @@ import java.util.Set;
 public interface CloudResourceAccessCommandService {
 
     CloudResourceAccessId giveGroupCloudResourceAccess(
-            CloudAccessClientId cloudAccessClientId,
+            CloudAccessClientId CloudAccessClientId,
             CloudResourceType cloudResourceAccessId,
             GroupUniqueName groupUniqueName,
             CostLimit costLimit
     );
 
     void createGroup(GroupUniqueName groupUniqueName,
-                     CloudAccessClientId cloudAccessClientId,
+                     CloudAccessClientId CloudAccessClientId,
                      List<Map.Entry<UserLogin, Email>> lecturerLogins,
                      CloudResourceType resourceType
     );
 
     String createUsers(
-            CloudAccessClientId cloudAccessClientId,
+            CloudAccessClientId CloudAccessClientId,
             List<Map.Entry<UserLogin, Email>> users,
             GroupUniqueName groupUniqueName
     );
@@ -39,7 +39,7 @@ public interface CloudResourceAccessCommandService {
 
     void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId);
 
-    void cleanUpResources(Set<CloudResourceAccessId> cloudAccessClientId, GroupUniqueName groupUniqueName, boolean force);
+    void cleanUpResources(Set<CloudResourceAccessId> CloudAccessClientId, GroupUniqueName groupUniqueName, boolean force);
 
-    void removeGroup(GroupUniqueName groupUniqueName, CloudAccessClientId cloudAccessClientId);
+    void removeGroup(GroupUniqueName groupUniqueName, CloudAccessClientId CloudAccessClientId);
 }

@@ -1,7 +1,9 @@
-package com.unicloudapp.management.domain;
+package com.unicloudapp.management.domain.access;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.management.domain.ExpiresDate;
+import com.unicloudapp.management.domain.NotificationLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

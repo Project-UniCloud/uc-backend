@@ -4,6 +4,9 @@ import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.management.domain.access.CloudResourceAccessFactory;
+import com.unicloudapp.management.domain.access_client.CloudResourceAccessClient;
+import com.unicloudapp.management.domain.access_client.CloudResourceAccessClientController;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -11,18 +14,18 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 
-class CloudAccessClientTest {
+class CloudResourceAccessClientTest {
 
     @Test
     @DisplayName("createGroup delegates to controller (method changed to void)")
     void createGroup_delegates() {
-        CloudAccessClientController controller = mock(CloudAccessClientController.class);
-        CloudAccessClient client = CloudAccessClient.builder()
-                .cloudAccessClientId(CloudAccessClientId.of("test-client"))
+        CloudResourceAccessClientController controller = mock(CloudResourceAccessClientController.class);
+        CloudResourceAccessClient client = CloudResourceAccessClient.builder()
+                .CloudAccessClientId(CloudAccessClientId.of("test-client"))
                 .controller(controller)
                 .name("Test")
                 .resourceTypes(List.of(CloudResourceType.of("S3")))
-                .cloudResourceAccessFactory(new CloudResourceAccessFactory())
+                .CloudResourceAccessFactory(new CloudResourceAccessFactory())
                 .build();
 
         GroupUniqueName groupUniqueName = GroupUniqueName.fromString("AI 2024L");

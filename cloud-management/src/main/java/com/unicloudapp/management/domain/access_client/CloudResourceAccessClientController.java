@@ -1,4 +1,4 @@
-package com.unicloudapp.management.domain;
+package com.unicloudapp.management.domain.access_client;
 
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-public interface CloudAccessClientController {
+public interface CloudResourceAccessClientController {
 
     void createGroup(
             GroupUniqueName groupUniqueName,

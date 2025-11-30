@@ -1,10 +1,14 @@
 package com.unicloudapp.management.infrastructure.persistence;
 
-import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.management.domain.CloudResourceAccess;
-import com.unicloudapp.management.domain.CloudResourcesAccessStatus;
+import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import com.unicloudapp.common.vo.cloud.UsedLimit;
+import com.unicloudapp.management.domain.access.CloudResourceAccess;
 import com.unicloudapp.management.domain.ExpiresDate;
 import com.unicloudapp.management.domain.NotificationLevel;
+import com.unicloudapp.management.domain.access.CloudResourcesAccessStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -14,9 +18,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CloudAccessMapperTest {
+class CloudResourceAccessMapperTest {
 
-    private final CloudAccessMapper mapper = new CloudAccessMapper();
+    private final CloudResourceAccessMapper mapper = new CloudResourceAccessMapper();
 
     @Test
     void toDomain_mapsAllFields_fromEntity() {

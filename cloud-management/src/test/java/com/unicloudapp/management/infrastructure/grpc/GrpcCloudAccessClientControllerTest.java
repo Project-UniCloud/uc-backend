@@ -18,10 +18,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class GrpcCloudAccessClientControllerTest {
+class GrpcCloudResourceAccessClientControllerTest {
 
     private final CloudAdapterGrpc.CloudAdapterBlockingStub stub = mock(CloudAdapterGrpc.CloudAdapterBlockingStub.class);
-    private final GrpcCloudAccessClientController controller = new GrpcCloudAccessClientController(stub);
+    private final GrpcCloudResourceAccessClientController controller = new GrpcCloudResourceAccessClientController(stub);
 
     @Test
     @DisplayName("createGroup sends proper request and validates response group name")

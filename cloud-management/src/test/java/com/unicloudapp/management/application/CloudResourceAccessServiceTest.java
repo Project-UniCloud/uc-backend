@@ -13,11 +13,14 @@ import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.management.domain.CloudAccessClient;
-import com.unicloudapp.management.domain.CloudAccessClientController;
-import com.unicloudapp.management.domain.CloudResourceAccess;
-import com.unicloudapp.management.domain.CloudResourceAccessFactory;
-import com.unicloudapp.management.domain.CloudResourcesAccessStatus;
+import com.unicloudapp.management.application.port.CloudResourceAccessClientRepositoryPort;
+import com.unicloudapp.management.application.port.CloudResourceAccessRepositoryPort;
+import com.unicloudapp.management.domain.ExpiresDate;
+import com.unicloudapp.management.domain.access.CloudResourceAccess;
+import com.unicloudapp.management.domain.access.CloudResourcesAccessStatus;
+import com.unicloudapp.management.domain.access_client.CloudResourceAccessClient;
+import com.unicloudapp.management.domain.access_client.CloudResourceAccessClientController;
+import com.unicloudapp.management.domain.access.CloudResourceAccessFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +33,6 @@ import org.springframework.scheduling.support.CronTrigger;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -55,55 +57,58 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class CloudAccessServiceTest {
+class CloudResourceAccessServiceTest {
 
     NotificationsCommandService notificationsCommandService;
     TaskScheduler taskScheduler;
     CloudResourceAccessRepositoryPort repository;
+    CloudResourceAccessClientRepositoryPort cloudResourceAccessClientRepository;
     GroupQueryService groupQueryService;
 
-    CloudAccessClientController controllerA;
-    CloudAccessClientController controllerB;
-    CloudAccessClient clientA;
-    CloudAccessClient clientB;
-    Map<String, CloudAccessClient> clients;
+    CloudResourceAccessClientController controllerA;
+    CloudResourceAccessClientController controllerB;
+    CloudResourceAccessClient clientA;
+    CloudResourceAccessClient clientB;
 
-    CloudAccessService service;
+    CloudResourceAccessService service;
 
     @BeforeEach
     void setUp() {
         taskScheduler = mock(TaskScheduler.class);
         repository = mock(CloudResourceAccessRepositoryPort.class);
+        cloudResourceAccessClientRepository = mock(CloudResourceAccessClientRepositoryPort.class);
         groupQueryService = mock(GroupQueryService.class);
         notificationsCommandService = mock(NotificationsCommandService.class);
 
-        controllerA = mock(CloudAccessClientController.class);
-        controllerB = mock(CloudAccessClientController.class);
+        controllerA = mock(CloudResourceAccessClientController.class);
+        controllerB = mock(CloudResourceAccessClientController.class);
 
-        clientA = CloudAccessClient.builder()
-                .cloudAccessClientId(CloudAccessClientId.of("a-client"))
+        clientA = CloudResourceAccessClient.builder()
+                .CloudAccessClientId(CloudAccessClientId.of("a-client"))
                 .controller(controllerA)
                 .name("A")
                 .resourceTypes(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")))
-                .cloudResourceAccessFactory(new CloudResourceAccessFactory())
+                .CloudResourceAccessFactory(new CloudResourceAccessFactory())
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.TEN))
                 .build();
-        clientB = CloudAccessClient.builder()
-                .cloudAccessClientId(CloudAccessClientId.of("b-client"))
+        clientB = CloudResourceAccessClient.builder()
+                .CloudAccessClientId(CloudAccessClientId.of("b-client"))
                 .controller(controllerB)
                 .name("B")
                 .resourceTypes(List.of(CloudResourceType.of("S3")))
-                .cloudResourceAccessFactory(new CloudResourceAccessFactory())
+                .CloudResourceAccessFactory(new CloudResourceAccessFactory())
                 .cronExpression(CronExpression.parse("0 */5 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.ONE))
                 .build();
 
-        clients = new HashMap<>();
-        clients.put("b-client", clientB);
-        clients.put("a-client", clientA);
+        when(cloudResourceAccessClientRepository.findByClientId(CloudAccessClientId.of("b-client")))
+                .thenReturn(Optional.ofNullable(clientB));
+        when(cloudResourceAccessClientRepository.findByClientId(CloudAccessClientId.of("a-client")))
+                .thenReturn(Optional.ofNullable(clientA));
+        when(cloudResourceAccessClientRepository.findAll()).thenReturn(List.of(clientA, clientB));
 
-        service = new CloudAccessService(taskScheduler, clients, repository, groupQueryService, notificationsCommandService);
+        service = new CloudResourceAccessService(taskScheduler, cloudResourceAccessClientRepository, repository, groupQueryService, notificationsCommandService);
     }
 
     @Test
@@ -124,12 +129,12 @@ class CloudAccessServiceTest {
     }
 
     @Test
-    @DisplayName("getCloudResourceTypesForCloudAccessClient returns types; throws when client missing")
-    void getCloudResourceTypesForCloudAccessClient_behavior() {
-        List<CloudResourceType> types = service.getCloudResourceTypesForCloudAccessClient(CloudAccessClientId.of("a-client"));
+    @DisplayName("getCloudResourceTypesForCloudResourceAccessClient returns types; throws when client missing")
+    void getCloudResourceTypesForCloudResourceAccessClient_behavior() {
+        List<CloudResourceType> types = service.getCloudResourceTypesForCloudResourceAccessClient(CloudAccessClientId.of("a-client"));
         assertEquals(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")), types);
         assertThrows(IllegalArgumentException.class,
-                () -> service.getCloudResourceTypesForCloudAccessClient(CloudAccessClientId.of("missing")));
+                () -> service.getCloudResourceTypesForCloudResourceAccessClient(CloudAccessClientId.of("missing")));
     }
 
     @Test
@@ -142,7 +147,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
         CloudResourceAccess cra2 = CloudResourceAccess.builder()
@@ -152,7 +157,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(CronExpression.parse("0 */5 * * * *"))
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
         Set<CloudResourceAccess> set = new HashSet<>(List.of(cra1, cra2));
@@ -182,7 +187,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.of(new BigDecimal("123.45")))
                 .usedLimit(UsedLimit.of(new BigDecimal("10")))
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(7)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(7)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
         when(repository.findAllById(any())).thenReturn(List.of(cra));
@@ -210,7 +215,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
         when(repository.findAllByCloudClientIdAndResourceType(eq(CloudAccessClientId.of("a-client")), eq(CloudResourceType.of("S3"))))
@@ -281,14 +286,14 @@ class CloudAccessServiceTest {
     }
 
     @Test
-    @DisplayName("getCloudAccessClients returns sorted page and details lookup works")
+    @DisplayName("getCloudResourceAccessClients returns sorted page and details lookup works")
     void clients_listing_and_details() {
-        Page<CloudAccessClient> page = service.getCloudAccessClients(PageRequest.of(0, 10));
-        List<CloudAccessClient> list = page.getContent();
+        Page<CloudResourceAccessClient> page = service.getCloudResourceAccessClients(PageRequest.of(0, 10));
+        List<CloudResourceAccessClient> list = page.getContent();
         // Sorted by id string: a-client then b-client
         assertEquals("a-client", list.get(0).getCloudAccessClientId().getValue());
         assertEquals("b-client", list.get(1).getCloudAccessClientId().getValue());
-        assertSame(clientA, service.getCloudAccessClientDetails(CloudAccessClientId.of("a-client")));
+        assertSame(clientA, service.getCloudResourceAccessClientDetails(CloudAccessClientId.of("a-client")));
     }
 
     @Test
@@ -519,7 +524,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(10)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(10)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
@@ -530,7 +535,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientB.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(5)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(5)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
@@ -560,7 +565,7 @@ class CloudAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(10)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(10)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 

@@ -1,7 +1,7 @@
 package com.unicloudapp.management.infrastructure.rest;
 
-import com.unicloudapp.management.application.CloudAccessService;
-import com.unicloudapp.management.domain.CloudAccessClient;
+import com.unicloudapp.management.application.CloudResourceAccessService;
+import com.unicloudapp.management.domain.access_client.CloudResourceAccessClient;
 import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import lombok.RequiredArgsConstructor;
@@ -16,30 +16,30 @@ import java.util.List;
 @RestController
 @RequestMapping("/cloud")
 @RequiredArgsConstructor
-class CloudAccessRestController {
+class CloudResourceAccessRestController {
 
-    private final CloudAccessService cloudAccessService;
+    private final CloudResourceAccessService CloudResourceAccessService;
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/client/{cloudAccessClientId}/resource-types")
+    @GetMapping("/client/{CloudAccessClientId}/resource-types")
     @ResponseStatus(HttpStatus.OK)
-    List<CloudResourceType> getCloudResourceTypesForCloudAccessClient(
-            @PathVariable CloudAccessClientId cloudAccessClientId
+    List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            @PathVariable CloudAccessClientId CloudAccessClientId
     ) {
-        return cloudAccessService.getCloudResourceTypesForCloudAccessClient(cloudAccessClientId);
+        return CloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(CloudAccessClientId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/client")
     @ResponseStatus(HttpStatus.OK)
-    Page<CloudAccessClientRowView> getCloudAccesses(
+    Page<CloudResourceAccessClientRowView> getCloudResourceAccesses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
-        return cloudAccessService.getCloudAccessClients(PageRequest.of(page, pageSize))
-                .map(client -> CloudAccessClientRowView.builder()
-                        .cloudAccessClientId(client.getCloudAccessClientId().getValue())
-                        .cloudAccessClientName(client.getName())
+        return CloudResourceAccessService.getCloudResourceAccessClients(PageRequest.of(page, pageSize))
+                .map(client -> CloudResourceAccessClientRowView.builder()
+                        .CloudAccessClientId(client.getCloudAccessClientId().getValue())
+                        .CloudResourceAccessClientName(client.getName())
                         .costLimit(client.getDefaultCostLimit().getCost())
                         .defaultCronExpression(client.getCronExpression().toString())
                         .build());
@@ -48,13 +48,13 @@ class CloudAccessRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/client/{id}")
     @ResponseStatus(HttpStatus.OK)
-    CloudAccessClientDetails getCloudAccessClient(
+    CloudResourceAccessClientDetails getCloudResourceAccessClient(
             @PathVariable String id
     ) {
-        CloudAccessClient details = cloudAccessService.getCloudAccessClientDetails(CloudAccessClientId.of(id));
-        return CloudAccessClientDetails.builder()
-                .cloudAccessClientId(details.getCloudAccessClientId().getValue())
-                .cloudAccessClientName(details.getName())
+        CloudResourceAccessClient details = CloudResourceAccessService.getCloudResourceAccessClientDetails(CloudAccessClientId.of(id));
+        return CloudResourceAccessClientDetails.builder()
+                .CloudAccessClientId(details.getCloudAccessClientId().getValue())
+                .CloudResourceAccessClientName(details.getName())
                 .costLimit(details.getDefaultCostLimit().getCost())
                 .defaultCronExpression(details.getCronExpression().toString())
                 .isActive(false)

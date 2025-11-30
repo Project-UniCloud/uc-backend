@@ -30,6 +30,12 @@ dependencies {
     implementation(project(":commons"))
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    // MapStruct for mappers
+    implementation("org.mapstruct:mapstruct:1.6.2")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.6.2")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
+
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     testCompileOnly("org.projectlombok:lombok:$lombokVersion")
 
