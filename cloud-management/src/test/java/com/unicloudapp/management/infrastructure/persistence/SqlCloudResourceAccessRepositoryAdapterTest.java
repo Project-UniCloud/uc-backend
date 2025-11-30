@@ -211,7 +211,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
                 .cloudResourceType(CloudResourceType.of(resourceType))
                 .costLimit(CostLimit.of(cost))
                 .usedLimit(UsedLimit.of(used))
-                .expiresAt(expiresAt == null ? com.unicloudapp.management.domain.ExpiresDate.of(java.time.LocalDate.now().plusDays(30)) : com.unicloudapp.management.domain.ExpiresDate.expirable(expiresAt))
+                .expiresAt(expiresAt == null ? ExpiresDate.of(java.time.LocalDate.now().plusDays(30)) : ExpiresDate.expirable(expiresAt))
                 .cronExpression(org.springframework.scheduling.support.CronExpression.parse(cron))
                 .status(CloudResourcesAccessStatus.of(status))
                 .build();

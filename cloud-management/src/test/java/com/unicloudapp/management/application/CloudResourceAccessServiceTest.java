@@ -321,7 +321,7 @@ class CloudResourceAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
@@ -351,7 +351,7 @@ class CloudResourceAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
         when(repository.findAllByStatus(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE)))
@@ -383,7 +383,7 @@ class CloudResourceAccessServiceTest {
                 .costLimit(CostLimit.of(new BigDecimal("10")))
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
@@ -439,7 +439,7 @@ class CloudResourceAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(7)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(7)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
@@ -478,7 +478,7 @@ class CloudResourceAccessServiceTest {
                 .costLimit(CostLimit.zero())
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(clientA.getCronExpression())
-                .expiresAt(com.unicloudapp.management.domain.ExpiresDate.of(LocalDate.now().plusDays(3)))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(3)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.INACTIVE))
                 .build();
 
