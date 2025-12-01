@@ -35,8 +35,6 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:$grpcVersion")
     implementation("io.grpc:grpc-stub:$grpcVersion")
 
-    // Jakarta annotations API (provided by JDK at runtime; used at compile)
-
     // MapStruct (API + processors for annotation processing)
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
