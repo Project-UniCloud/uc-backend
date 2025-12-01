@@ -1,0 +1,344 @@
+package com.unicloudapp.cloud.application;
+
+import com.unicloudapp.cloud.application.port.CloudConnectorClientFactoryPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
+import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
+import com.unicloudapp.common.notifications.NotificationType;
+import com.unicloudapp.common.notifications.SendNotificationCommand;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
+import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
+import com.unicloudapp.cloud.domain.connector.CloudConnector;
+import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
+import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
+import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
+import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.notifications.NotificationsCommandService;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import com.unicloudapp.common.vo.cloud.UsedLimit;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupQueryService;
+import com.unicloudapp.common.group.GroupUniqueName;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.val;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
+
+@RequiredArgsConstructor
+public class CloudResourceAccessService
+        implements CloudResourceAccessQueryService, CloudResourceAccessCommandService {
+
+    private final Map<CloudResourceAccessId, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+    private final Map<CloudConnectorId, CloudConnectorClientPort> cloudConnectorClients = new ConcurrentHashMap<>();
+
+    private final TaskScheduler taskScheduler;
+    private final CloudConnectorRepositoryPort cloudConnectorRepositoryPort;
+    private final CloudResourceAccessRepositoryPort cloudResourceAccessRepository;
+    private final GroupQueryService groupQueryService;
+    private final NotificationsCommandService notificationsCommandService;
+    private final CloudResourceAccessFactory cloudResourceAccessFactory;
+    private final CloudConnectorClientFactoryPort cloudConnectorClientFactoryPort;
+
+    @PostConstruct
+    protected void init() {
+        List<GroupCloudDto> groupCloudDtoList = groupQueryService.getActiveGroups();
+        CloudResourcesAccessStatus activeStatus = CloudResourcesAccessStatus.of(
+                CloudResourcesAccessStatus.Status.ACTIVE
+        );
+        Map<CloudResourceAccessId, CloudResourceAccess> activeCloudResourcesAccesses =
+                cloudResourceAccessRepository.findAllByStatus(activeStatus);
+        groupCloudDtoList.forEach(groupCloudDto ->
+                groupCloudDto.cloudResourceAccesses()
+                        .stream()
+                        .filter(activeCloudResourcesAccesses::containsKey)
+                        .forEach(cloudResourceAccessId ->
+                            scheduleTask(activeCloudResourcesAccesses.get(cloudResourceAccessId), groupCloudDto.groupUniqueName())
+                        )
+        );
+        cloudConnectorRepositoryPort.findAll()
+                .forEach(cloudConnector -> cloudConnectorClients.put(
+                        cloudConnector.getCloudConnectorId(),
+                        cloudConnectorClientFactoryPort.create(cloudConnector.getHost(), cloudConnector.getPort())
+                ));
+    }
+
+    public boolean isRunning(CloudConnectorId cloudConnectorId) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        return cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).isRunning();
+    }
+
+    public boolean isCloudClientExists(CloudConnectorId cloudConnectorId) {
+        return cloudConnectorRepositoryPort.findByClientId(cloudConnectorId).isPresent();
+    }
+
+    public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            CloudConnectorId cloudConnectorId
+    ) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        return cloudConnector.getResourceTypes();
+    }
+
+    @Override
+    public Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds) {
+        return cloudResourceAccessRepository.getCloudResourceAccesses(cloudResourceAccessIds)
+                .stream()
+                .map(CloudResourceAccess::getCloudResourceType)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public boolean isCloudGroupExists(GroupUniqueName groupUniqueName,
+                                      CloudConnectorId cloudConnectorId
+    ) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        return cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).isCloudGroupExists(groupUniqueName);
+    }
+
+    @Override
+    public List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
+        List<CloudResourceAccess> CloudResourceAccesses = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
+        return CloudResourceAccesses.stream()
+                .map(cloudResourceAccess -> CloudResourceRowView.builder()
+                        .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
+                        .name(cloudResourceAccess.getCloudResourceType().getName())
+                        .costLimit(cloudResourceAccess.getCostLimit().getCost())
+                        .clientId(cloudResourceAccess.getCloudConnectorId().id())
+                        .status(cloudResourceAccess.getStatus().getStatus().name())
+                        .cronCleanupSchedule(cloudResourceAccess.getCronExpression().toString())
+                        .lastUsedAt(LocalDateTime.now())
+                        .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
+                        .limitUsed(cloudResourceAccess.getUsedLimit()
+                                .getValue())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
+            CloudConnectorId cloudConnectorId,
+            CloudResourceType resourceType
+    ) {
+        return cloudResourceAccessRepository.findAllByCloudClientIdAndResourceType(cloudConnectorId, resourceType)
+                .stream()
+                .map(CloudResourceAccess::getCloudResourceAccessId)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(CloudConnectorId cloudConnectorId) {
+        return cloudResourceAccessRepository.findAllByCloudClientId(cloudConnectorId)
+                .stream()
+                .map(CloudResourceAccess::getCloudResourceAccessId)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public CloudResourceAccessId giveGroupCloudResourceAccess(CloudConnectorId cloudConnectorId,
+                                                              CloudResourceType cloudResourceType,
+                                                              GroupUniqueName groupUniqueName,
+                                                              CostLimit costLimit
+    ) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        if (!cloudConnector.containsResourceType(cloudResourceType)) {
+            throw new IllegalArgumentException("CloudResourceType " + cloudResourceType + " is not supported by client " + cloudConnectorId);
+        }
+        CloudResourceAccess cloudResourceAccess = cloudResourceAccessFactory
+                .create(
+                        CloudResourceAccessId.of(UUID.randomUUID()),
+                        cloudConnector.getCloudConnectorId(),
+                        cloudResourceType,
+                        costLimit,
+                        cloudConnector.getCronExpression(),
+                        ExpiresDate.of(LocalDate.now().plusDays(30)) //TODO inject this value
+                );
+        cloudResourceAccessRepository.save(cloudResourceAccess);
+        scheduleTask(cloudResourceAccess, groupUniqueName);
+        return cloudResourceAccess.getCloudResourceAccessId();
+    }
+
+    @Override
+    public void createGroup(GroupUniqueName groupUniqueName,
+                            CloudConnectorId cloudConnectorId,
+                            List<Map.Entry<UserLogin, Email>> lecturers,
+                            CloudResourceType resourceType
+    ) {
+        lecturers.forEach(lecturer -> {
+            SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
+                    .to(lecturer.getValue().getValue())
+                    .subject("Your access to cloud resources has been granted")
+                    .text(
+                            mail.replace("{username}", lecturer.getKey().getValue() + "-" + groupUniqueName.toStringWithoutSpaces())
+                                    .replace("{password}", groupUniqueName.toStringWithoutSpaces())
+                    )
+                    .type(NotificationType.EMAIL)
+                    .build();
+            notificationsCommandService.sendNotification(sendNotificationCommand);
+        });
+        val lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).createGroup(groupUniqueName, lecturerLogins, resourceType);
+    }
+
+    public Page<CloudConnector> getCloudResourceAccessClients(Pageable pageable) {
+        List<CloudConnector> all = cloudConnectorRepositoryPort.findAll().stream()
+                .sorted(Comparator.comparing(c -> c.getCloudConnectorId().id()))
+                .toList();
+        return new PageImpl<>(all, pageable, all.size());
+    }
+
+    public CloudConnector getCloudResourceAccessClientDetails(CloudConnectorId clientId) {
+        return cloudConnectorRepositoryPort.findByClientId(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + clientId + " does not exist"));
+    }
+
+    @Override
+    public String createUsers(CloudConnectorId cloudConnectorId, List<Map.Entry<UserLogin, Email>> users, GroupUniqueName groupUniqueName) {
+        final var logins = users.stream().map(Map.Entry::getKey).toList();
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        String createdUserLogin = cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).createUsers(logins, groupUniqueName);
+        users.forEach(user -> {
+            SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
+                    .to(user.getValue().getValue())
+                    .subject("Your access to cloud resources has been granted")
+                    .text(
+                            mail.replace("{username}", user.getKey().getValue() + "-" + groupUniqueName.toStringWithoutSpaces())
+                                    .replace("{password}", groupUniqueName.toStringWithoutSpaces())
+                    )
+                    .type(NotificationType.EMAIL)
+                    .build();
+            notificationsCommandService.sendNotification(sendNotificationCommand);
+        });
+        return createdUserLogin;
+    }
+
+    @Override
+    @Transactional
+    public void activateCloudResource(CloudResourceAccessId cloudResourceAccessId) {
+        Optional<CloudResourceAccess> resourceAccess = cloudResourceAccessRepository.findById(cloudResourceAccessId);
+        resourceAccess.ifPresent(cloudResourceAccess -> {
+            cloudResourceAccess.active();
+            cloudResourceAccessRepository.save(cloudResourceAccess);
+        });
+    }
+
+    @Transactional
+    @Override
+    public void updateGroupCloudResourceAccess(CloudResourceAccessDetailsDto request, GroupUniqueName groupUniqueName) {
+        Optional<CloudResourceAccess> resourceAccess = cloudResourceAccessRepository.findById(CloudResourceAccessId.of(request.id()));
+        resourceAccess.ifPresent(cloudResourceAccess -> {
+            cloudResourceAccess.update(request);
+            updateScheduledTask(
+                    cloudResourceAccess,
+                    groupUniqueName
+            );
+            cloudResourceAccessRepository.save(cloudResourceAccess);
+        });
+    }
+
+    @Transactional
+    @Override
+    public void deactivateCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
+        Optional<CloudResourceAccess> resourceAccess = cloudResourceAccessRepository.findById(cloudResourceAccessId);
+        resourceAccess.ifPresent(cloudResourceAccess -> {
+            cloudResourceAccess.deactivate();
+            cancelScheduledTask(cloudResourceAccessId);
+            cloudResourceAccessRepository.save(cloudResourceAccess);
+        });
+    }
+
+    @Override
+    public void cleanUpResources(Set<CloudResourceAccessId> CloudVendorConnectorIds, GroupUniqueName groupUniqueName, boolean force) {
+        cloudResourceAccessRepository.findAllById(CloudVendorConnectorIds).forEach(cloudResourceAccess ->
+                cleanUpResources(cloudResourceAccess, groupUniqueName, force)
+        );
+    }
+
+    @Override
+    public void removeGroup(GroupUniqueName groupUniqueName, CloudConnectorId cloudConnectorId) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).removeGroup(groupUniqueName);
+    }
+
+    @Scheduled(cron = "${adapters.costSyncCron}")
+    @Transactional
+    protected void updateCostUsed() {
+        cloudConnectorRepositoryPort.findAll()
+                .forEach(cloudResourceAccessClient -> {
+                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId()).updateUsedCost(LocalDate.EPOCH, LocalDate.now());
+                    groupUniqueNameUsedLimitMap.forEach((groupUniqueName, usedLimit) -> {
+                        Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
+                                cloudResourceAccessClient.getCloudConnectorId(),
+                                cloudResourceAccessClient.getResourceTypes().getFirst()
+                        );
+                        List<CloudResourceAccess> allById = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
+                        allById.forEach(CloudResourceAccess -> {
+                            CloudResourceAccess.updateUsedLimit(usedLimit);
+                            cloudResourceAccessRepository.save(CloudResourceAccess);
+                        });
+                    });
+                });
+    }
+
+    private void cleanUpResources(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName, boolean force) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudResourceAccess.getCloudConnectorId())
+                .orElseThrow();
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId())
+                .cleanUpResources(groupUniqueName, force);
+    }
+
+    private void scheduleTask(CloudResourceAccess CloudResourceAccess, GroupUniqueName groupUniqueName) {
+        CronTrigger cronTrigger = new CronTrigger(CloudResourceAccess.getCronExpression().toString());
+        ScheduledFuture<?> future = taskScheduler.schedule(
+                () -> cleanUpResources(CloudResourceAccess, groupUniqueName, false),
+                cronTrigger
+        );
+        scheduledTasks.put(CloudResourceAccess.getCloudResourceAccessId(), future);
+    }
+
+    private void updateScheduledTask(
+            CloudResourceAccess CloudResourceAccess,
+            GroupUniqueName groupUniqueName
+    ) {
+        cancelScheduledTask(CloudResourceAccess.getCloudResourceAccessId());
+        scheduleTask(CloudResourceAccess, groupUniqueName);
+    }
+
+    private void cancelScheduledTask(CloudResourceAccessId cloudResourceAccessId) {
+        ScheduledFuture<?> scheduledFuture = scheduledTasks.get(cloudResourceAccessId);
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+        }
+        scheduledTasks.remove(cloudResourceAccessId);
+    }
+
+    private static final String mail = """
+            <!DOCTYPE html> <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office"> <head> <meta charset="UTF-8" /> <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> <!--[if !mso]><!-- --> <meta http-equiv="X-UA-Compatible" content="IE=edge" /> <!--<![endif]--> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" /> <meta name="x-apple-disable-message-reformatting" /> <link href="https://fonts.googleapis.com/css?family=Montserrat:ital,wght@0,400;0,700" rel="stylesheet" /> <link href="https://fonts.googleapis.com/css?family=Poppins:ital,wght@0,400;0,600" rel="stylesheet" /> <title>Untitled</title> <!-- Made with Postcards Email Builder by Designmodo --> <style> html, body { margin: 0 !important; padding: 0 !important; min-height: 100% !important; width: 100% !important; -webkit-font-smoothing: antialiased; } * { -ms-text-size-adjust: 100%; } #outlook a { padding: 0; } .ReadMsgBody, .ExternalClass { width: 100%; } .ExternalClass, .ExternalClass p, .ExternalClass td, .ExternalClass div, .ExternalClass span, .ExternalClass font { line-height: 100%; } table, td, th { mso-table-lspace: 0 !important; mso-table-rspace: 0 !important; border-collapse: collapse; } u + .body table, u + .body td, u + .body th { will-change: transform; } body, td, th, p, div, li, a, span { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; mso-line-height-rule: exactly; } img { border: 0; outline: 0; line-height: 100%; text-decoration: none; -ms-interpolation-mode: bicubic; } a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; } .body .pc-project-body { background-color: transparent !important; } @media (min-width: 621px) { .pc-lg-hide { display: none; } .pc-lg-bg-img-hide { background-image: none !important; } } </style> <style> @media (max-width: 620px) { .pc-project-body {min-width: 0px !important;} .pc-project-container, .pc-component {width: 100% !important;} .pc-sm-hide {display: none !important;} .pc-sm-bg-img-hide {background-image: none !important;} .pc-w620-padding-30-30-30-30 {padding: 30px 30px 30px 30px !important;} .pc-w620-padding-32-24-32-24 {padding: 32px 24px 32px 24px !important;} table.pc-w620-spacing-0-0-0-0 {margin: 0px 0px 0px 0px !important;} td.pc-w620-spacing-0-0-0-0,th.pc-w620-spacing-0-0-0-0{margin: 0 !important;padding: 0px 0px 0px 0px !important;} .pc-w620-width-80 {width: 80px !important;} .pc-w620-height-auto {height: auto !important;} table.pc-w620-spacing-0-0-16-0 {margin: 0px 0px 16px 0px !important;} td.pc-w620-spacing-0-0-16-0,th.pc-w620-spacing-0-0-16-0{margin: 0 !important;padding: 0px 0px 16px 0px !important;} .pc-w620-padding-0-0-0-0 {padding: 0px 0px 0px 0px !important;} .pc-w620-font-size-32px {font-size: 32px !important;} .pc-w620-line-height-120pc {line-height: 120% !important;} .pc-w620-font-size-14px {font-size: 14px !important;} .pc-w620-line-height-140pc {line-height: 140% !important;} table.pc-w620-spacing-0-0-32-0 {margin: 0px 0px 32px 0px !important;} td.pc-w620-spacing-0-0-32-0,th.pc-w620-spacing-0-0-32-0{margin: 0 !important;padding: 0px 0px 32px 0px !important;} .pc-w620-itemsVSpacings-8 {padding-top: 4px !important;padding-bottom: 4px !important;} .pc-w620-itemsHSpacings-0 {padding-left: 0px !important;padding-right: 0px !important;} .pc-w620-width-fill {width: 100% !important;} .pc-w620-padding-12-0-12-0 {padding: 12px 0px 12px 0px !important;} .pc-w620-itemsVSpacings-30 {padding-top: 15px !important;padding-bottom: 15px !important;} .pc-w620-padding-32-16-0-16 {padding: 32px 16px 0px 16px !important;} .pc-w620-width-100pc {width: 100% !important;} .pc-w620-height-1 {height: 1px !important;} .pc-w620-itemsVSpacings-24 {padding-top: 12px !important;padding-bottom: 12px !important;} .pc-w620-valign-middle {vertical-align: middle !important;} td.pc-w620-halign-center,th.pc-w620-halign-center {text-align: center !important;text-align-last: center !important;} table.pc-w620-halign-center {float: none !important;margin-right: auto !important;margin-left: auto !important;} img.pc-w620-halign-center {margin-right: auto !important;margin-left: auto !important;} div.pc-w620-align-center,th.pc-w620-align-center,a.pc-w620-align-center,td.pc-w620-align-center {text-align: center !important;text-align-last: center !important;} table.pc-w620-align-center {float: none !important;margin-right: auto !important;margin-left: auto !important;} img.pc-w620-align-center {margin-right: auto !important;margin-left: auto !important;} .pc-w620-width-hug {width: auto !important;} .pc-w620-width-140 {width: 140px !important;} .pc-w620-itemsVSpacings-0 {padding-top: 0px !important;padding-bottom: 0px !important;} .pc-w620-itemsHSpacings-40 {padding-left: 20px !important;padding-right: 20px !important;} .pc-w620-itemsHSpacings-10 {padding-left: 5px !important;padding-right: 5px !important;} .pc-w620-padding-32-32-32-32 {padding: 32px 32px 32px 32px !important;} .pc-g-ib{display: inline-block !important;} .pc-g-b{display: block !important;} .pc-g-rb{display: block !important;width: auto !important;} .pc-g-wf{width: 100% !important;} .pc-g-rpt{padding-top: 0 !important;} .pc-g-rpr{padding-right: 0 !important;} .pc-g-rpb{padding-bottom: 0 !important;} .pc-g-rpl{padding-left: 0 !important;} } @media (max-width: 520px) { .pc-w520-padding-25-25-25-25 {padding: 25px 25px 25px 25px !important;} } </style> <!--[if !mso]><!-- --> <style> @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 700; src: url('https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w3aXw.woff') format('woff'), url('https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM73w3aXo.woff2') format('woff2'); } @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; src: url('https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw3aXw.woff') format('woff'), url('https://fonts.gstatic.com/s/montserrat/v29/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw3aXo.woff2') format('woff2'); } @font-face { font-family: 'Poppins'; font-style: normal; font-weight: 600; src: url('https://fonts.gstatic.com/s/poppins/v23/pxiByp8kv8JHgFVrLEj6Z1JlEw.woff') format('woff'), url('https://fonts.gstatic.com/s/poppins/v23/pxiByp8kv8JHgFVrLEj6Z1JlFQ.woff2') format('woff2'); } @font-face { font-family: 'Poppins'; font-style: normal; font-weight: 400; src: url('https://fonts.gstatic.com/s/poppins/v23/pxiEyp8kv8JHgFVrJJnedA.woff') format('woff'), url('https://fonts.gstatic.com/s/poppins/v23/pxiEyp8kv8JHgFVrJJnecg.woff2') format('woff2'); } </style> <!--<![endif]--> <!--[if mso]> <style type="text/css"> .pc-font-alt { font-family: Arial, Helvetica, sans-serif !important; } </style> <![endif]--> <!--[if gte mso 9]> <xml> <o:OfficeDocumentSettings> <o:AllowPNG/> <o:PixelsPerInch>96</o:PixelsPerInch> </o:OfficeDocumentSettings> </xml> <![endif]--> </head> <body class="body pc-font-alt" style="width: 100% !important; min-height: 100% !important; margin: 0 !important; padding: 0 !important; font-weight: normal; color: #2D3A41; mso-line-height-rule: exactly; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; font-variant-ligatures: normal; text-rendering: optimizeLegibility; -moz-osx-font-smoothing: grayscale; background-color: #ffffff;" bgcolor="#ffffff"> <table class="pc-project-body" style="table-layout: fixed; width: 100%; min-width: 600px; background-color: #ffffff;" bgcolor="#ffffff" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <td align="center" valign="top" style="width:auto;"> <table class="pc-project-container" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td style="padding: 20px 0px 20px 0px;" align="left" valign="top"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"> <tr> <td valign="top"> <!-- BEGIN MODULE: Logo --> <table class="pc-component" style="width: 600px; max-width: 600px;" width="600" align="center" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <td valign="top" class="pc-w520-padding-25-25-25-25 pc-w620-padding-30-30-30-30" style="padding: 24px 40px 24px 40px; height: unset; background-color: transparent;" bgcolor="transparent"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top"> <img src="https://cloudfilesdm.com/postcards/logo-3fb1e93e.png" width="100%" height="auto" alt="" style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width: 100%; height: auto; border: 0;" /> </td> </tr> </table> </td> </tr> </table> <!-- END MODULE: Logo --> </td> </tr> <tr> <td valign="top"> <!-- BEGIN MODULE: Header --> <table width="600" border="0" cellspacing="0" cellpadding="0" role="presentation" align="center" class="pc-component" style="width: 600px; max-width: 600px;"> <tr> <td class="pc-w620-spacing-0-0-0-0" width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation"> <table style="border-collapse: separate; border-spacing: 0px;" width="100%" align="center" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <!--[if !gte mso 9]><!-- --> <td valign="top" class="pc-w620-padding-0-0-0-0" style="background-image: url('https://cloudfilesdm.com/postcards/image-1719566117559.png'); background-size: cover; background-position: center; background-repeat: no-repeat; height: unset; border-radius: 23px 23px 0px 0px; background-color: #f8f9fd;" bgcolor="#f8f9fd" background="https://cloudfilesdm.com/postcards/image-1719566117559.png"> <!--<![endif]--> <!--[if gte mso 9]> <td valign="top" align="center" style="background-image: url('https://cloudfilesdm.com/postcards/image-1719566117559.png'); background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #f8f9fd; border-radius: 23px 23px 0px 0px;" bgcolor="#f8f9fd" background="https://cloudfilesdm.com/postcards/image-1719566117559.png"> <![endif]--> <!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width: 600px;"> <v:fill src="https://cloudfilesdm.com/postcards/image-1719566117559.png" color="#f8f9fd" type="frame" size="1,1" aspect="atleast" origin="0,0" position="0,0"/> <v:textbox style="mso-fit-shape-to-text: true;" inset="0,0,0,0"> <div style="font-size: 0; line-height: 0;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td style="font-size: 14px; line-height: 1.5;" valign="top"> <p style="margin:0;mso-hide:all"><o:p xmlns:o="urn:schemas-microsoft-com:office:office">&nbsp;</o:p></p> <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <td colspan="3" height="0" style="line-height: 1px; font-size: 1px;">&nbsp;</td> </tr> <tr> <td width="0" valign="top" style="line-height: 1px; font-size: 1px;">&nbsp;</td> <td valign="top" align="left"> <![endif]--> <table class="pc-width-fill" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tbody> <tr> <td class="pc-g-rpt pc-g-rpb" align="center" valign="top" style="padding-top: 0px; padding-bottom: 0px;"> <table style="width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-padding-32-24-32-24" align="center" valign="middle" style="padding: 30px 32px 30px 32px; mso-padding-left-alt: 0; margin-left:32px; height: auto;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top" style="line-height: 1px; font-size: 1px;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top" style="padding: 0px 0px 20px 0px; height: auto;"> <img src="https://cloudfilesdm.com/postcards/image-17168894891383.png" class="pc-w620-width-80 pc-w620-height-auto" width="100" height="100" alt="" style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width: 100px; height: auto; max-width: 100%; border: 0;" /> </td> </tr> </table> </td> </tr> <tr> <td align="center" valign="top"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-16-0" valign="top" style="padding: 0px 0px 10px 0px; height: auto;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"> <tr> <td valign="top" class="pc-w620-padding-0-0-0-0" align="center" style="padding: 0px 40px 0px 40px; height: auto; mso-padding-left-alt: 0; margin-left:40px;"> <div class="pc-font-alt" style="text-decoration: none;"> <div class="pc-w620-font-size-32px pc-w620-line-height-120pc" style="font-size:32px;line-height:140%;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Montserrat', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Montserrat', Arial, Helvetica, sans-serif;"><span style="font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 32px; line-height: 140%; font-weight: 700; text-transform: uppercase;" class="pc-w620-font-size-32px pc-w620-line-height-120pc">Your AWS Account</span> </div> <div style="font-family:'Montserrat', Arial, Helvetica, sans-serif;"><span style="font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 32px; line-height: 140%; font-weight: 700; text-transform: uppercase;">HAS been created!</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr> <td align="center" valign="top"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-0-0" valign="top" style="padding: 0px 0px 10px 0px; height: auto;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"> <tr> <td valign="top" class="pc-w620-padding-0-0-0-0" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div class="pc-w620-font-size-14px pc-w620-line-height-140pc" style="font-size:14px;line-height:24px;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 24px; font-weight: 400;" class="pc-w620-font-size-14px pc-w620-line-height-140pc">Your lecturer has created account on cloud vendor.</span> </div> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 24px; font-weight: 400;" class="pc-w620-font-size-14px pc-w620-line-height-140pc">Please follow bellow instructions to sign up. </span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </tbody> </table> <!--[if gte mso 9]> </td> <td width="0" style="line-height: 1px; font-size: 1px;" valign="top">&nbsp;</td> </tr> <tr> <td colspan="3" height="0" style="line-height: 1px; font-size: 1px;">&nbsp;</td> </tr> </table> </td> </tr> </table> </div> <p style="margin:0;mso-hide:all"><o:p xmlns:o="urn:schemas-microsoft-com:office:office">&nbsp;</o:p></p> </v:textbox> </v:rect> <![endif]--> </td> </tr> </table> </td> </tr> </table> <!-- END MODULE: Header --> </td> </tr> <tr> <td valign="top"> <!-- BEGIN MODULE: Login --> <table width="600" border="0" cellspacing="0" cellpadding="0" role="presentation" align="center" class="pc-component" style="width: 600px; max-width: 600px;"> <tr> <td class="pc-w620-spacing-0-0-0-0" width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation"> <table style="border-collapse: separate; border-spacing: 0px;" width="100%" align="center" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <td valign="top" class="pc-w620-padding-32-16-0-16" style="padding: 48px 16px 0px 16px; height: unset; background-color: #f8f9fd;" bgcolor="#f8f9fd"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top" style="padding: 0px 0px 24px 0px; height: auto;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-right: auto; margin-left: auto;"> <tr> <td valign="top" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div class="pc-w620-line-height-19p2px" style="font-size:16px;line-height:140%;text-align:center;text-align-last:center;color:#151515;font-family:'Montserrat', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Montserrat', Arial, Helvetica, sans-serif;"><span style="font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 16px; line-height: 140%; font-weight: 700; text-transform: uppercase;" class="pc-w620-line-height-120pc">PLEASE Click Sign IN button </span> </div> <div style="font-family:'Montserrat', Arial, Helvetica, sans-serif;"><span style="font-family: 'Montserrat', Arial, Helvetica, sans-serif; font-size: 16px; line-height: 140%; font-weight: 700; text-transform: uppercase;" class="pc-w620-line-height-120pc">and input bellow credetials</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-32-0" align="center" valign="top" style="padding: 0px 0px 48px 30px; height: auto;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" style="margin-right: auto; margin-left: auto;"> <tr> <td valign="top" class="pc-w620-padding-0-0-0-0" align="center" style="padding: 0px 30px 0px 0px; height: auto;"> <div class="pc-font-alt" style="text-decoration: none;"> <div style="font-size:14px;line-height:140%;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 140%; font-weight: 400;">After signing in, you will be asked to change password.</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> <table class="pc-w620-width-fill" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-32-0" style="padding: 0px 0px 48px 0px;"> <table class="pc-width-fill pc-g-b pc-w620-width-fill" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tbody class="pc-g-b"> <tr class="pc-g-ib pc-g-wf"> <td class="pc-g-rb pc-g-rpt pc-g-wf pc-w620-itemsVSpacings-8" align="center" valign="middle" style="width: 100%; padding-top: 0px; padding-bottom: 16px;"> <table style="border-collapse: separate; border-spacing: 0; width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="middle" style="border-bottom: 1px solid #d6d6d652;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top"> <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" align="center"> <tr> <td valign="top" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div style="font-size:14px;line-height:24px;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 24px; font-weight: 400;">Account Id</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr> <td align="center" valign="top"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="min-width: 100%;"> <tr> <th valign="top" class="pc-w620-spacing-0-0-0-0" align="center" style="text-align: center; font-weight: normal;"> <!--[if mso]> <table border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" width="100%" style="border-collapse: separate; border-spacing: 0; margin-right: auto; margin-left: auto;"> <tr> <td valign="middle" align="center" style="width: 100%; background-color: transparent; text-align:center; color: #ffffff; padding: 12px 0px 16px 0px;" bgcolor="transparent"> <a class="pc-font-alt" style="display: inline-block; text-decoration: none; text-align: center;" href="https://postcards.email/" target="_blank"><span style="font-size:24px;line-height:24px;color:#bebebe;font-family:'Poppins', Arial, Helvetica, sans-serif;font-style:normal;letter-spacing:0px;display:inline-block;vertical-align:top;"><span style="font-family:'Poppins', Arial, Helvetica, sans-serif;display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-weight: 600; font-size: 24px; line-height: 24px;">unicloud-project</span></span></span></a> </td> </tr> </table> <![endif]--> <!--[if !mso]><!-- --> <a class="pc-w620-padding-12-0-12-0" style="display: inline-block; box-sizing: border-box; background-color: transparent; padding: 12px 0px 16px 0px; width: 100%; vertical-align: top; text-align: center; text-align-last: center; text-decoration: none; -webkit-text-size-adjust: none;" href="https://postcards.email/" target="_blank"><span style="font-size:24px;line-height:24px;color:#bebebe;font-family:'Poppins', Arial, Helvetica, sans-serif;font-style:normal;letter-spacing:0px;display:inline-block;vertical-align:top;"><span style="font-family:'Poppins', Arial, Helvetica, sans-serif;display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-weight: 600; font-size: 24px; line-height: 24px;">unicloud-project</span></span></span></a> <!--<![endif]--> </th> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr class="pc-g-ib pc-g-wf"> <td class="pc-g-rb pc-g-wf pc-w620-itemsVSpacings-8" align="center" valign="middle" style="width: 100%; padding-top: 16px; padding-bottom: 16px;"> <table style="border-collapse: separate; border-spacing: 0; width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="middle" style="border-bottom: 1px solid #d6d6d63d;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top"> <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" align="center"> <tr> <td valign="top" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div style="font-size:14px;line-height:24px;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 24px; font-weight: 400;">AIM username</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr> <td align="center" valign="top"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="min-width: 100%;"> <tr> <th valign="top" class="pc-w620-spacing-0-0-0-0" align="center" style="text-align: center; font-weight: normal;"> <!--[if mso]> <table border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" width="100%" style="border-collapse: separate; border-spacing: 0; margin-right: auto; margin-left: auto;"> <tr> <td valign="middle" align="center" style="width: 100%; background-color: transparent; text-align:center; color: #ffffff; padding: 12px 0px 16px 0px;" bgcolor="transparent"> <a class="pc-font-alt" style="display: inline-block; text-decoration: none; text-align: center;" href="https://postcards.email/" target="_blank"><span style="font-size:24px;line-height:24px;color:#bebebe;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;display:inline-block;vertical-align:top;"><span style="font-family:'Poppins', Arial, Helvetica, sans-serif;display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 24px; line-height: 24px; font-weight: 600;">{username}</span></span></span></a> </td> </tr> </table> <![endif]--> <!--[if !mso]><!-- --> <a class="pc-w620-padding-12-0-12-0" style="display: inline-block; box-sizing: border-box; background-color: transparent; padding: 12px 0px 16px 0px; width: 100%; vertical-align: top; text-align: center; text-align-last: center; text-decoration: none; -webkit-text-size-adjust: none;" href="https://postcards.email/" target="_blank"><span style="font-size:24px;line-height:24px;color:#bebebe;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;display:inline-block;vertical-align:top;"><span style="font-family:'Poppins', Arial, Helvetica, sans-serif;display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 24px; line-height: 24px; font-weight: 600;">{username}</span></span></span></a> <!--<![endif]--> </th> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr class="pc-g-ib pc-g-wf"> <td class="pc-g-rb pc-g-rpb pc-g-wf pc-w620-itemsVSpacings-8" align="center" valign="middle" style="width: 100%; padding-top: 16px; padding-bottom: 0px;"> <table style="border-collapse: separate; border-spacing: 0; width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="middle" style="border-bottom: 1px solid #d6d6d63d;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top"> <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" align="center"> <tr> <td valign="top" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div style="font-size:14px;line-height:24px;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 24px; font-weight: 400;">Password</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr> <td align="center" valign="top"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="min-width: 100%;"> <tr> <th valign="top" class="pc-w620-spacing-0-0-0-0" align="center" style="text-align: center; font-weight: normal;"> <!--[if mso]> <table border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" width="100%" style="border-collapse: separate; border-spacing: 0; margin-right: auto; margin-left: auto;"> <tr> <td valign="middle" align="center" style="width: 100%; background-color: transparent; text-align:center; color: #ffffff; padding: 12px 0px 16px 0px;" bgcolor="transparent"> <a class="pc-font-alt" style="display: inline-block; text-decoration: none; text-align: center;" href="https://postcards.email/" target="_blank"><span style="font-size:24px;line-height:24px;color:#bebebe;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;display:inline-block;vertical-align:top;"><span style="font-family:'Poppins', Arial, Helvetica, sans-serif;display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 24px; line-height: 24px; font-weight: 600;">{password}</span></span></span></a> </td> </tr> </table> <![endif]--> <!--[if !mso]><!-- --> <a class="pc-w620-padding-12-0-12-0" style="display: inline-block; box-sizing: border-box; background-color: transparent; padding: 12px 0px 16px 0px; width: 100%; vertical-align: top; text-align: center; text-align-last: center; text-decoration: none; -webkit-text-size-adjust: none;" href="https://postcards.email/" target="_blank"><span style="font-size:24px;line-height:24px;color:#bebebe;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:0px;font-style:normal;display:inline-block;vertical-align:top;"><span style="font-family:'Poppins', Arial, Helvetica, sans-serif;display:inline-block;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 24px; line-height: 24px; font-weight: 600;">{password}</span></span></span></a> <!--<![endif]--> </th> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </tbody> </table> </td> </tr> </table> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-32-0" style="padding: 0px 0px 48px 0px;"> <table class="pc-width-fill pc-g-b" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tbody class="pc-g-b"> <tr class="pc-g-ib pc-g-wf"> <td class="pc-g-rb pc-g-rpt pc-g-rpb pc-g-wf pc-w620-itemsVSpacings-30" align="left" valign="top" style="width: 100%; padding-top: 0px; padding-bottom: 0px;"> <table style="width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="middle"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="min-width: 100%;"> <tr> <th valign="top" align="center" style="text-align: center; font-weight: normal; line-height: 100%;"> <!--[if mso]> <table border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="border-collapse: separate; border-spacing: 0; margin-right: auto; margin-left: auto;"> <tr> <td valign="middle" align="center" style="border-radius: 296px 296px 296px 296px; background-color: #4a30cf; text-align:center; color: #ffffff; padding: 12px 72px 12px 72px; mso-padding-left-alt: 0; margin-left:72px;" bgcolor="#4a30cf"> <a class="pc-font-alt" style="display: inline-block; text-decoration: none; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-weight: 600; font-size: 16px; line-height: 24px; letter-spacing: -0px; text-align: center; color: #ffffff;" href="https://console.aws.amazon.com" target="_blank"><span style="display: block;"><span>SIGN IN</span></span></a> </td> </tr> </table> <![endif]--> <!--[if !mso]><!-- --> <a style="display: inline-block; box-sizing: border-box; border-radius: 296px 296px 296px 296px; background-color: #4a30cf; padding: 12px 72px 12px 72px; font-family: 'Poppins', Arial, Helvetica, sans-serif; font-weight: 600; font-size: 16px; line-height: 24px; letter-spacing: -0px; color: #ffffff; vertical-align: top; text-align: center; text-align-last: center; text-decoration: none; -webkit-text-size-adjust: none;" href="https://console.aws.amazon.com" target="_blank"><span style="display: block;"><span>SIGN IN</span></span></a> <!--<![endif]--> </th> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </tbody> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> <!-- END MODULE: Login --> </td> </tr> <tr> <td valign="top"> <!-- BEGIN MODULE: Footer --> <table width="600" border="0" cellspacing="0" cellpadding="0" role="presentation" align="center" class="pc-component" style="width: 600px; max-width: 600px;"> <tr> <td class="pc-w620-spacing-0-0-0-0" width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation"> <table style="border-collapse: separate; border-spacing: 0px;" width="100%" align="center" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <!--[if !gte mso 9]><!-- --> <td valign="top" class="pc-w620-padding-32-32-32-32" style="background-image: url('https://cloudfilesdm.com/postcards/image-171688948986812.png'); background-size: cover; background-position: center; background-repeat: no-repeat; padding: 0px 24px 32px 24px; height: unset; border-radius: 0px 0px 24px 24px; background-color: #f8f9fd;" bgcolor="#f8f9fd" background="https://cloudfilesdm.com/postcards/image-171688948986812.png"> <!--<![endif]--> <!--[if gte mso 9]> <td valign="top" align="center" style="background-image: url('https://cloudfilesdm.com/postcards/image-171688948986812.png'); background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #f8f9fd; border-radius: 0px 0px 24px 24px;" bgcolor="#f8f9fd" background="https://cloudfilesdm.com/postcards/image-171688948986812.png"> <![endif]--> <!--[if gte mso 9]> <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width: 600px;"> <v:fill src="https://cloudfilesdm.com/postcards/image-171688948986812.png" color="#f8f9fd" type="frame" size="1,1" aspect="atleast" origin="0,0" position="0,0"/> <v:textbox style="mso-fit-shape-to-text: true;" inset="0,0,0,0"> <div style="font-size: 0; line-height: 0;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td style="font-size: 14px; line-height: 1.5;" valign="top"> <p style="margin:0;mso-hide:all"><o:p xmlns:o="urn:schemas-microsoft-com:office:office">&nbsp;</o:p></p> <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation"> <tr> <td colspan="3" height="0" style="line-height: 1px; font-size: 1px;">&nbsp;</td> </tr> <tr> <td width="24" valign="top" style="line-height: 1px; font-size: 1px;">&nbsp;</td> <td valign="top" align="left"> <![endif]--> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-32-0" valign="top" style="padding: 0px 20px 32px 20px;mso-padding-left-alt: 0; margin-left:20px;"> <table class="pc-w620-width-100pc" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top" style="line-height: 1px; font-size: 1px; border-bottom: 1px solid #d6d6d652;">&nbsp;</td> </tr> </table> </td> </tr> </table> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-spacing-0-0-32-0 pc-w620-valign-middle pc-w620-halign-center" style="padding: 0px 20px 32px 20px; mso-padding-left-alt: 0; margin-left:20px;"> <table class="pc-width-fill pc-g-b pc-w620-halign-center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tbody class="pc-g-b"> <tr class="pc-g-ib pc-g-wf"> <td class="pc-g-rb pc-g-rpt pc-g-wf pc-w620-itemsVSpacings-24" align="left" valign="middle" style="width: 50%; padding-top: 0px; padding-bottom: 0px;"> <table class="pc-w620-width-fill pc-w620-halign-center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center pc-w620-valign-middle" align="left" valign="middle"> <table class="pc-w620-halign-center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center" align="left" valign="top" style="line-height: 1px; font-size: 1px;"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center" align="left" valign="top"> <img src="https://cloudfilesdm.com/postcards/logo_2-eccf2c13.png" class="pc-w620-align-center" width="250" height="74" alt="" style="display: block; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width: 250px; height: auto; max-width: 100%; border: 0;" /> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> <td class="pc-w620-itemsHSpacings-0" valign="middle" style="padding-right: 20px; padding-left: 20px; mso-padding-left-alt: 0; margin-left: 20px;" /> <td class="pc-g-rb pc-g-rpb pc-g-wf pc-w620-itemsVSpacings-24" align="left" valign="middle" style="width: 50%; padding-top: 0px; padding-bottom: 0px;"> <table class="pc-w620-width-hug pc-w620-halign-center" style="width: 100%;" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center pc-w620-valign-middle" align="right" valign="middle"> <table class="pc-w620-halign-center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center" align="right" valign="top"> <table class="pc-w620-halign-center" align="right" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-valign-middle pc-w620-halign-center" align="right"> <table class="pc-w620-halign-center pc-w620-width-hug" align="right" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td style="width:unset;" valign="top"> <table class="pc-width-hug pc-w620-width-hug pc-w620-halign-center" align="right" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tbody> <tr> <td class="pc-g-rpt pc-g-rpb pc-w620-itemsVSpacings-0" valign="middle" style="padding-top: 0px; padding-bottom: 0px;"> <table class="pc-w620-halign-center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center pc-w620-valign-middle" align="right" valign="middle"> <table class="pc-w620-halign-center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center" align="right" valign="top" style="line-height: 1px; font-size: 1px;"> <a class="pc-font-alt" href="https://github.com/Project-UniCloud" target="_blank" style="text-decoration: none; display: inline-block; vertical-align: top;"> <img src="https://cloudfilesdm.com/postcards/f3cdd3729dfc455681c5a296f8356d4d.png" class="" width="64" height="64" style="display: block; border: 0; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width: 64px; height: 64px;" alt="" /> </a> </td> </tr> </table> </td> </tr> </table> </td> <td class="pc-w620-itemsHSpacings-40" valign="middle" style="padding-right: 10px; padding-left: 10px; mso-padding-left-alt: 0; margin-left: 10px;" /> <td class="pc-g-rpt pc-g-rpb pc-w620-itemsVSpacings-0" valign="middle" style="padding-top: 0px; padding-bottom: 0px;"> <table class="pc-w620-halign-center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center pc-w620-valign-middle" align="right" valign="middle"> <table class="pc-w620-halign-center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td class="pc-w620-halign-center" align="right" valign="top" style="line-height: 1px; font-size: 1px;"> <a class="pc-font-alt" href="https://michalluczak.atlassian.net/servicedesk/customer/portals" target="_blank" style="text-decoration: none; display: inline-block; vertical-align: top;"> <img src="https://cloudfilesdm.com/postcards/1c7d08396845ae1a17e48e12b558b791.png" class="" width="64" height="64" style="display: block; border: 0; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; width: 64px; height: 64px;" alt="" /> </a> </td> </tr> </table> </td> </tr> </table> </td> </tr> </tbody> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </tbody> </table> </td> </tr> </table> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td style="width:unset;" valign="top"> <table class="pc-width-hug" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tbody> <tr> <td class="pc-g-rpt pc-g-rpb pc-w620-itemsVSpacings-0" valign="top" style="padding-top: 0px; padding-bottom: 0px;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top"> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top"> <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top" style="padding: 0px 0px 32px 0px; height: auto;"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%"> <tr> <td valign="top" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div style="font-size:14px;line-height:140%;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;letter-spacing:-0.2px;font-style:normal;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 140%; font-weight: 400;">In case of any problems, please contact your lecturer or us directly.</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> <tr> <td align="center" valign="top"> <table width="100%" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td valign="top"> <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%" align="center"> <tr> <td valign="top" align="center"> <div class="pc-font-alt" style="text-decoration: none;"> <div style="font-size:14px;line-height:140%;text-align:center;text-align-last:center;color:#2d2d2f;font-family:'Poppins', Arial, Helvetica, sans-serif;font-style:normal;letter-spacing:-0.3px;"> <div style="font-family:'Poppins', Arial, Helvetica, sans-serif;"><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-weight: 400; font-size: 14px; line-height: 140%;">©</span><span style="font-family: 'Poppins', Arial, Helvetica, sans-serif; font-size: 14px; line-height: 140%; font-weight: 600;"> Unicloud 2025</span> </div> </div> </div> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </tbody> </table> </td> </tr> </table> </td> </tr> </table> <!--[if gte mso 9]> </td> <td width="24" style="line-height: 1px; font-size: 1px;" valign="top">&nbsp;</td> </tr> <tr> <td colspan="3" height="32" style="line-height: 1px; font-size: 1px;">&nbsp;</td> </tr> </table> </td> </tr> </table> </div> <p style="margin:0;mso-hide:all"><o:p xmlns:o="urn:schemas-microsoft-com:office:office">&nbsp;</o:p></p> </v:textbox> </v:rect> <![endif]--> </td> </tr> </table> </td> </tr> </table> <!-- END MODULE: Footer --> </td> </tr> <tr> <td> <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"> <tr> <td align="center" valign="top" style="padding-top: 20px; padding-bottom: 20px; vertical-align: top;"> <a href="https://postcards.email/?uid=MzMwMDA2&type=footer" target="_blank" style="text-decoration: none; overflow: hidden; border-radius: 2px; display: inline-block;"> <img src="https://cloudfilesdm.com/postcards/promo-footer-dark.jpg" width="198" height="46" alt="Made with (o -) postcards" style="width: 198px; height: auto; margin: 0 auto; border: 0; outline: 0; line-height: 100%; -ms-interpolation-mode: bicubic; vertical-align: top;"> </a> <img src="https://api-postcards.designmodo.com/tracking/mail/promo?uid=MzMwMDA2" width="1" height="1" alt="" style="display:none; width: 1px; height: 1px;"> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </td> </tr> </table> </body> </html>\s
+            """;
+}

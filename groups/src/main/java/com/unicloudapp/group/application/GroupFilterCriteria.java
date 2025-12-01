@@ -1,9 +1,9 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.group.GroupName;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,7 +13,7 @@ public class GroupFilterCriteria {
 
     private GroupStatus status;
     private GroupName groupName;
-    private CloudAccessClientId cloudClientId;
+    private CloudConnectorId cloudClientId;
     private CloudResourceType resourceType;
     private Boolean pastExpiresDate;
 }

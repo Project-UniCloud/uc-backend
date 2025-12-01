@@ -8,7 +8,7 @@ import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupStatus.Type;
+import com.unicloudapp.group.domain.vo.GroupStatus.Type;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

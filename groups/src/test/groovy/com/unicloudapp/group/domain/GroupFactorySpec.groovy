@@ -1,5 +1,6 @@
 package com.unicloudapp.group.domain
 
+import com.unicloudapp.group.domain.vo.GroupStatus
 import spock.lang.Specification
 import spock.lang.Subject
 

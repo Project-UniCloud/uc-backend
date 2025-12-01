@@ -5,6 +5,10 @@ import com.unicloudapp.common.vo.group.GroupId
 import com.unicloudapp.common.vo.group.GroupName
 import com.unicloudapp.common.vo.group.Semester
 import com.unicloudapp.common.vo.user.UserId
+import com.unicloudapp.group.domain.vo.Description
+import com.unicloudapp.group.domain.vo.EndDate
+import com.unicloudapp.group.domain.vo.GroupStatus
+import com.unicloudapp.group.domain.vo.StartDate
 import spock.lang.Specification
 
 import java.time.LocalDate
@@ -92,7 +96,7 @@ class GroupSpec extends Specification {
         def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
 
         when:
-        group.giveCloudResourceAccess(cloudResourceAccessId)
+        group.grantCloudResourceAccess(cloudResourceAccessId)
 
         then:
         group.cloudResourceAccesses.size() == 1

@@ -5,7 +5,7 @@ import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupUniqueName;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

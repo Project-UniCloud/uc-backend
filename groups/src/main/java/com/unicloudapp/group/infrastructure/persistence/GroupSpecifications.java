@@ -2,7 +2,7 @@ package com.unicloudapp.group.infrastructure.persistence;
 
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupName;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import jakarta.persistence.criteria.Predicate;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -2,7 +2,7 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

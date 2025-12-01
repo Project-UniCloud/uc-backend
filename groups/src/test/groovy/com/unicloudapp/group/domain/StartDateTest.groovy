@@ -1,5 +1,6 @@
 package com.unicloudapp.group.domain
 
+import com.unicloudapp.group.domain.vo.StartDate
 import spock.lang.Specification
 
 class StartDateTest extends Specification {
