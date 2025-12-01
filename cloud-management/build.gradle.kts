@@ -20,7 +20,6 @@ val lombokVersion = "1.18.42"
 val javaxAnnotationsVersion = "1.3.2"
 val lombokMapstructBindingVersion = "0.2.0"
 val mapstructVersion = "1.6.2"
-val jakartaAnnotationVersion = "2.1.1"
 
 dependencies {
     // Implementation dependencies (application runtime + compile)
@@ -37,7 +36,6 @@ dependencies {
     implementation("io.grpc:grpc-stub:$grpcVersion")
 
     // Jakarta annotations API (provided by JDK at runtime; used at compile)
-    implementation("jakarta.annotation:jakarta.annotation-api:$jakartaAnnotationVersion")
 
     // MapStruct (API + processors for annotation processing)
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
