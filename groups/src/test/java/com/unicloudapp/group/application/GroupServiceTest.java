@@ -4,7 +4,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
@@ -22,7 +22,10 @@ import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.Description;
+import com.unicloudapp.group.domain.vo.EndDate;
+import com.unicloudapp.group.domain.vo.GroupStatus;
+import com.unicloudapp.group.domain.vo.StartDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -137,7 +140,7 @@ class GroupServiceTest {
 
         verify(group).addStudent(any(UserId.class));
         verify(cloudCmd).createUsers(
-                eq(CloudAccessClientId.of("clientA")),
+                eq(CloudConnectorId.of("clientA")),
                 eq(List.of(Map.entry(UserLogin.of("jsmith"), Email.empty()))),
                 eq(GroupUniqueName.fromString("AI 2024L"))
         );
@@ -250,14 +253,14 @@ class GroupServiceTest {
 
         verify(group, times(1)).addStudent(id1);
         verify(group, times(1)).addStudent(id2);
-        verify(cloudCmd).createUsers(eq(CloudAccessClientId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
+        verify(cloudCmd).createUsers(eq(CloudConnectorId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
         verify(groupRepository).save(group);
     }
 
     // giveCloudResourceAccess
     @Test
     @DisplayName("giveCloudResourceAccess prevents duplicates, creates group if missing, gives access and saves")
-    void giveCloudResourceAccess_behavior() {
+    void grantCloudResourceAccess_behavior() {
         GroupId gid = GroupId.of(UUID.randomUUID());
         Group group = mock(Group.class);
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.of(group));
@@ -266,7 +269,7 @@ class GroupServiceTest {
         when(group.getLecturers()).thenReturn(Set.of(UserId.of(UUID.randomUUID())));
         when(group.getCloudResourceAccesses()).thenReturn(Set.of());
 
-        CloudAccessClientId clientId = CloudAccessClientId.of("clientX");
+        CloudConnectorId clientId = CloudConnectorId.of("clientX");
         CloudResourceType type = CloudResourceType.of("S3");
         CostLimit limit = CostLimit.of(new BigDecimal("5"));
 
@@ -277,10 +280,10 @@ class GroupServiceTest {
         CloudResourceAccessId newId = CloudResourceAccessId.of(UUID.randomUUID());
         when(cloudCmd.giveGroupCloudResourceAccess(clientId, type, GroupUniqueName.fromString("AI 2024L"), limit)).thenReturn(newId);
 
-        CloudResourceAccessId result = service.giveCloudResourceAccess(gid, clientId, type, limit);
+        CloudResourceAccessId result = service.grantCloudResourceAccess(gid, clientId, type, limit);
         assertEquals(newId, result);
         verify(cloudCmd).createGroup(eq(GroupUniqueName.fromString("AI 2024L")), eq(clientId), anyList(), eq(type));
-        verify(group).giveCloudResourceAccess(newId);
+        verify(group).grantCloudResourceAccess(newId);
         verify(groupRepository).save(group);
 
         // duplicate path: when details say already has this type/client
@@ -296,7 +299,7 @@ class GroupServiceTest {
                 .build();
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
         when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row));
-        assertThrows(RuntimeException.class, () -> service.giveCloudResourceAccess(gid, clientId, type, limit));
+        assertThrows(RuntimeException.class, () -> service.grantCloudResourceAccess(gid, clientId, type, limit));
     }
 
     @Test
@@ -337,7 +340,7 @@ class GroupServiceTest {
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.of(group));
 
         service.updateGroup(gid, dto);
-        verify(group).update(eq(GroupName.of("AI2")), anySet(), eq(com.unicloudapp.group.domain.StartDate.of(dto.startDate())), eq(com.unicloudapp.group.domain.EndDate.of(dto.endDate())), eq(com.unicloudapp.group.domain.Description.of("d")));
+        verify(group).update(eq(GroupName.of("AI2")), anySet(), eq(StartDate.of(dto.startDate())), eq(EndDate.of(dto.endDate())), eq(Description.of("d")));
         verify(groupRepository).save(group);
 
         GroupDTO bad = GroupDTO.builder().name("n").lecturers(Set.of()).startDate(LocalDate.of(2024,6,1)).endDate(LocalDate.of(2024,6,1)).description("d").build();
@@ -375,20 +378,20 @@ class GroupServiceTest {
         assertEquals(1, result.getContent().size());
         GroupRowView row = result.getContent().getFirst();
         assertEquals("AI", row.name());
-        assertTrue(row.cloudAccesses().contains("S3"));
+        assertTrue(row.CloudResourceAccesses().contains("S3"));
         assertTrue(row.lecturers().contains("Prof X"));
 
         // With clientId only -> uses getCloudResourceAccessesByCloudClientId then repository.findAllByCriteriaAndContainsCloudResourceAccess
-        GroupFilterCriteria withClient = GroupFilterCriteria.builder().cloudClientId(CloudAccessClientId.of("client1")).build();
+        GroupFilterCriteria withClient = GroupFilterCriteria.builder().cloudClientId(CloudConnectorId.of("client1")).build();
         Set<CloudResourceAccessId> foundIds = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
-        when(cloudQuery.getCloudResourceAccessesByCloudClientId(CloudAccessClientId.of("client1"))).thenReturn(foundIds);
+        when(cloudQuery.getCloudResourceAccessesByCloudClientId(CloudConnectorId.of("client1"))).thenReturn(foundIds);
         when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds)).thenReturn(page);
         service.getGroupsByFilter(withClient, pageable);
         verify(groupRepository).findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds);
 
         // With clientId + resourceType -> other branch
-        GroupFilterCriteria withType = GroupFilterCriteria.builder().cloudClientId(CloudAccessClientId.of("client1")).resourceType(CloudResourceType.of("S3")).build();
-        when(cloudQuery.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudAccessClientId.of("client1"), CloudResourceType.of("S3")))
+        GroupFilterCriteria withType = GroupFilterCriteria.builder().cloudClientId(CloudConnectorId.of("client1")).resourceType(CloudResourceType.of("S3")).build();
+        when(cloudQuery.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudConnectorId.of("client1"), CloudResourceType.of("S3")))
                 .thenReturn(foundIds);
         when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withType, pageable, foundIds)).thenReturn(page);
         service.getGroupsByFilter(withType, pageable);
@@ -434,8 +437,8 @@ class GroupServiceTest {
         service.activate(gid);
 
         verify(group).activate();
-        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
-        verify(cloudCmd).createUsers(CloudAccessClientId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudConnectorId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd).createUsers(CloudConnectorId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 

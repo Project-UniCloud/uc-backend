@@ -5,6 +5,10 @@ import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.group.domain.vo.Description;
+import com.unicloudapp.group.domain.vo.EndDate;
+import com.unicloudapp.group.domain.vo.GroupStatus;
+import com.unicloudapp.group.domain.vo.StartDate;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,8 +16,8 @@ import lombok.Getter;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.unicloudapp.group.domain.GroupStatus.Type.ACTIVE;
-import static com.unicloudapp.group.domain.GroupStatus.Type.ARCHIVED;
+import static com.unicloudapp.group.domain.vo.GroupStatus.Type.ACTIVE;
+import static com.unicloudapp.group.domain.vo.GroupStatus.Type.ARCHIVED;
 
 @Builder(access = AccessLevel.PACKAGE)
 @Getter
@@ -34,7 +38,7 @@ public class Group {
         students.add(studentId);
     }
 
-    public void giveCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
+    public void grantCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
         cloudResourceAccesses.add(cloudResourceAccessId);
     }
 

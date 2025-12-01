@@ -47,15 +47,6 @@ auth:
 
 adapters:
   costSyncCron: 0 0 * * * *
-  clients:
-    aws:
-      name: AWS adapter
-      host: ${ADAPTER_AWS_HOST:localhost}
-      port: ${ADAPTER_AWS_PORT:50051}
-      costLimit: 3000.00
-      cronExpression: 0 * * * * *
-      resourceTypes:
-        - ec2
 server:
   servlet:
     context-path: /api

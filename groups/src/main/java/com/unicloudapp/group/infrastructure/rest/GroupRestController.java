@@ -9,7 +9,7 @@ import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.*;
 import com.unicloudapp.group.application.port.StudentImporterPort;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -84,7 +84,7 @@ class GroupRestController {
         GroupFilterCriteria criteria = GroupFilterCriteria.builder()
                 .status(status != null ? GroupStatus.of(status) : null)
                 .groupName(groupName != null ? GroupName.of(groupName) : null)
-                .cloudClientId(cloudClientId != null ? CloudAccessClientId.of(cloudClientId) : null)
+                .cloudClientId(cloudClientId != null ? CloudConnectorId.of(cloudClientId) : null)
                 .resourceType(resourceType != null ? CloudResourceType.of(resourceType) : null)
                 .build();
 
@@ -127,9 +127,9 @@ class GroupRestController {
             @PathVariable UUID groupId,
             @RequestBody @Valid GiveCloudResourceAccessRequest request
     ) {
-        return groupService.giveCloudResourceAccess(
+        return groupService.grantCloudResourceAccess(
                 GroupId.of(groupId),
-                CloudAccessClientId.of(request.cloudAccessClientId()),
+                CloudConnectorId.of(request.CloudVendorConnectorId()),
                 CloudResourceType.of(request.cloudResourceType()),
                 request.costLimit() == null ? CostLimit.zero() : CostLimit.of(request.costLimit())
         );

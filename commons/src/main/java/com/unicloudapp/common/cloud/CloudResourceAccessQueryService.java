@@ -1,6 +1,6 @@
 package com.unicloudapp.common.cloud;
 
-import com.unicloudapp.common.vo.cloud.CloudAccessClientId;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.group.GroupUniqueName;
@@ -12,15 +12,15 @@ public interface CloudResourceAccessQueryService {
 
     Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds);
 
-    boolean isCloudGroupExists(GroupUniqueName groupId, CloudAccessClientId cloudAccessClientId);
+    boolean isCloudGroupExists(GroupUniqueName groupId, CloudConnectorId cloudConnectorId);
 
     List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
 
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
-            CloudAccessClientId cloudAccessClientId, CloudResourceType resourceType
+            CloudConnectorId cloudConnectorId, CloudResourceType resourceType
     );
 
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(
-            CloudAccessClientId cloudAccessClientId
+            CloudConnectorId cloudConnectorId
     );
 }

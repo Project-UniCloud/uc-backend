@@ -2,7 +2,7 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
-import com.unicloudapp.group.domain.GroupStatus;
+import com.unicloudapp.group.domain.vo.GroupStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
