@@ -44,6 +44,7 @@ public class CloudConnectorService {
         cloudConnectorRepositoryPort.save(cloudConnector);
     }
 
+    @Transactional
     public void setResourceType(CloudConnectorId cloudConnectorId, List<CloudResourceType> cloudResourceTypes) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort
                 .findByClientId(cloudConnectorId)

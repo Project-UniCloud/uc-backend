@@ -7,6 +7,8 @@ import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import org.mapstruct.Mapper;
 import org.springframework.scheduling.support.CronExpression;
 
+import java.util.stream.Collectors;
+
 @Mapper(componentModel = "spring")
 interface CloudResourceAccessClientMapper {
 
@@ -19,7 +21,7 @@ interface CloudResourceAccessClientMapper {
                 .port(domain.getPort())
                 .defaultCostLimit(domain.getDefaultCostLimit() != null ? domain.getDefaultCostLimit().getCost() : null)
                 .defaultCleanUpCron(domain.getCronExpression() != null ? domain.getCronExpression().toString() : null)
-                .resourceTypes(domain.getResourceTypes() != null ? domain.getResourceTypes().stream().map(CloudResourceType::getName).toList() : null)
+                .resourceTypes(domain.getResourceTypes() != null ? domain.getResourceTypes().stream().map(CloudResourceType::getName).collect(Collectors.toList()) : null)
                 .build();
     }
 
@@ -32,7 +34,7 @@ interface CloudResourceAccessClientMapper {
                 .port(entity.getPort())
                 .defaultCostLimit(entity.getDefaultCostLimit() != null ? CostLimit.of(entity.getDefaultCostLimit()) : null)
                 .cronExpression(entity.getDefaultCleanUpCron() != null ? CronExpression.parse(entity.getDefaultCleanUpCron()) : null)
-                .resourceTypes(entity.getResourceTypes() != null ? entity.getResourceTypes().stream().map(CloudResourceType::of).toList() : null)
+                .resourceTypes(entity.getResourceTypes() != null ? entity.getResourceTypes().stream().map(CloudResourceType::of).collect(Collectors.toList()) : null)
                 .build();
     }
 }

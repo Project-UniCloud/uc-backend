@@ -35,11 +35,11 @@ class CloudConnectorEntity {
     @Column(nullable = false)
     private String defaultCleanUpCron;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
-            name = "cloud_connectors_resource_types",
-            joinColumns = @JoinColumn(name = "cloud_connector_id")
-    )
+                name = "cloud_connectors_resource_types",
+                joinColumns = @JoinColumn(name = "cloud_connector_id")
+        )
     @Column(name = "resource_type", nullable = false)
     private List<String> resourceTypes;
 }
