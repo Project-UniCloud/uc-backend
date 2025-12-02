@@ -157,12 +157,20 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
     );
 
     @Query("""
-        SELECT u
-        FROM UserEntity u
-        WHERE u.role = :role
-            AND (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
-                OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
-            )
+        SELECT new com.unicloudapp.user.application.projection.UserRowProjection(
+           u.uuid,
+           u.email,
+           u.firstName,
+           u.lastName,
+           u.login,
+           u.role
+       )
+       FROM UserEntity u
+       WHERE u.role = :role
+       AND (
+          LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
+          OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
+       )
     """)
     Page<UserRowProjection> findAllByRoleAndFirstNameOrLastNameLike(
             UserRole.Type role,

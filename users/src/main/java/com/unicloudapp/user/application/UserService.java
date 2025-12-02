@@ -108,12 +108,12 @@ implements UserValidationService,
     public Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size) {
         return userRepository.findUserRowByIds(userIds, offset, size)
                 .map(userRowProjection -> UserDetails.builder()
-                        .userId(UserId.of(userRowProjection.getUuid()))
-                        .login(UserLogin.of(userRowProjection.getLogin()))
-                        .firstName(FirstName.of(userRowProjection.getFirstName()))
-                        .lastName(LastName.of(userRowProjection.getLastName()))
-                        .email(Email.of(userRowProjection.getEmail()))
-                        .role(UserRole.of(UserRole.Type.valueOf(userRowProjection.getRole())))
+                        .userId(UserId.of(userRowProjection.uuid()))
+                        .login(UserLogin.of(userRowProjection.login()))
+                        .firstName(FirstName.of(userRowProjection.firstName()))
+                        .lastName(LastName.of(userRowProjection.lastName()))
+                        .email(Email.of(userRowProjection.email()))
+                        .role(UserRole.of(userRowProjection.role()))
                         .build());
     }
 

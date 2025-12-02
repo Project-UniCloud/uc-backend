@@ -1,20 +1,14 @@
 package com.unicloudapp.user.application.projection;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.unicloudapp.common.vo.user.UserRole;
+
 import java.util.UUID;
 
-@JsonIgnoreProperties({"decoratedClass"})
-public interface UserRowProjection {
-
-    UUID getUuid();
-
-    String getEmail();
-
-    String getFirstName();
-
-    String getLastName();
-
-    String getLogin();
-
-    String getRole();
-}
+public record UserRowProjection(
+        UUID uuid,
+        String email,
+        String firstName,
+        String lastName,
+        String login,
+        UserRole.Type role
+) {}

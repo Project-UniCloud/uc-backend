@@ -249,12 +249,12 @@ class UserServiceSpec extends Specification {
         def userIds = [userId1, userId2] as Set
 
         def userRowProjection = Mock(UserRowProjection.class)
-        userRowProjection.getUuid() >> userId1.getValue()
-        userRowProjection.getLogin() >> "login1"
-        userRowProjection.getFirstName() >> "John"
-        userRowProjection.getLastName() >> "Doe"
-        userRowProjection.getEmail() >> "john.doe@example.com"
-        userRowProjection.getRole() >> "STUDENT"
+        userRowProjection.uuid() >> userId1.getValue()
+        userRowProjection.login() >> "login1"
+        userRowProjection.firstName() >> "John"
+        userRowProjection.lastName() >> "Doe"
+        userRowProjection.email() >> "john.doe@example.com"
+        userRowProjection.role() >> "STUDENT"
 
         userRepository.findUserRowByIds(userIds, 0, 10) >> new PageImpl([userRowProjection])
 
