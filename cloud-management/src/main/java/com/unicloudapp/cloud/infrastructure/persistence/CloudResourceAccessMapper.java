@@ -1,6 +1,7 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.NotificationLevel;
 import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
@@ -20,6 +21,9 @@ class CloudResourceAccessMapper {
                 .expiresAt(ExpiresDate.expirable(entity.getExpiresAt()))
                 .status(CloudResourcesAccessStatus.of(entity.getStatus()))
                 .cronExpression(CronExpression.parse(entity.getCronExpression()))
+                .notificationLevel1(NotificationLevel.of(entity.getNotificationLevel1()))
+                .notificationLevel2(NotificationLevel.of(entity.getNotificationLevel2()))
+                .notificationLevel3(NotificationLevel.of(entity.getNotificationLevel3()))
                 .build();
     }
 

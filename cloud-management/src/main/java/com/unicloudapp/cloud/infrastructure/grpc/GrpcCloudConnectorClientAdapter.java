@@ -3,17 +3,20 @@ package com.unicloudapp.cloud.infrastructure.grpc;
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
-import com.unicloudapp.common.vo.cloud.UsedLimit;
-import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.UsedLimit;
+import com.unicloudapp.common.vo.user.UserLogin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -107,5 +110,37 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                 groupUniqueName,
                 String.join(", ", response.getRemovedUsersList())
         );
+    }
+
+    @Override
+    public Integer countCloudResources(GroupUniqueName groupUniqueName, CloudResourceType resourceType) {
+        AdapterInterface.ResourceCountRequest request = AdapterInterface.ResourceCountRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .setResourceType(resourceType.getName())
+                .build();
+        AdapterInterface.ResourceCountResponse response = stub.getResourceCount(request);
+        return response.getCount();
+    }
+
+    @Override
+    public Map<CloudResourceType, BigDecimal> getCostsPerResourceType(GroupUniqueName groupUniqueName) {
+        Map<CloudResourceType, BigDecimal> costsPerResourceType = new HashMap<>();
+        AdapterInterface.GroupLast6MonthsCostRequest request = AdapterInterface.GroupLast6MonthsCostRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .build();
+        AdapterInterface.GroupCostMapResponse response = stub.getGroupCostsLast6MonthsByService(request);
+        response.getCostsMap().forEach((key, value) -> costsPerResourceType.put(CloudResourceType.of(key), BigDecimal.valueOf(value)));
+        return costsPerResourceType;
+    }
+
+    @Override
+    public Map<LocalDate, BigDecimal> getTotalCostInTime(GroupUniqueName groupUniqueName) {
+        Map<LocalDate, BigDecimal> costsInTime = new TreeMap<>();
+        AdapterInterface.GroupLast6MonthsCostRequest request = AdapterInterface.GroupLast6MonthsCostRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .build();
+        AdapterInterface.GroupMonthlyCostsResponse response = stub.getGroupMonthlyCostsLast6Months(request);
+        response.getMonthCostsMap().forEach((key, value) -> costsInTime.put(LocalDate.parse(key, DateTimeFormatter.ofPattern("dd-MM-yyyy")), BigDecimal.valueOf(value)));
+        return costsInTime;
     }
 }

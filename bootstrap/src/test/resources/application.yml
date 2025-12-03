@@ -25,14 +25,5 @@ spring:
             enable: false
 adapters:
   costSyncCron: 0 0 * * * *
-  clients:
-    aws:
-      name: AWS adapter
-      host: localhost
-      port: 50051
-      costLimit: 3000.00
-      cronExpression: 0 0 3 * * *
-      resourceTypes:
-        - ec2
 groups:
   archiveExpiredGroupsCron: 0 0 0 * * *

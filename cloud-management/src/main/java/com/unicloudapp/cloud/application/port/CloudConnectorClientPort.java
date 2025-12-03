@@ -5,6 +5,7 @@ import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.group.GroupUniqueName;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -28,4 +29,10 @@ public interface CloudConnectorClientPort {
     void cleanUpResources(GroupUniqueName groupUniqueName, boolean force);
 
     void removeGroup(GroupUniqueName groupUniqueName);
+
+    Integer countCloudResources(GroupUniqueName groupUniqueName, CloudResourceType resourceType);
+
+    Map<CloudResourceType, BigDecimal> getCostsPerResourceType(GroupUniqueName groupUniqueName);
+
+    Map<LocalDate, BigDecimal> getTotalCostInTime(GroupUniqueName groupUniqueName);
 }

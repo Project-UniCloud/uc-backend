@@ -8,6 +8,7 @@ import com.unicloudapp.common.vo.cloud.CostLimit;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,10 @@ import java.util.List;
 @Transactional
 public class CloudConnectorService {
 
+    private final ApplicationEventPublisher eventPublisher;
     private final CloudConnectorRepositoryPort cloudConnectorRepositoryPort;
 
+    @Transactional
     public void createConnector(
         CloudConnectorId cloudConnectorId,
         String host,
@@ -42,6 +45,7 @@ public class CloudConnectorService {
             throw new IllegalArgumentException("CloudVendorConnectorId " + cloudConnector.getCloudConnectorId() + " already exists");
         }
         cloudConnectorRepositoryPort.save(cloudConnector);
+        eventPublisher.publishEvent(new CloudConnectorCreatedEvent(cloudConnector.getCloudConnectorId(), host, port));
     }
 
     @Transactional
@@ -52,4 +56,6 @@ public class CloudConnectorService {
         cloudResourceTypes.forEach(cloudConnector::addResourceType);
         cloudConnectorRepositoryPort.save(cloudConnector);
     }
+
+    public record CloudConnectorCreatedEvent(CloudConnectorId cloudConnectorId, String host, Integer port) {}
 }
