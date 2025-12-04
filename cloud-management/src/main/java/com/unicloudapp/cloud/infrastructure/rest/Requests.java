@@ -3,7 +3,6 @@ package com.unicloudapp.cloud.infrastructure.rest;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Builder
 record CloudConnectorSaveRequestDto(
@@ -15,7 +14,7 @@ record CloudConnectorSaveRequestDto(
         String name
 ) { }
 
-record PatchCloudConnectorRequestDto(
+record CloudConnectorResourceTypeRequestDto(
         String cloudConnectorId,
-        List<String> resourceTypes
+        String resourceType
 ) {}

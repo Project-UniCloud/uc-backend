@@ -133,11 +133,13 @@ class CloudRestControllerTest {
     @Test
     @DisplayName("patchCloudConnector maps string types to value objects and delegates")
     void patchCloudConnector_delegates() {
-        PatchCloudConnectorRequestDto request = new PatchCloudConnectorRequestDto(
-                "conn-3", List.of("S3", "EC2")
+        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto(
+                "conn-3", "S3"
         );
+        when(cloudResourceAccessService.getCloudResourceAccessClientDetails(any()))
+                .thenReturn(buildConnector("conn-3", "Connector 3", "localhost", 1234, new BigDecimal("10.00"), "0 */10 * * * *", new ArrayList<>()));
 
-        controller.patchCloudConnector(request);
+        controller.addCloudConnectorResourceType(request);
 
         ArgumentCaptor<CloudConnectorId> idCaptor = ArgumentCaptor.forClass(CloudConnectorId.class);
         @SuppressWarnings("unchecked")
@@ -146,9 +148,8 @@ class CloudRestControllerTest {
         verify(cloudConnectorService).setResourceType(idCaptor.capture(), listCaptor.capture());
         assertEquals("conn-3", idCaptor.getValue().id());
         List<CloudResourceType> types = listCaptor.getValue();
-        assertEquals(2, types.size());
+        assertEquals(1, types.size());
         assertTrue(types.contains(CloudResourceType.of("S3")));
-        assertTrue(types.contains(CloudResourceType.of("EC2")));
     }
 
     @Test
