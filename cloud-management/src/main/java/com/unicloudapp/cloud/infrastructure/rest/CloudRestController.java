@@ -14,6 +14,7 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @RestController
@@ -82,17 +83,36 @@ class CloudRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/connector")
+    @PostMapping("/connector/resource-type")
     @ResponseStatus(HttpStatus.OK)
-    void patchCloudConnector(
-            @RequestBody PatchCloudConnectorRequestDto request
+    void addCloudConnectorResourceType(
+            @RequestBody CloudConnectorResourceTypeRequestDto request
     ) {
+        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(
+                CloudConnectorId.of(request.cloudConnectorId())
+        );
+        var resourceTypes = new LinkedList<>(details.getResourceTypes());
+        resourceTypes.add(CloudResourceType.of(request.resourceType()));
         cloudConnectorService.setResourceType(
                 CloudConnectorId.of(request.cloudConnectorId()),
-                request.resourceTypes()
-                        .stream()
-                        .map(CloudResourceType::of)
-                        .toList()
+                resourceTypes
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/connector/resource-type")
+    @ResponseStatus(HttpStatus.OK)
+    void deleteCloudConnectorResourceType(
+            @RequestBody CloudConnectorResourceTypeRequestDto request
+    ) {
+        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(
+                CloudConnectorId.of(request.cloudConnectorId())
+        );
+        var resourceTypes = new LinkedList<>(details.getResourceTypes());
+        resourceTypes.remove(CloudResourceType.of(request.resourceType()));
+        cloudConnectorService.setResourceType(
+                CloudConnectorId.of(request.cloudConnectorId()),
+                resourceTypes
         );
     }
 }
