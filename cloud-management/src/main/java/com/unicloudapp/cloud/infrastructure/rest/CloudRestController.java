@@ -14,7 +14,6 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @RestController
@@ -83,36 +82,28 @@ class CloudRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/connector/resource-type")
+    @PostMapping("/connector/{cloudConnectorId}/resource-type")
     @ResponseStatus(HttpStatus.OK)
     void addCloudConnectorResourceType(
+            @PathVariable String cloudConnectorId,
             @RequestBody CloudConnectorResourceTypeRequestDto request
     ) {
-        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(
-                CloudConnectorId.of(request.cloudConnectorId())
-        );
-        var resourceTypes = new LinkedList<>(details.getResourceTypes());
-        resourceTypes.add(CloudResourceType.of(request.resourceType()));
-        cloudConnectorService.setResourceType(
-                CloudConnectorId.of(request.cloudConnectorId()),
-                resourceTypes
+        cloudConnectorService.addResourceType(
+                CloudConnectorId.of(cloudConnectorId),
+                CloudResourceType.of(request.resourceType())
         );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/connector/resource-type")
+    @DeleteMapping("/connector/{cloudConnectorId}/resource-type/{resourceType}")
     @ResponseStatus(HttpStatus.OK)
     void deleteCloudConnectorResourceType(
-            @RequestBody CloudConnectorResourceTypeRequestDto request
+            @PathVariable String cloudConnectorId,
+            @PathVariable String resourceType
     ) {
-        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(
-                CloudConnectorId.of(request.cloudConnectorId())
-        );
-        var resourceTypes = new LinkedList<>(details.getResourceTypes());
-        resourceTypes.remove(CloudResourceType.of(request.resourceType()));
-        cloudConnectorService.setResourceType(
-                CloudConnectorId.of(request.cloudConnectorId()),
-                resourceTypes
+        cloudConnectorService.deleteResourceType(
+                CloudConnectorId.of(cloudConnectorId),
+                CloudResourceType.of(resourceType)
         );
     }
 }

@@ -133,23 +133,18 @@ class CloudRestControllerTest {
     @Test
     @DisplayName("patchCloudConnector maps string types to value objects and delegates")
     void patchCloudConnector_delegates() {
-        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto(
-                "conn-3", "S3"
-        );
+        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("S3");
         when(cloudResourceAccessService.getCloudResourceAccessClientDetails(any()))
                 .thenReturn(buildConnector("conn-3", "Connector 3", "localhost", 1234, new BigDecimal("10.00"), "0 */10 * * * *", new ArrayList<>()));
 
-        controller.addCloudConnectorResourceType(request);
+        controller.addCloudConnectorResourceType("conn-3", request);
 
         ArgumentCaptor<CloudConnectorId> idCaptor = ArgumentCaptor.forClass(CloudConnectorId.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<CloudResourceType>> listCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<CloudResourceType> typeCaptor = ArgumentCaptor.forClass(CloudResourceType.class);
 
-        verify(cloudConnectorService).setResourceType(idCaptor.capture(), listCaptor.capture());
+        verify(cloudConnectorService).addResourceType(idCaptor.capture(), typeCaptor.capture());
         assertEquals("conn-3", idCaptor.getValue().id());
-        List<CloudResourceType> types = listCaptor.getValue();
-        assertEquals(1, types.size());
-        assertTrue(types.contains(CloudResourceType.of("S3")));
+        assertEquals(CloudResourceType.of("S3"), typeCaptor.getValue());
     }
 
     @Test
@@ -172,20 +167,16 @@ class CloudRestControllerTest {
         when(cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of("conn-5")))
                 .thenReturn(buildConnector("conn-5", "Connector 5", "localhost", 1234, new BigDecimal("10.00"), "0 */10 * * * *", existing));
 
-        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("conn-5", "EC2");
+        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("EC2");
 
-        controller.deleteCloudConnectorResourceType(request);
+        controller.deleteCloudConnectorResourceType("conn-5", "EC2");
 
         ArgumentCaptor<CloudConnectorId> idCaptor = ArgumentCaptor.forClass(CloudConnectorId.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<CloudResourceType>> listCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<CloudResourceType> typeCaptor = ArgumentCaptor.forClass(CloudResourceType.class);
 
-        verify(cloudConnectorService).setResourceType(idCaptor.capture(), listCaptor.capture());
+        verify(cloudConnectorService).deleteResourceType(idCaptor.capture(), typeCaptor.capture());
         assertEquals("conn-5", idCaptor.getValue().id());
-        List<CloudResourceType> types = listCaptor.getValue();
-        assertEquals(1, types.size());
-        assertTrue(types.contains(CloudResourceType.of("S3")));
-        assertFalse(types.contains(CloudResourceType.of("EC2")));
+        assertEquals(CloudResourceType.of("EC2"), typeCaptor.getValue());
     }
 
     @Test
@@ -196,19 +187,16 @@ class CloudRestControllerTest {
         when(cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of("conn-6")))
                 .thenReturn(buildConnector("conn-6", "Connector 6", "localhost", 1234, new BigDecimal("5.00"), "0 */10 * * * *", existing));
 
-        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("conn-6", "EC2");
+        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("EC2");
 
-        controller.deleteCloudConnectorResourceType(request);
+        controller.deleteCloudConnectorResourceType("conn-6", "EC2");
 
         ArgumentCaptor<CloudConnectorId> idCaptor = ArgumentCaptor.forClass(CloudConnectorId.class);
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<CloudResourceType>> listCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<CloudResourceType> typeCaptor = ArgumentCaptor.forClass(CloudResourceType.class);
 
-        verify(cloudConnectorService).setResourceType(idCaptor.capture(), listCaptor.capture());
+        verify(cloudConnectorService).deleteResourceType(idCaptor.capture(), typeCaptor.capture());
         assertEquals("conn-6", idCaptor.getValue().id());
-        List<CloudResourceType> types = listCaptor.getValue();
-        assertEquals(1, types.size());
-        assertTrue(types.contains(CloudResourceType.of("S3")));
+        assertEquals(CloudResourceType.of("EC2"), typeCaptor.getValue());
     }
 
 }

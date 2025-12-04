@@ -33,4 +33,11 @@ public class CloudConnector {
         }
         resourceTypes.add(resourceType);
     }
+
+    public void deleteResourceType(CloudResourceType resourceType) {
+        if (!containsResourceType(resourceType)) {
+            return;
+        }
+        resourceTypes.remove(resourceType);
+    }
 }
