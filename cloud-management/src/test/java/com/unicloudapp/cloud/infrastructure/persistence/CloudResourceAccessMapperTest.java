@@ -33,6 +33,9 @@ class CloudResourceAccessMapperTest {
         LocalDate expiresAt = LocalDate.of(2030, 1, 15);
         String cron = "0 0 12 * * *"; // every day at noon
         CloudResourcesAccessStatus.Status status = CloudResourcesAccessStatus.Status.ACTIVE;
+        int notificationLevel1 = 50;
+        int notificationLevel2 = 80;
+        int notificationLevel3 = 95;
 
         CloudResourceAccessEntity entity = CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(id)
@@ -43,6 +46,9 @@ class CloudResourceAccessMapperTest {
                 .expiresAt(expiresAt)
                 .cronExpression(cron)
                 .status(status)
+                .notificationLevel1(notificationLevel1)
+                .notificationLevel2(notificationLevel2)
+                .notificationLevel3(notificationLevel3)
                 .build();
 
         // when
@@ -57,6 +63,9 @@ class CloudResourceAccessMapperTest {
         assertThat(domain.getExpiresAt().getValue()).isEqualTo(expiresAt);
         assertThat(domain.getStatus().getStatus()).isEqualTo(status);
         assertThat(domain.getCronExpression().toString()).isEqualTo(cron);
+        assertThat(domain.getNotificationLevel1().level()).isEqualTo(notificationLevel1);
+        assertThat(domain.getNotificationLevel2().level()).isEqualTo(notificationLevel2);
+        assertThat(domain.getNotificationLevel3().level()).isEqualTo(notificationLevel3);
     }
 
     @Test

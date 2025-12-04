@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.scheduling.support.CronExpression;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -20,12 +21,14 @@ import static org.mockito.Mockito.*;
 class CloudConnectorServiceTest {
 
     CloudConnectorRepositoryPort repository;
+    ApplicationEventPublisher eventPublisher;
     CloudConnectorService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(CloudConnectorRepositoryPort.class);
-        service = new CloudConnectorService(repository);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        service = new CloudConnectorService(eventPublisher, repository);
     }
 
     @Test
