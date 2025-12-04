@@ -129,7 +129,7 @@ class GroupRestController {
     ) {
         return groupService.grantCloudResourceAccess(
                 GroupId.of(groupId),
-                CloudConnectorId.of(request.CloudVendorConnectorId()),
+                CloudConnectorId.of(request.cloudConnectorId()),
                 CloudResourceType.of(request.cloudResourceType()),
                 request.costLimit() == null ? CostLimit.zero() : CostLimit.of(request.costLimit())
         );

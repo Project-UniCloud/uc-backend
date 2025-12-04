@@ -21,19 +21,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepositoryPort {
 
-    private final CloudResourceAccessMapper CloudResourceAccessMapper;
+    private final CloudResourceAccessMapper cloudResourceAccessMapper;
     private final CloudResourceAccessJpaRepository repository;
 
     @Override
     public void save(CloudResourceAccess CloudResourceAccess) {
-        repository.save(CloudResourceAccessMapper.toEntity(CloudResourceAccess));
+        repository.save(cloudResourceAccessMapper.toEntity(CloudResourceAccess));
     }
 
     @Override
     public Set<CloudResourceAccess> getCloudResourceAccesses(Set<CloudResourceAccessId> cloudResourceAccessIds) {
         return repository.findAllById(cloudResourceAccessIds.stream().map(CloudResourceAccessId::getValue).toList())
                 .stream()
-                .map(CloudResourceAccessMapper::toDomain)
+                .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
 
@@ -41,7 +41,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
     public List<CloudResourceAccess> findAllById(Set<CloudResourceAccessId> cloudResourceAccessIds) {
         return repository.findAllById(cloudResourceAccessIds.stream().map(CloudResourceAccessId::getValue).toList())
                 .stream()
-                .map(CloudResourceAccessMapper::toDomain)
+                .map(cloudResourceAccessMapper::toDomain)
                 .toList();
     }
 
@@ -52,7 +52,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
     ) {
         return repository.findAllByCloudConnectorIdAndResourceType(cloudConnectorId.id(), resourceType.getName())
                 .stream()
-                .map(CloudResourceAccessMapper::toDomain)
+                .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
 
@@ -60,7 +60,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
     public Set<CloudResourceAccess> findAllByCloudClientId(CloudConnectorId cloudConnectorId) {
         return repository.findAllByCloudConnectorId(cloudConnectorId.id())
                 .stream()
-                .map(CloudResourceAccessMapper::toDomain)
+                .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
 
@@ -68,7 +68,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
     public Map<CloudResourceAccessId, CloudResourceAccess> findAllByStatus(CloudResourcesAccessStatus status) {
         return repository.findAllByStatus(status.getStatus())
                 .stream()
-                .map(CloudResourceAccessMapper::toDomain)
+                .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toMap(
                         CloudResourceAccess::getCloudResourceAccessId,
                         cloudResourceAccess -> cloudResourceAccess
@@ -78,7 +78,7 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
     @Override
     public Optional<CloudResourceAccess> findById(CloudResourceAccessId cloudResourceAccessId) {
         return repository.findById(cloudResourceAccessId.getValue())
-                .map(CloudResourceAccessMapper::toDomain);
+                .map(cloudResourceAccessMapper::toDomain);
     }
 }
 

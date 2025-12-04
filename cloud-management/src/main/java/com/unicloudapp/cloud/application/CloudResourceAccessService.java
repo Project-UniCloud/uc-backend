@@ -2,33 +2,30 @@ package com.unicloudapp.cloud.application;
 
 import com.unicloudapp.cloud.application.port.CloudConnectorClientFactoryPort;
 import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
-import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
-import com.unicloudapp.common.notifications.NotificationType;
-import com.unicloudapp.common.notifications.SendNotificationCommand;
-import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
-import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
+import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
+import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
-import com.unicloudapp.common.notifications.NotificationsCommandService;
-import com.unicloudapp.common.vo.cloud.CloudConnectorId;
-import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import com.unicloudapp.common.vo.cloud.CostLimit;
-import com.unicloudapp.common.vo.cloud.UsedLimit;
-import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.notifications.NotificationType;
+import com.unicloudapp.common.notifications.NotificationsCommandService;
+import com.unicloudapp.common.notifications.SendNotificationCommand;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.common.vo.user.UserLogin;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +34,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -80,6 +78,46 @@ public class CloudResourceAccessService
                         cloudConnector.getCloudConnectorId(),
                         cloudConnectorClientFactoryPort.create(cloudConnector.getHost(), cloudConnector.getPort())
                 ));
+    }
+
+    @EventListener
+    protected void handleCloudConnectorCreatedEvent(CloudConnectorService.CloudConnectorCreatedEvent event) {
+        cloudConnectorClients.putIfAbsent(
+                event.cloudConnectorId(),
+                cloudConnectorClientFactoryPort.create(event.host(), event.port())
+        );
+    }
+
+    public Integer countResources(GroupCloudDto groupCloudDto) {
+        Set<CloudResourceAccessId> cloudResourceAccessIds = new HashSet<>(groupCloudDto.cloudResourceAccesses());
+        int result = 0;
+        for (CloudResourceAccess cloudResourceAccess : cloudResourceAccessRepository.findAllById(cloudResourceAccessIds)) {
+            result += cloudConnectorClients.get(cloudResourceAccess.getCloudConnectorId())
+                    .countCloudResources(groupCloudDto.groupUniqueName(), cloudResourceAccess.getCloudResourceType());
+        }
+        return result;
+    }
+
+    public Map<CloudResourceType, BigDecimal> getCostsByResourceTypes(GroupCloudDto groupCloudDto) {
+        Set<CloudResourceAccessId> cloudResourceAccessIds = new HashSet<>(groupCloudDto.cloudResourceAccesses());
+        Map<CloudResourceType, BigDecimal> result = new HashMap<>();
+        for (CloudResourceAccess cloudResourceAccess : cloudResourceAccessRepository.findAllById(cloudResourceAccessIds)) {
+            Map<CloudResourceType, BigDecimal> costsPerResourceType = cloudConnectorClients.get(cloudResourceAccess.getCloudConnectorId())
+                    .getCostsPerResourceType(groupCloudDto.groupUniqueName());
+            result.putAll(costsPerResourceType);
+        }
+        return result;
+    }
+
+    public Map<LocalDate, BigDecimal> getTotalCostInTime(GroupCloudDto groupCloudDto) {
+        Set<CloudResourceAccessId> cloudResourceAccessIds = new HashSet<>(groupCloudDto.cloudResourceAccesses());
+        Map<LocalDate, BigDecimal> result = new TreeMap<>();
+        for (CloudResourceAccess cloudResourceAccess : cloudResourceAccessRepository.findAllById(cloudResourceAccessIds)) {
+            Map<LocalDate, BigDecimal> costsPerResourceType = cloudConnectorClients.get(cloudResourceAccess.getCloudConnectorId())
+                    .getTotalCostInTime(groupCloudDto.groupUniqueName());
+            result.putAll(costsPerResourceType);
+        }
+        return result;
     }
 
     public boolean isRunning(CloudConnectorId cloudConnectorId) {
