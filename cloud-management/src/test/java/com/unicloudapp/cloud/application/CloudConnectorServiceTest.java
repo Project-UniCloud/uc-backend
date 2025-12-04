@@ -87,7 +87,7 @@ class CloudConnectorServiceTest {
         when(repository.findByClientId(id)).thenReturn(Optional.of(existing));
 
         // Add duplicate S3 and new EC2
-        service.setResourceType(id, List.of(s3, ec2));
+        service.addResourceType(id, ec2);
 
         ArgumentCaptor<CloudConnector> savedCaptor = ArgumentCaptor.forClass(CloudConnector.class);
         verify(repository).save(savedCaptor.capture());
@@ -99,6 +99,6 @@ class CloudConnectorServiceTest {
         // Not found path -> throws NoSuchElementException
         CloudConnectorId missing = CloudConnectorId.of("missing");
         when(repository.findByClientId(missing)).thenReturn(Optional.empty());
-        assertThrows(NoSuchElementException.class, () -> service.setResourceType(missing, List.of(s3)));
+        assertThrows(NoSuchElementException.class, () -> service.addResourceType(missing, s3));
     }
 }

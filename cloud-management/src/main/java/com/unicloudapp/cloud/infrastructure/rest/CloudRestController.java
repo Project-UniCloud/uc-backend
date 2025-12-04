@@ -14,7 +14,6 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedList;
 import java.util.List;
 
 @RestController
@@ -88,14 +87,9 @@ class CloudRestController {
     void addCloudConnectorResourceType(
             @RequestBody CloudConnectorResourceTypeRequestDto request
     ) {
-        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(
-                CloudConnectorId.of(request.cloudConnectorId())
-        );
-        var resourceTypes = new LinkedList<>(details.getResourceTypes());
-        resourceTypes.add(CloudResourceType.of(request.resourceType()));
-        cloudConnectorService.setResourceType(
+        cloudConnectorService.addResourceType(
                 CloudConnectorId.of(request.cloudConnectorId()),
-                resourceTypes
+                CloudResourceType.of(request.resourceType())
         );
     }
 
@@ -105,14 +99,9 @@ class CloudRestController {
     void deleteCloudConnectorResourceType(
             @RequestBody CloudConnectorResourceTypeRequestDto request
     ) {
-        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(
-                CloudConnectorId.of(request.cloudConnectorId())
-        );
-        var resourceTypes = new LinkedList<>(details.getResourceTypes());
-        resourceTypes.remove(CloudResourceType.of(request.resourceType()));
-        cloudConnectorService.setResourceType(
+        cloudConnectorService.deleteResourceType(
                 CloudConnectorId.of(request.cloudConnectorId()),
-                resourceTypes
+                CloudResourceType.of(request.resourceType())
         );
     }
 }

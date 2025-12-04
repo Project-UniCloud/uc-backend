@@ -13,7 +13,6 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,11 +48,20 @@ public class CloudConnectorService {
     }
 
     @Transactional
-    public void setResourceType(CloudConnectorId cloudConnectorId, List<CloudResourceType> cloudResourceTypes) {
+    public void deleteResourceType(CloudConnectorId cloudConnectorId, CloudResourceType resourceType) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort
                 .findByClientId(cloudConnectorId)
                 .orElseThrow();
-        cloudResourceTypes.forEach(cloudConnector::addResourceType);
+        cloudConnector.deleteResourceType(resourceType);
+        cloudConnectorRepositoryPort.save(cloudConnector);
+    }
+
+    @Transactional
+    public void addResourceType(CloudConnectorId cloudConnectorId, CloudResourceType resourceType) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort
+                .findByClientId(cloudConnectorId)
+                .orElseThrow();
+        cloudConnector.addResourceType(resourceType);
         cloudConnectorRepositoryPort.save(cloudConnector);
     }
 
