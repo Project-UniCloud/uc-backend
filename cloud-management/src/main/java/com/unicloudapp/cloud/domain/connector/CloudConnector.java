@@ -35,7 +35,7 @@ public class CloudConnector {
     }
 
     public void deleteResourceType(CloudResourceType resourceType) {
-        if (containsResourceType(resourceType)) {
+        if (!containsResourceType(resourceType)) {
             return;
         }
         resourceTypes.remove(resourceType);

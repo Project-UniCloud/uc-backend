@@ -15,6 +15,5 @@ record CloudConnectorSaveRequestDto(
 ) { }
 
 record CloudConnectorResourceTypeRequestDto(
-        String cloudConnectorId,
         String resourceType
 ) {}

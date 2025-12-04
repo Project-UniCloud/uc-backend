@@ -82,26 +82,28 @@ class CloudRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/connector/resource-type")
+    @PostMapping("/connector/{cloudConnectorId}/resource-type")
     @ResponseStatus(HttpStatus.OK)
     void addCloudConnectorResourceType(
+            @PathVariable String cloudConnectorId,
             @RequestBody CloudConnectorResourceTypeRequestDto request
     ) {
         cloudConnectorService.addResourceType(
-                CloudConnectorId.of(request.cloudConnectorId()),
+                CloudConnectorId.of(cloudConnectorId),
                 CloudResourceType.of(request.resourceType())
         );
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/connector/resource-type")
+    @DeleteMapping("/connector/{cloudConnectorId}/resource-type/{resourceType}")
     @ResponseStatus(HttpStatus.OK)
     void deleteCloudConnectorResourceType(
-            @RequestBody CloudConnectorResourceTypeRequestDto request
+            @PathVariable String cloudConnectorId,
+            @PathVariable String resourceType
     ) {
         cloudConnectorService.deleteResourceType(
-                CloudConnectorId.of(request.cloudConnectorId()),
-                CloudResourceType.of(request.resourceType())
+                CloudConnectorId.of(cloudConnectorId),
+                CloudResourceType.of(resourceType)
         );
     }
 }

@@ -58,9 +58,9 @@ class CloudRestControllerDeleteResourceTypeTest {
         when(cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of("conn-5")))
                 .thenReturn(buildConnector("conn-5", "Connector 5", "localhost", 1234, new BigDecimal("10.00"), "0 */10 * * * *", existing));
 
-        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("conn-5", "EC2");
+        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("EC2");
 
-        controller.deleteCloudConnectorResourceType(request);
+        controller.deleteCloudConnectorResourceType("conn-5", "EC2");
 
         ArgumentCaptor<CloudConnectorId> idCaptor = ArgumentCaptor.forClass(CloudConnectorId.class);
         ArgumentCaptor<CloudResourceType> typeCaptor = ArgumentCaptor.forClass(CloudResourceType.class);
@@ -78,9 +78,9 @@ class CloudRestControllerDeleteResourceTypeTest {
         when(cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of("conn-6")))
                 .thenReturn(buildConnector("conn-6", "Connector 6", "localhost", 1234, new BigDecimal("5.00"), "0 */10 * * * *", existing));
 
-        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("conn-6", "EC2");
+        CloudConnectorResourceTypeRequestDto request = new CloudConnectorResourceTypeRequestDto("EC2");
 
-        controller.deleteCloudConnectorResourceType(request);
+        controller.deleteCloudConnectorResourceType("conn-6", "EC2");
 
         ArgumentCaptor<CloudConnectorId> idCaptor = ArgumentCaptor.forClass(CloudConnectorId.class);
         ArgumentCaptor<CloudResourceType> typeCaptor = ArgumentCaptor.forClass(CloudResourceType.class);
