@@ -25,7 +25,7 @@ public class StatisticsService {
     public OverallCostValuesDto getTotalCosts() {
         List<GroupCloudDto> activeGroups = groupQueryService.getActiveGroups();
         BigDecimal overallCostFromActiveGroups = BigDecimal.ZERO;
-        Integer allActiveResourcesCount = 0;
+        int allActiveResourcesCount = 0;
         BigDecimal averageActiveGroupCost = BigDecimal.ZERO;
         for (GroupCloudDto activeGroup : activeGroups) {
             List<CloudResourceRowView> cloudResourceDetails
@@ -80,7 +80,7 @@ public class StatisticsService {
 
     public record OverallCostValuesDto(
             BigDecimal overallCostFromActiveGroups,
-            Integer allActiveResourcesCount,
+            int allActiveResourcesCount,
             BigDecimal averageActiveGroupCost
     ) { }
 }
