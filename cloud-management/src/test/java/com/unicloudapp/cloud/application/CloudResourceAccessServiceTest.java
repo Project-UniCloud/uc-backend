@@ -621,4 +621,236 @@ class CloudResourceAccessServiceTest {
         assertTrue(ex.getMessage().contains("CloudVendorConnectorId"));
         assertTrue(ex.getMessage().contains("does not exist"));
     }
+
+    // ===== New tests for handleCloudConnectorCreatedEvent, countResources, getCostsByResourceTypes, getTotalCostInTime =====
+
+    @Test
+    @DisplayName("handleCloudConnectorCreatedEvent registers new client via factory and it is used subsequently")
+    void handleCloudConnectorCreatedEvent_registersNewClient() {
+        // Arrange: new connector not present after init()
+        CloudConnectorId newId = CloudConnectorId.of("c-client");
+        String host = "127.0.0.1";
+        int port = 9999;
+        CloudConnectorClientPort cloudConnectorClientC = mock(CloudConnectorClientPort.class);
+        when(cloudControllerClientFactoryPort.create(host, port)).thenReturn(cloudConnectorClientC);
+
+        // Fire event
+        service.handleCloudConnectorCreatedEvent(new CloudConnectorService.CloudConnectorCreatedEvent(newId, host, port));
+
+        // Prepare a CloudResourceAccess using the new connector
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess access = CloudResourceAccess.builder()
+                .cloudResourceAccessId(accessId)
+                .cloudConnectorId(newId)
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(CronExpression.parse("0 0 * * * *"))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+        when(repository.findAllById(Set.of(accessId))).thenReturn(List.of(access));
+        GroupCloudDto group = new GroupCloudDto(GroupUniqueName.fromString("AI 2024L"), List.of(accessId));
+        when(cloudConnectorClientC.countCloudResources(group.groupUniqueName(), CloudResourceType.of("S3"))).thenReturn(5);
+
+        // Act
+        Integer result = service.countResources(group);
+
+        // Assert
+        assertEquals(5, result);
+        verify(cloudControllerClientFactoryPort, times(1)).create(host, port);
+        verify(cloudConnectorClientC).countCloudResources(group.groupUniqueName(), CloudResourceType.of("S3"));
+    }
+
+    @Test
+    @DisplayName("handleCloudConnectorCreatedEvent does not replace existing client mapping (factory may be called but existing client is used)")
+    void handleCloudConnectorCreatedEvent_idempotentWhenAlreadyPresent() {
+        // Arrange existing connector A (from init). Re-fire with same host/port as configured
+        String host = "localhost";
+        int port = 1234;
+
+        // Stub factory to return a distinct client instance (should NOT be used by service afterwards)
+        CloudConnectorClientPort replacementClient = mock(CloudConnectorClientPort.class);
+        when(cloudControllerClientFactoryPort.create(host, port)).thenReturn(replacementClient);
+
+        // Prepare an access for connector A and repository response
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorA.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+        when(repository.findAllById(Set.of(idA))).thenReturn(List.of(accessA));
+        when(cloudConnectorClientA.countCloudResources(groupName, CloudResourceType.of("S3"))).thenReturn(4);
+
+        // Act: fire event twice for the same existing connector and then call a method that uses the client
+        service.handleCloudConnectorCreatedEvent(new CloudConnectorService.CloudConnectorCreatedEvent(cloudConnectorA.getCloudConnectorId(), host, port));
+        service.handleCloudConnectorCreatedEvent(new CloudConnectorService.CloudConnectorCreatedEvent(cloudConnectorA.getCloudConnectorId(), host, port));
+        Integer count = service.countResources(new GroupCloudDto(groupName, List.of(idA)));
+
+        // Assert: the original clientA is used, not the replacement from factory; mapping remains effective
+        assertEquals(4, count);
+        verify(cloudConnectorClientA).countCloudResources(groupName, CloudResourceType.of("S3"));
+        verifyNoInteractions(replacementClient);
+    }
+
+    @Test
+    @DisplayName("countResources sums counts across multiple accesses/connectors; empty returns 0")
+    void countResources_sumsAndEmpty() {
+        // Arrange
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccessId idB = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorA.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+        CloudResourceAccess accessB = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idB)
+                .cloudConnectorId(cloudConnectorB.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("EC2"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorB.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+        when(repository.findAllById(Set.of(idA, idB))).thenReturn(List.of(accessA, accessB));
+        when(cloudConnectorClientA.countCloudResources(groupName, CloudResourceType.of("S3"))).thenReturn(2);
+        when(cloudConnectorClientB.countCloudResources(groupName, CloudResourceType.of("EC2"))).thenReturn(3);
+        GroupCloudDto group = new GroupCloudDto(groupName, List.of(idA, idB));
+
+        // Act / Assert sum
+        assertEquals(5, service.countResources(group));
+
+        // Empty case
+        GroupCloudDto groupEmpty = new GroupCloudDto(groupName, List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        when(repository.findAllById(anySet())).thenReturn(List.of());
+        assertEquals(0, service.countResources(groupEmpty));
+    }
+
+    @Test
+    @DisplayName("getCostsByResourceTypes merges maps and overwrites duplicate keys per putAll semantics; empty returns empty")
+    void getCostsByResourceTypes_mergeAndOverwrite_andEmpty() {
+        // Arrange
+        GroupCloudDto group = new GroupCloudDto(GroupUniqueName.fromString("AI 2024L"), List.of());
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccessId idB = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorA.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+        CloudResourceAccess accessB = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idB)
+                .cloudConnectorId(cloudConnectorB.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorB.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        Map<CloudResourceType, BigDecimal> mapA = new HashMap<>();
+        mapA.put(CloudResourceType.of("S3"), new BigDecimal("1.00"));
+        mapA.put(CloudResourceType.of("EC2"), new BigDecimal("2.00"));
+        Map<CloudResourceType, BigDecimal> mapB = new HashMap<>();
+        mapB.put(CloudResourceType.of("S3"), new BigDecimal("3.00")); // should overwrite S3 from A
+
+        when(repository.findAllById(Set.of(idA, idB))).thenReturn(List.of(accessA, accessB));
+        when(cloudConnectorClientA.getCostsPerResourceType(group.groupUniqueName())).thenReturn(mapA);
+        when(cloudConnectorClientB.getCostsPerResourceType(group.groupUniqueName())).thenReturn(mapB);
+
+        GroupCloudDto groupWithIds = new GroupCloudDto(group.groupUniqueName(), List.of(idA, idB));
+
+        // Act
+        Map<CloudResourceType, BigDecimal> result = service.getCostsByResourceTypes(groupWithIds);
+
+        // Assert merge and overwrite
+        assertEquals(2, result.size());
+        assertEquals(new BigDecimal("3.00"), result.get(CloudResourceType.of("S3"))); // overwritten by B
+        assertEquals(new BigDecimal("2.00"), result.get(CloudResourceType.of("EC2")));
+
+        // Empty case
+        GroupCloudDto emptyGroup = new GroupCloudDto(group.groupUniqueName(), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        when(repository.findAllById(anySet())).thenReturn(List.of());
+        assertTrue(service.getCostsByResourceTypes(emptyGroup).isEmpty());
+    }
+
+    @Test
+    @DisplayName("getTotalCostInTime returns TreeMap-ordered keys and overwrites duplicate dates; empty returns empty")
+    void getTotalCostInTime_orderingOverwrite_andEmpty() {
+        // Arrange
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        CloudResourceAccessId idA = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccessId idB = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudResourceAccess accessA = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idA)
+                .cloudConnectorId(cloudConnectorA.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorA.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+        CloudResourceAccess accessB = CloudResourceAccess.builder()
+                .cloudResourceAccessId(idB)
+                .cloudConnectorId(cloudConnectorB.getCloudConnectorId())
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(cloudConnectorB.getCronExpression())
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .build();
+
+        LocalDate d1 = LocalDate.of(2024, 1, 1);
+        LocalDate d2 = LocalDate.of(2024, 2, 15);
+        LocalDate d0 = LocalDate.of(2023, 12, 31);
+        Map<LocalDate, BigDecimal> timeA = new HashMap<>();
+        timeA.put(d1, new BigDecimal("1.23"));
+        timeA.put(d0, new BigDecimal("9.99"));
+        Map<LocalDate, BigDecimal> timeB = new HashMap<>();
+        timeB.put(d1, new BigDecimal("4.56")); // should overwrite d1
+        timeB.put(d2, new BigDecimal("7.89"));
+
+        when(repository.findAllById(Set.of(idA, idB))).thenReturn(List.of(accessA, accessB));
+        when(cloudConnectorClientA.getTotalCostInTime(groupName)).thenReturn(timeA);
+        when(cloudConnectorClientB.getTotalCostInTime(groupName)).thenReturn(timeB);
+
+        GroupCloudDto groupWithIds = new GroupCloudDto(groupName, List.of(idA, idB));
+
+        // Act
+        Map<LocalDate, BigDecimal> result = service.getTotalCostInTime(groupWithIds);
+
+        // Assert: chronological order and overwrite behavior
+        assertEquals(List.of(d0, d1, d2), new ArrayList<>(result.keySet()));
+        assertEquals(new BigDecimal("4.56"), result.get(d1)); // overwritten by B
+        assertEquals(new BigDecimal("9.99"), result.get(d0));
+        assertEquals(new BigDecimal("7.89"), result.get(d2));
+
+        // Empty case
+        GroupCloudDto emptyGroup = new GroupCloudDto(groupName, List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        when(repository.findAllById(anySet())).thenReturn(List.of());
+        assertTrue(service.getTotalCostInTime(emptyGroup).isEmpty());
+    }
 }
