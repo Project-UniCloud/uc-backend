@@ -137,9 +137,8 @@ public class GroupService {
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         int size = pageable.getPageSize();
         int page = pageable.getPageNumber();
-        int offset = page * size;
         return userQueryService.getUserDetailsByIds(
-                group.getStudents(), offset, size
+                group.getStudents(), page, size
         );
     }
 

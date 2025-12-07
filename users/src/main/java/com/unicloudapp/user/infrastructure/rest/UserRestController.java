@@ -54,12 +54,12 @@ class UserRestController {
     @GetMapping("/lecturers")
     @ResponseStatus(HttpStatus.OK)
     Page<UserRowProjection> getAllLecturers(
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) String lecturerFirstOrLastName
     ) {
         return findAllLecturersUseCase.findAllLecturers(
-                page, pageSize, lecturerFirstOrLastName
+                pageNumber, pageSize, lecturerFirstOrLastName
         );
     }
 

@@ -105,8 +105,8 @@ implements UserValidationService,
     }
 
     @Override
-    public Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size) {
-        return userRepository.findUserRowByIds(userIds, offset, size)
+    public Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize) {
+        return userRepository.findUserRowByIds(userIds, pageNumber, pageSize)
                 .map(userRowProjection -> UserDetails.builder()
                         .userId(UserId.of(userRowProjection.uuid()))
                         .login(UserLogin.of(userRowProjection.login()))
@@ -193,13 +193,13 @@ implements UserValidationService,
 
     @Override
     public Page<UserRowProjection> findAllLecturers(
-            int offset,
-            int size,
+            int pageNumber,
+            int pageSize,
             String lecturerFirstOrLastName
     ) {
         return userRepository.findAllUsersByRoleAndFirstNameOrLastName(
-                offset,
-                size,
+                pageNumber,
+                pageSize,
                 UserRole.Type.LECTURER,
                 lecturerFirstOrLastName
         );
