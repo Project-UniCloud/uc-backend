@@ -67,7 +67,7 @@ public class StatisticsService {
         return result;
     }
 
-    public Map<LocalDate, BigDecimal> getTotalCostInTime() {
+    public List<CostPerMonthDto> getTotalCostInTime() {
         List<GroupCloudDto> activeGroups = groupQueryService.getActiveGroups();
         Map<LocalDate, BigDecimal> result = new TreeMap<>();
         for (GroupCloudDto activeGroup : activeGroups) {
@@ -75,7 +75,10 @@ public class StatisticsService {
             totalCostInTime.forEach((key, value) ->
                     result.put(key, result.getOrDefault(key, BigDecimal.ZERO).add(value)));
         }
-        return result;
+        return result.entrySet()
+                .stream()
+                .map(entry -> new CostPerMonthDto(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
     public record OverallCostValuesDto(
@@ -83,4 +86,6 @@ public class StatisticsService {
             int allActiveResourcesCount,
             BigDecimal averageActiveGroupCost
     ) { }
+
+    public record CostPerMonthDto(LocalDate date, BigDecimal cost) { }
 }
