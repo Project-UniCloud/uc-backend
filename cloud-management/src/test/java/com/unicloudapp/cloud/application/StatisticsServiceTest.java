@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -140,11 +141,16 @@ class StatisticsServiceTest {
         when(cloudResourceAccessService.getTotalCostInTime(group1)).thenReturn(m1);
         when(cloudResourceAccessService.getTotalCostInTime(group2)).thenReturn(m2);
 
-        Map<LocalDate, BigDecimal> result = statisticsService.getTotalCostInTime();
+        List<StatisticsService.CostPerMonthDto> result = statisticsService.getTotalCostInTime();
 
-        assertEquals(new BigDecimal("4.00"), result.get(d1));
-        assertEquals(new BigDecimal("2.00"), result.get(d2));
+        assertEquals(2, result.size());
+
+        Map<LocalDate, BigDecimal> asMap = result.stream()
+                .collect(Collectors.toMap(StatisticsService.CostPerMonthDto::date, StatisticsService.CostPerMonthDto::cost));
+
+        assertEquals(new BigDecimal("4.00"), asMap.get(d1));
+        assertEquals(new BigDecimal("2.00"), asMap.get(d2));
         // TreeMap ordering by date
-        assertEquals(List.of(d1, d2), new ArrayList<>(result.keySet()));
+        assertEquals(List.of(d1, d2), result.stream().map(StatisticsService.CostPerMonthDto::date).toList());
     }
 }
