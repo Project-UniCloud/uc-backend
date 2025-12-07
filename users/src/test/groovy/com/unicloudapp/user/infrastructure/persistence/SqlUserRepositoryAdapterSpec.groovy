@@ -240,9 +240,9 @@ class SqlUserRepositoryAdapterSpec extends Specification {
 
         1 * userRepositoryJpa.findAllById([id1.value, id2.value] as Set) >> [e1, e2]
         1 * e1.getLogin() >> "l1"
-        1 * e1.getEmail() >> "e1@a.b"
+        1 * e1.getEmail() >> "e1@example.com"
         1 * e2.getLogin() >> "l2"
-        1 * e2.getEmail() >> "e2@a.b"
+        1 * e2.getEmail() >> "e2@example.com"
 
         when:
         def result = adapter.findAllLoginsAndEmailsByIds([id1, id2] as Set)
@@ -251,7 +251,7 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         result.size() == 2
         result[0].key.value in ["l1", "l2"]
         result[1].key.value in ["l1", "l2"]
-        result.collect { it.value.value }.toSet() == ["e1@a.b", "e2@a.b"].toSet()
+        result.collect { it.value.value }.toSet() == ["e1@example.com", "e2@example.com"].toSet()
     }
 
     def "findByLogin maps optional via mapper"() {
