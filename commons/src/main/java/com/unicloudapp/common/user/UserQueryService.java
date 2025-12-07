@@ -16,7 +16,7 @@ public interface UserQueryService {
 
     Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds);
 
-    Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int offset, int size);
+    Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize);
 
     List<UserLogin> getUserLoginsByIds(Set<UserId> userIds);
 

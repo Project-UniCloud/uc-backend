@@ -27,7 +27,7 @@ public interface UserRepositoryPort {
 
     List<UserFullNameAndLoginProjection> findFullNamesByIds(List<UserId> userIds);
 
-    Page<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int offset, int size);
+    Page<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int pageNumber, int pageSize);
 
     List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role);
 
@@ -36,7 +36,7 @@ public interface UserRepositoryPort {
     List<UserLogin> findAllLoginsByIds(Set<UserId> userIds);
 
     Page<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
-            int offset,
+            int pageNumber,
             int size,
             UserRole.Type role,
             String firstOrLastName

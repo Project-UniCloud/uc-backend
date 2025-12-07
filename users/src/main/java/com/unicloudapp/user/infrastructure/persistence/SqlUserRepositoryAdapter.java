@@ -62,13 +62,13 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public Page<UserRowProjection> findUserRowByIds(
             Collection<UserId> userIds,
-            int offset,
-            int size
+            int pageNumber,
+            int pageSize
     ) {
         Set<UUID> userUUIDs = userIds.stream()
                 .map(UserId::getValue)
                 .collect(Collectors.toSet());
-        Pageable pageable = PageRequest.of(offset / size, size);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return userRepositoryJpa.getUserEntitiesByUuidIn(userUUIDs, pageable);
     }
 
@@ -97,20 +97,20 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Page<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
-            int offset,
+            int pageNumber,
             int size,
             UserRole.Type role,
             String firstOrLastName
     ) {
         if (firstOrLastName == null || firstOrLastName.isBlank()) {
             return userRepositoryJpa.findAllProjectedByRole(
-                    role, PageRequest.of(offset / size, size)
+                    role, PageRequest.of(pageNumber, size)
             );
         }
         return userRepositoryJpa.findAllByRoleAndFirstNameOrLastNameLike(
                 role,
                 firstOrLastName,
-                PageRequest.of(offset / size, size)
+                PageRequest.of(pageNumber, size)
         );
     }
 

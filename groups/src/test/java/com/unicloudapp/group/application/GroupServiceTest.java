@@ -202,16 +202,16 @@ class GroupServiceTest {
 
     // getStudentsDetailsByGroupId
     @Test
-    @DisplayName("getStudentsDetailsByGroupId calculates offset/size and delegates to user service")
+    @DisplayName("getStudentsDetailsByGroupId delegates using pageNumber/pageSize")
     void getStudentsDetailsByGroupId_delegates() {
         GroupId gid = GroupId.of(UUID.randomUUID());
         Group group = mock(Group.class);
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.of(group));
         when(group.getStudents()).thenReturn(Set.of(UserId.of(UUID.randomUUID()), UserId.of(UUID.randomUUID())));
 
-        Pageable pageable = PageRequest.of(1, 10); // offset 10
+        Pageable pageable = PageRequest.of(1, 10);
         Page<UserDetails> expected = new PageImpl<>(List.of(mock(UserDetails.class)), pageable, 1);
-        when(userQueryService.getUserDetailsByIds(anySet(), eq(10), eq(10))).thenReturn(expected);
+        when(userQueryService.getUserDetailsByIds(anySet(), eq(1), eq(10))).thenReturn(expected);
 
         Page<UserDetails> page = service.getStudentsDetailsByGroupId(gid, pageable);
         assertSame(expected, page);
