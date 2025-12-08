@@ -296,7 +296,7 @@ public class GroupService {
                     );
                 })
                 .toList();
-        return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalPages());
+        return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalElements());
     }
 
     public void activate(GroupId groupId) {
