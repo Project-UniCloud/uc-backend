@@ -143,14 +143,16 @@ implements UserValidationService,
     @Override
     public List<UserId> importStudents(List<StudentBasicData> studentBasicData) {
         List<User> students = studentBasicData.stream()
-                .map(data -> userFactory.create(
-                        UserId.of(UUID.randomUUID()),
-                        UserLogin.of(data.getLogin()),
-                        FirstName.of(data.getFirstName()),
-                        LastName.of(data.getLastName()),
-                        Email.of(data.getEmail()),
-                        UserRole.of(UserRole.Type.STUDENT)
-                ))
+                .map(data -> userRepository.findByLogin(UserLogin.of(data.getLogin()))
+                        .orElseGet(() -> userFactory.create(
+                                UserId.of(UUID.randomUUID()),
+                                UserLogin.of(data.getLogin()),
+                                FirstName.of(data.getFirstName()),
+                                LastName.of(data.getLastName()),
+                                Email.of(data.getEmail()),
+                                UserRole.of(UserRole.Type.STUDENT)
+                        ))
+                )
                 .toList();
         userRepository.saveAll(
                 students.stream()
