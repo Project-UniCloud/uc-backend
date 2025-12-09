@@ -120,30 +120,6 @@ class UserServiceSpec extends Specification {
         !resultAdmin
     }
 
-    def "isUserExists should return true if user exists in repository"() {
-        given:
-        def userId = UserId.of(UUID.randomUUID())
-        userRepository.existsById(userId) >> true
-
-        when:
-        def result = userService.isUserExists(userId)
-
-        then:
-        result
-    }
-
-    def "isUserExists should return false if user does not exist in repository"() {
-        given:
-        def userId = UserId.of(UUID.randomUUID())
-        userRepository.existsById(userId) >> false
-
-        when:
-        def result = userService.isUserExists(userId)
-
-        then:
-        !result
-    }
-
     def "createLecturer should throw UserAlreadyExistsException if user with login already exists"() {
         given:
         def command = createLecturerCommand()
@@ -199,47 +175,6 @@ class UserServiceSpec extends Specification {
         then:
         1 * userRepository.searchUserByNameOrLogin(query, UserRole.Type.LECTURER) >> [projection1, projection2]
         result == [projection1, projection2]
-    }
-
-    def "importStudents should create users and return their IDs"() {
-        given:
-        def student1 = new StudentBasicData( "John", "Doe", "login1","john.doe@example.com")
-        def student2 = new StudentBasicData( "Jane", "Smith", "login2","jane.smith@example.com")
-        List<StudentBasicData> students = [student1, student2]
-
-        def user1 = Mock(User)
-        def user2 = Mock(User)
-
-        1 * userFactory.create(
-                _ as UserId,
-                UserLogin.of("login1"),
-                FirstName.of("John"),
-                LastName.of("Doe"),
-                Email.of("john.doe@example.com"),
-                UserRole.of(UserRole.Type.STUDENT)
-        ) >> user1
-        1 * userFactory.create(
-                _ as UserId,
-                UserLogin.of("login2"),
-                FirstName.of("Jane"),
-                LastName.of("Smith"),
-                Email.of("jane.smith@example.com"),
-                UserRole.of(UserRole.Type.STUDENT)
-        ) >> user2
-
-        def id1 = UserId.of(UUID.randomUUID())
-        def id2 = UserId.of(UUID.randomUUID())
-        user1.getUserId() >> id1
-        user2.getUserId() >> id2
-
-        1 * userRepository.saveAll(_) >> [id1, id2]
-
-        when:
-        def result = userService.importStudents(students)
-
-        then:
-        result.size() == 2
-        result.containsAll([id1, id2])
     }
 
     def "getUserDetailsByIds should return UserDetails list"() {

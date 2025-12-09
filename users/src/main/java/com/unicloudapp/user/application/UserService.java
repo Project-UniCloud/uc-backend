@@ -82,11 +82,6 @@ implements UserValidationService,
     }
 
     @Override
-    public boolean isUserExists(UserId userId) {
-        return userRepository.existsById(userId);
-    }
-
-    @Override
     public boolean existsByLogin(String login) {
         return userRepository.existsByLogin(login);
     }
@@ -159,7 +154,7 @@ implements UserValidationService,
                 .toList();
         userRepository.saveAll(
                 students.stream()
-                        .filter(user -> !isUserExists(user.getUserId()))
+                        .filter(user -> !existsByLogin(user.getUserLogin().getValue()))
                         .collect(Collectors.toList())
         );
         return students.stream().map(User::getUserId).collect(Collectors.toList());
