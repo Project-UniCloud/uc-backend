@@ -3,7 +3,6 @@ package com.unicloudapp.cloud.application;
 import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
-import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -45,24 +44,6 @@ public class CloudConnectorService {
         }
         cloudConnectorRepositoryPort.save(cloudConnector);
         eventPublisher.publishEvent(new CloudConnectorCreatedEvent(cloudConnector.getCloudConnectorId(), host, port));
-    }
-
-    @Transactional
-    public void deleteResourceType(CloudConnectorId cloudConnectorId, CloudResourceType resourceType) {
-        CloudConnector cloudConnector = cloudConnectorRepositoryPort
-                .findByClientId(cloudConnectorId)
-                .orElseThrow();
-        cloudConnector.deleteResourceType(resourceType);
-        cloudConnectorRepositoryPort.save(cloudConnector);
-    }
-
-    @Transactional
-    public void addResourceType(CloudConnectorId cloudConnectorId, CloudResourceType resourceType) {
-        CloudConnector cloudConnector = cloudConnectorRepositoryPort
-                .findByClientId(cloudConnectorId)
-                .orElseThrow();
-        cloudConnector.addResourceType(resourceType);
-        cloudConnectorRepositoryPort.save(cloudConnector);
     }
 
     public record CloudConnectorCreatedEvent(CloudConnectorId cloudConnectorId, String host, Integer port) {}

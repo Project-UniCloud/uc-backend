@@ -42,7 +42,7 @@ class GrpcCloudConnectorControllerTest {
 
         // Assert
         AdapterInterface.CreateGroupWithLeadersRequest sent = captor.getValue();
-        assertEquals("S3", sent.getResourceType());
+        assertEquals("S3", sent.getResourceTypesList().getFirst());
         assertEquals("AI 2024L", sent.getGroupName());
         assertEquals(List.of("leader1", "leader2"), sent.getLeadersList());
         // and no exception thrown by parsing the response group name
