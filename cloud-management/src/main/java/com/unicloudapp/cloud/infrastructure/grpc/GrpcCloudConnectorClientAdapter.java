@@ -33,7 +33,7 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
     ) {
         AdapterInterface.CreateGroupWithLeadersRequest request = AdapterInterface.CreateGroupWithLeadersRequest
                 .newBuilder()
-                .setResourceType(resourceType.getName())
+                .addAllResourceTypes(List.of(resourceType.getName()))
                 .setGroupName(groupUniqueName.toString())
                 .addAllLeaders(lecturerLogins.stream().map(UserLogin::toString).toList())
                 .build();

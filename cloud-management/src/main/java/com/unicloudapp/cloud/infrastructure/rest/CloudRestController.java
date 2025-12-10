@@ -27,6 +27,15 @@ class CloudRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/connector/{cloudConnectorId}/resource-types")
     @ResponseStatus(HttpStatus.OK)
+    Page<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @PathVariable CloudConnectorId cloudConnectorId
+    ) {
+        return cloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(PageRequest.of(page, pageSize), cloudConnectorId);
+    }
+
+    // Backward-compatible overload used by older tests that expect a simple list without pagination
     List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
             @PathVariable CloudConnectorId cloudConnectorId
     ) {
@@ -78,32 +87,6 @@ class CloudRestController {
                 CostLimit.of(request.defaultCostLimit()),
                 CronExpression.parse(request.cronExpression()),
                 request.name()
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/connector/{cloudConnectorId}/resource-type")
-    @ResponseStatus(HttpStatus.OK)
-    void addCloudConnectorResourceType(
-            @PathVariable String cloudConnectorId,
-            @RequestBody CloudConnectorResourceTypeRequestDto request
-    ) {
-        cloudConnectorService.addResourceType(
-                CloudConnectorId.of(cloudConnectorId),
-                CloudResourceType.of(request.resourceType())
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/connector/{cloudConnectorId}/resource-type/{resourceType}")
-    @ResponseStatus(HttpStatus.OK)
-    void deleteCloudConnectorResourceType(
-            @PathVariable String cloudConnectorId,
-            @PathVariable String resourceType
-    ) {
-        cloudConnectorService.deleteResourceType(
-                CloudConnectorId.of(cloudConnectorId),
-                CloudResourceType.of(resourceType)
         );
     }
 }
