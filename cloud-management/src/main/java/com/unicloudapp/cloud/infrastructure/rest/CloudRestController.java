@@ -12,9 +12,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/cloud")
@@ -27,10 +32,12 @@ class CloudRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/connector/{cloudConnectorId}/resource-types")
     @ResponseStatus(HttpStatus.OK)
-    List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+    Page<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
             @PathVariable CloudConnectorId cloudConnectorId
     ) {
-        return cloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(cloudConnectorId);
+        return cloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(PageRequest.of(page, pageSize), cloudConnectorId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -78,32 +85,6 @@ class CloudRestController {
                 CostLimit.of(request.defaultCostLimit()),
                 CronExpression.parse(request.cronExpression()),
                 request.name()
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/connector/{cloudConnectorId}/resource-type")
-    @ResponseStatus(HttpStatus.OK)
-    void addCloudConnectorResourceType(
-            @PathVariable String cloudConnectorId,
-            @RequestBody CloudConnectorResourceTypeRequestDto request
-    ) {
-        cloudConnectorService.addResourceType(
-                CloudConnectorId.of(cloudConnectorId),
-                CloudResourceType.of(request.resourceType())
-        );
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/connector/{cloudConnectorId}/resource-type/{resourceType}")
-    @ResponseStatus(HttpStatus.OK)
-    void deleteCloudConnectorResourceType(
-            @PathVariable String cloudConnectorId,
-            @PathVariable String resourceType
-    ) {
-        cloudConnectorService.deleteResourceType(
-                CloudConnectorId.of(cloudConnectorId),
-                CloudResourceType.of(resourceType)
         );
     }
 }

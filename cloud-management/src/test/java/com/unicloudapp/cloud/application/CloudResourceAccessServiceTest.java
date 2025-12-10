@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronExpression;
@@ -296,6 +297,7 @@ class CloudResourceAccessServiceTest {
     @Test
     @DisplayName("getCloudResourceAccessClients returns sorted page and details lookup works")
     void clients_listing_and_details() {
+        when(cloudResourceAccessClientRepository.findAll(any())).thenReturn(new PageImpl<>(List.of(cloudConnectorA, cloudConnectorB), PageRequest.of(0, 10), 2));
         Page<CloudConnector> page = service.getCloudResourceAccessClients(PageRequest.of(0, 10));
         List<CloudConnector> list = page.getContent();
         // Sorted by id string: a-client then b-client

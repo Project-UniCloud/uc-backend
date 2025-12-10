@@ -28,7 +28,9 @@ import lombok.val;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
@@ -130,12 +132,28 @@ public class CloudResourceAccessService
         return cloudConnectorRepositoryPort.findByClientId(cloudConnectorId).isPresent();
     }
 
-    public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+    public Page<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            Pageable pageable,
             CloudConnectorId cloudConnectorId
     ) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
                 .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
-        return cloudConnector.getResourceTypes();
+        return new PageImpl<>(
+                cloudConnector.getResourceTypes(),
+                pageable,
+                cloudConnector.getResourceTypes().size()
+        );
+    }
+
+    // Backward-compatible overload used by older tests calling a single-argument version.
+    public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            CloudConnectorId cloudConnectorId
+    ) {
+        Page<CloudResourceType> page = getCloudResourceTypesForCloudResourceAccessClient(
+                PageRequest.of(0, Integer.MAX_VALUE, Sort.unsorted()),
+                cloudConnectorId
+        );
+        return page.getContent();
     }
 
     @Override
@@ -243,10 +261,12 @@ public class CloudResourceAccessService
     }
 
     public Page<CloudConnector> getCloudResourceAccessClients(Pageable pageable) {
-        List<CloudConnector> all = cloudConnectorRepositoryPort.findAll().stream()
-                .sorted(Comparator.comparing(c -> c.getCloudConnectorId().id()))
-                .toList();
-        return new PageImpl<>(all, pageable, all.size());
+        PageRequest pageRequest = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by("id")
+        );
+        return cloudConnectorRepositoryPort.findAll(pageRequest);
     }
 
     public CloudConnector getCloudResourceAccessClientDetails(CloudConnectorId clientId) {

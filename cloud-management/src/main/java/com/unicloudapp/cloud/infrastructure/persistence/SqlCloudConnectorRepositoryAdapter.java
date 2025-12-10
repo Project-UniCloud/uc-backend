@@ -1,9 +1,11 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +32,12 @@ class SqlCloudConnectorRepositoryAdapter implements CloudConnectorRepositoryPort
     @Override
     public List<CloudConnector> findAll() {
         return repository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
+    public Page<CloudConnector> findAll(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(mapper::toDomain);
     }
 }
 
