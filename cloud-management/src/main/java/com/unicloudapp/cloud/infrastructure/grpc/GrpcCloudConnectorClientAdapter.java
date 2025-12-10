@@ -143,4 +143,15 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
         response.getMonthCostsMap().forEach((key, value) -> costsInTime.put(LocalDate.parse(key, DateTimeFormatter.ofPattern("dd-MM-yyyy")), BigDecimal.valueOf(value)));
         return costsInTime;
     }
+
+    @Override
+    public List<CloudResourceType> getSupportedResourceTypes() {
+        AdapterInterface.GetAvailableServicesRequest request = AdapterInterface.GetAvailableServicesRequest.newBuilder()
+                .build();
+        AdapterInterface.GetAvailableServicesResponse response = stub.getAvailableServices(request);
+        return response.getServicesList()
+                .stream()
+                .map(CloudResourceType::of)
+                .toList();
+    }
 }
