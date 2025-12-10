@@ -9,6 +9,8 @@ import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -142,5 +144,24 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
         AdapterInterface.GroupMonthlyCostsResponse response = stub.getGroupMonthlyCostsLast6Months(request);
         response.getMonthCostsMap().forEach((key, value) -> costsInTime.put(LocalDate.parse(key, DateTimeFormatter.ofPattern("dd-MM-yyyy")), BigDecimal.valueOf(value)));
         return costsInTime;
+    }
+
+    @Override
+    public List<CloudResourceType> getSupportedResourceTypes() {
+        AdapterInterface.GetAvailableServicesRequest request = AdapterInterface.GetAvailableServicesRequest.newBuilder()
+                .build();
+        try {
+            AdapterInterface.GetAvailableServicesResponse response = stub.getAvailableServices(request);
+            return response.getServicesList()
+                    .stream()
+                    .map(CloudResourceType::of)
+                    .toList();
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
+                log.warn("Cloud adapter does not implement GetAvailableServices yet. Falling back to empty supported types list.");
+                return List.of();
+            }
+            throw e;
+        }
     }
 }

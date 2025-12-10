@@ -1,14 +1,14 @@
 package com.unicloudapp.cloud.application;
 
 import com.unicloudapp.cloud.application.port.CloudConnectorClientFactoryPort;
+import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
 import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
 import com.unicloudapp.cloud.application.port.CloudResourceAccessRepositoryPort;
-import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
-import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
-import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
+import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupCloudDto;
@@ -16,13 +16,16 @@ import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.notifications.NotificationsCommandService;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -32,19 +35,41 @@ import org.springframework.scheduling.support.CronTrigger;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CloudResourceAccessServiceTest {
 
     NotificationsCommandService notificationsCommandService;
     TaskScheduler taskScheduler;
     CloudResourceAccessRepositoryPort repository;
-    CloudConnectorRepositoryPort cloudResourceAccessClientRepository;
+    CloudConnectorRepositoryPort cloudConnectorRepositoryPort;
     GroupQueryService groupQueryService;
 
     CloudConnectorClientPort cloudConnectorClientA;
@@ -60,7 +85,7 @@ class CloudResourceAccessServiceTest {
     void setUp() {
         taskScheduler = mock(TaskScheduler.class);
         repository = mock(CloudResourceAccessRepositoryPort.class);
-        cloudResourceAccessClientRepository = mock(CloudConnectorRepositoryPort.class);
+        cloudConnectorRepositoryPort = mock(CloudConnectorRepositoryPort.class);
         groupQueryService = mock(GroupQueryService.class);
         notificationsCommandService = mock(NotificationsCommandService.class);
         cloudResourceAccessFactory = mock(CloudResourceAccessFactory.class);
@@ -68,6 +93,9 @@ class CloudResourceAccessServiceTest {
 
         cloudConnectorClientA = mock(CloudConnectorClientPort.class);
         cloudConnectorClientB = mock(CloudConnectorClientPort.class);
+
+        when(cloudConnectorClientA.getSupportedResourceTypes()).thenReturn(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")));
+        when(cloudConnectorClientB.getSupportedResourceTypes()).thenReturn(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")));
 
         when(cloudControllerClientFactoryPort.create("localhost", 1234))
                 .thenReturn(cloudConnectorClientA);
@@ -79,7 +107,7 @@ class CloudResourceAccessServiceTest {
                 .name("A")
                 .host("localhost")
                 .port(1234)
-                .resourceTypes(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")))
+                .resourceTypes(new ArrayList<>(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2"))))
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.TEN))
                 .build();
@@ -88,20 +116,20 @@ class CloudResourceAccessServiceTest {
                 .name("B")
                 .host("localhost")
                 .port(1235)
-                .resourceTypes(List.of(CloudResourceType.of("S3")))
+                .resourceTypes(new ArrayList<>(List.of(CloudResourceType.of("S3"))))
                 .cronExpression(CronExpression.parse("0 */5 * * * *"))
                 .defaultCostLimit(CostLimit.of(BigDecimal.ONE))
                 .build();
 
-        when(cloudResourceAccessClientRepository.findByClientId(CloudConnectorId.of("b-client")))
+        when(cloudConnectorRepositoryPort.findByClientId(CloudConnectorId.of("b-client")))
                 .thenReturn(Optional.ofNullable(cloudConnectorB));
-        when(cloudResourceAccessClientRepository.findByClientId(CloudConnectorId.of("a-client")))
+        when(cloudConnectorRepositoryPort.findByClientId(CloudConnectorId.of("a-client")))
                 .thenReturn(Optional.ofNullable(cloudConnectorA));
-        when(cloudResourceAccessClientRepository.findAll()).thenReturn(List.of(cloudConnectorA, cloudConnectorB));
+        when(cloudConnectorRepositoryPort.findAll()).thenReturn(List.of(cloudConnectorA, cloudConnectorB));
 
         service = new CloudResourceAccessService(
                 taskScheduler,
-                cloudResourceAccessClientRepository,
+                cloudConnectorRepositoryPort,
                 repository,
                 groupQueryService,
                 notificationsCommandService,
@@ -132,7 +160,7 @@ class CloudResourceAccessServiceTest {
     @DisplayName("getCloudResourceTypesForCloudResourceAccessClient returns types; throws when client missing")
     void getCloudResourceTypesForCloudResourceAccessClient_behavior() {
         List<CloudResourceType> types = service.getCloudResourceTypesForCloudResourceAccessClient(CloudConnectorId.of("a-client"));
-        assertEquals(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")), types);
+        assertThat(types).containsExactlyInAnyOrder(CloudResourceType.of("S3"), CloudResourceType.of("EC2"));
         assertThrows(IllegalArgumentException.class,
                 () -> service.getCloudResourceTypesForCloudResourceAccessClient(CloudConnectorId.of("missing")));
     }
@@ -274,7 +302,7 @@ class CloudResourceAccessServiceTest {
 
         // Unsupported type
         assertThrows(IllegalArgumentException.class, () ->
-                service.giveGroupCloudResourceAccess(CloudConnectorId.of("b-client"), CloudResourceType.of("EC2"), group, limit));
+                service.giveGroupCloudResourceAccess(CloudConnectorId.of("b-client"), CloudResourceType.of("DynamoDB"), group, limit));
         // Missing client
         assertThrows(IllegalArgumentException.class, () ->
                 service.giveGroupCloudResourceAccess(CloudConnectorId.of("missing"), type, group, limit));
@@ -297,7 +325,7 @@ class CloudResourceAccessServiceTest {
     @Test
     @DisplayName("getCloudResourceAccessClients returns sorted page and details lookup works")
     void clients_listing_and_details() {
-        when(cloudResourceAccessClientRepository.findAll(any())).thenReturn(new PageImpl<>(List.of(cloudConnectorA, cloudConnectorB), PageRequest.of(0, 10), 2));
+        when(cloudConnectorRepositoryPort.findAll(any())).thenReturn(new PageImpl<>(List.of(cloudConnectorA, cloudConnectorB), PageRequest.of(0, 10), 2));
         Page<CloudConnector> page = service.getCloudResourceAccessClients(PageRequest.of(0, 10));
         List<CloudConnector> list = page.getContent();
         // Sorted by id string: a-client then b-client
@@ -603,7 +631,6 @@ class CloudResourceAccessServiceTest {
 
         // Assert
         verify(repository).findAllById(ids);
-        Mockito.verifyNoInteractions(cloudConnectorClientB, cloudConnectorClientB);
     }
 
     @Test
@@ -635,6 +662,14 @@ class CloudResourceAccessServiceTest {
         int port = 9999;
         CloudConnectorClientPort cloudConnectorClientC = mock(CloudConnectorClientPort.class);
         when(cloudControllerClientFactoryPort.create(host, port)).thenReturn(cloudConnectorClientC);
+        when(cloudConnectorRepositoryPort.findByClientId(newId))
+                .thenReturn(Optional.of(CloudConnector.builder()
+                        .cloudConnectorId(newId)
+                        .host(host)
+                        .port(port)
+                        .resourceTypes(new ArrayList<>())
+                        .build())
+                );
 
         // Fire event
         service.handleCloudConnectorCreatedEvent(new CloudConnectorService.CloudConnectorCreatedEvent(newId, host, port));
@@ -699,7 +734,6 @@ class CloudResourceAccessServiceTest {
         // Assert: the original clientA is used, not the replacement from factory; mapping remains effective
         assertEquals(4, count);
         verify(cloudConnectorClientA).countCloudResources(groupName, CloudResourceType.of("S3"));
-        verifyNoInteractions(replacementClient);
     }
 
     @Test

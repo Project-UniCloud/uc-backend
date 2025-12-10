@@ -27,17 +27,8 @@ public class CloudConnector {
         return resourceTypes.contains(resourceType);
     }
 
-    public void addResourceType(CloudResourceType resourceType) {
-        if (containsResourceType(resourceType)) {
-            return;
-        }
-        resourceTypes.add(resourceType);
-    }
-
-    public void deleteResourceType(CloudResourceType resourceType) {
-        if (!containsResourceType(resourceType)) {
-            return;
-        }
-        resourceTypes.remove(resourceType);
+    public void syncResourceTypes(List<CloudResourceType> supportedResourceTypes) {
+        resourceTypes.clear();
+        resourceTypes.addAll(supportedResourceTypes);
     }
 }
