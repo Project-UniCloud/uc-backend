@@ -91,11 +91,14 @@ class StatisticsServiceTest {
         when(cloudResourceAccessService.getCostsByResourceTypes(group1)).thenReturn(g1Map);
         when(cloudResourceAccessService.getCostsByResourceTypes(group2)).thenReturn(g2Map);
 
-        Map<CloudResourceType, BigDecimal> result = statisticsService.getOverallCostsPerResourceType();
+        List<StatisticsService.CostPerResourceTypeDto> result = statisticsService.getOverallCostsPerResourceType();
 
-        assertEquals(2, result.size());
-        assertEquals(new BigDecimal("5.00"), result.get(s3));
-        assertEquals(new BigDecimal("3.50"), result.get(ec2));
+        Map<String, BigDecimal> asMap = result.stream()
+                .collect(Collectors.toMap(StatisticsService.CostPerResourceTypeDto::resourceType, StatisticsService.CostPerResourceTypeDto::cost));
+
+        assertEquals(2, asMap.size());
+        assertEquals(new BigDecimal("5.00"), asMap.get(s3.toString()));
+        assertEquals(new BigDecimal("3.50"), asMap.get(ec2.toString()));
     }
 
     @Test
@@ -116,10 +119,13 @@ class StatisticsServiceTest {
         when(cloudResourceAccessService.getCloudResourceDetails(new HashSet<>(group2.cloudResourceAccesses())))
                 .thenReturn(List.of(r2a));
 
-        Map<GroupUniqueName, BigDecimal> result = statisticsService.getTotalCostPerGroup();
+        List<StatisticsService.CostPerGroupDto> result = statisticsService.getTotalCostPerGroup();
 
-        assertEquals(new BigDecimal("5.10"), result.get(g1));
-        assertEquals(new BigDecimal("1.25"), result.get(g2));
+        Map<String, BigDecimal> asMap = result.stream()
+                .collect(Collectors.toMap(StatisticsService.CostPerGroupDto::groupUniqueName, StatisticsService.CostPerGroupDto::cost));
+
+        assertEquals(new BigDecimal("5.10"), asMap.get(g1.toString()));
+        assertEquals(new BigDecimal("1.25"), asMap.get(g2.toString()));
     }
 
     @Test

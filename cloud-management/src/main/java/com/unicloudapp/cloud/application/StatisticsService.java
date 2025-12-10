@@ -12,7 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 @RequiredArgsConstructor
@@ -42,17 +46,20 @@ public class StatisticsService {
         return new OverallCostValuesDto(overallCostFromActiveGroups, allActiveResourcesCount, averageActiveGroupCost);
     }
 
-    public Map<CloudResourceType, BigDecimal> getOverallCostsPerResourceType() {
+    public List<CostPerResourceTypeDto> getOverallCostsPerResourceType() {
         List<GroupCloudDto> activeGroups = groupQueryService.getActiveGroups();
         Map<CloudResourceType, BigDecimal> result = new HashMap<>();
         for (GroupCloudDto activeGroup : activeGroups) {
             Map<CloudResourceType, BigDecimal> costsPerResourceType = cloudResourceAccessService.getCostsByResourceTypes(activeGroup);
             result.putAll(costsPerResourceType);
         }
-        return result;
+        return result.entrySet()
+                .stream()
+                .map(entry -> new CostPerResourceTypeDto(entry.getKey().toString(), entry.getValue()))
+                .toList();
     }
 
-    public Map<GroupUniqueName, BigDecimal> getTotalCostPerGroup() {
+    public List<CostPerGroupDto> getTotalCostPerGroup() {
         List<GroupCloudDto> activeGroups = groupQueryService.getActiveGroups();
         Map<GroupUniqueName, BigDecimal> result = new HashMap<>();
         for (GroupCloudDto activeGroup : activeGroups) {
@@ -64,7 +71,10 @@ public class StatisticsService {
             }
             result.put(activeGroup.groupUniqueName(), overallCost);
         }
-        return result;
+        return result.entrySet()
+                .stream()
+                .map(entry -> new CostPerGroupDto(entry.getKey().toString(), entry.getValue()))
+                .toList();
     }
 
     public List<CostPerMonthDto> getTotalCostInTime() {
@@ -88,4 +98,8 @@ public class StatisticsService {
     ) { }
 
     public record CostPerMonthDto(LocalDate date, BigDecimal cost) { }
+
+    public record CostPerResourceTypeDto(String resourceType, BigDecimal cost) { }
+
+    public record CostPerGroupDto(String groupUniqueName, BigDecimal cost) { }
 }
