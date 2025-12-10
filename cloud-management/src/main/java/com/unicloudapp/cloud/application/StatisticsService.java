@@ -55,7 +55,7 @@ public class StatisticsService {
         }
         return result.entrySet()
                 .stream()
-                .map(entry -> new CostPerResourceTypeDto(entry.getKey(), entry.getValue()))
+                .map(entry -> new CostPerResourceTypeDto(entry.getKey().toString(), entry.getValue()))
                 .toList();
     }
 
@@ -73,7 +73,7 @@ public class StatisticsService {
         }
         return result.entrySet()
                 .stream()
-                .map(entry -> new CostPerGroupDto(entry.getKey(), entry.getValue()))
+                .map(entry -> new CostPerGroupDto(entry.getKey().toString(), entry.getValue()))
                 .toList();
     }
 
@@ -99,7 +99,7 @@ public class StatisticsService {
 
     public record CostPerMonthDto(LocalDate date, BigDecimal cost) { }
 
-    public record CostPerResourceTypeDto(CloudResourceType resourceType, BigDecimal cost) { }
+    public record CostPerResourceTypeDto(String resourceType, BigDecimal cost) { }
 
-    public record CostPerGroupDto(GroupUniqueName groupUniqueName, BigDecimal cost) { }
+    public record CostPerGroupDto(String groupUniqueName, BigDecimal cost) { }
 }
