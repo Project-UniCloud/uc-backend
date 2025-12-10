@@ -20,24 +20,39 @@ import com.unicloudapp.common.notifications.NotificationType;
 import com.unicloudapp.common.notifications.NotificationsCommandService;
 import com.unicloudapp.common.notifications.SendNotificationCommand;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
@@ -57,6 +72,7 @@ public class CloudResourceAccessService
     private final CloudResourceAccessFactory cloudResourceAccessFactory;
     private final CloudConnectorClientFactoryPort cloudConnectorClientFactoryPort;
 
+    //extract to another bean to make it transactional
     @PostConstruct
     protected void init() {
         List<GroupCloudDto> groupCloudDtoList = groupQueryService.getActiveGroups();
@@ -74,18 +90,30 @@ public class CloudResourceAccessService
                         )
         );
         cloudConnectorRepositoryPort.findAll()
-                .forEach(cloudConnector -> cloudConnectorClients.put(
-                        cloudConnector.getCloudConnectorId(),
-                        cloudConnectorClientFactoryPort.create(cloudConnector.getHost(), cloudConnector.getPort())
-                ));
+                .forEach(cloudConnector -> {
+                    CloudConnectorClientPort connectorClient = cloudConnectorClientFactoryPort.create(
+                            cloudConnector.getHost(), cloudConnector.getPort()
+                    );
+                    List<CloudResourceType> supportedResourceTypes = connectorClient.getSupportedResourceTypes();
+                    cloudConnector.syncResourceTypes(supportedResourceTypes);
+                    cloudConnectorRepositoryPort.save(cloudConnector);
+                    cloudConnectorClients.put(
+                            cloudConnector.getCloudConnectorId(),
+                            connectorClient
+                    );
+                });
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected void handleCloudConnectorCreatedEvent(CloudConnectorService.CloudConnectorCreatedEvent event) {
-        cloudConnectorClients.putIfAbsent(
-                event.cloudConnectorId(),
-                cloudConnectorClientFactoryPort.create(event.host(), event.port())
-        );
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(event.cloudConnectorId())
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + event.cloudConnectorId() + " does not exist"));
+        CloudConnectorClientPort cloudConnectorClient = cloudConnectorClientFactoryPort.create(event.host(), event.port());
+        cloudConnectorClients.putIfAbsent(event.cloudConnectorId(), cloudConnectorClient);
+        List<CloudResourceType> supportedResourceTypes = cloudConnectorClient.getSupportedResourceTypes();
+        cloudConnector.syncResourceTypes(supportedResourceTypes);
+        cloudConnectorRepositoryPort.save(cloudConnector);
     }
 
     public Integer countResources(GroupCloudDto groupCloudDto) {
@@ -130,12 +158,28 @@ public class CloudResourceAccessService
         return cloudConnectorRepositoryPort.findByClientId(cloudConnectorId).isPresent();
     }
 
-    public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+    public Page<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            Pageable pageable,
             CloudConnectorId cloudConnectorId
     ) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
                 .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
-        return cloudConnector.getResourceTypes();
+        return new PageImpl<>(
+                cloudConnector.getResourceTypes(),
+                pageable,
+                cloudConnector.getResourceTypes().size()
+        );
+    }
+
+    // Backward-compatible overload used by older tests calling a single-argument version.
+    public List<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+            CloudConnectorId cloudConnectorId
+    ) {
+        Page<CloudResourceType> page = getCloudResourceTypesForCloudResourceAccessClient(
+                PageRequest.of(0, Integer.MAX_VALUE, Sort.unsorted()),
+                cloudConnectorId
+        );
+        return page.getContent();
     }
 
     @Override
@@ -243,10 +287,12 @@ public class CloudResourceAccessService
     }
 
     public Page<CloudConnector> getCloudResourceAccessClients(Pageable pageable) {
-        List<CloudConnector> all = cloudConnectorRepositoryPort.findAll().stream()
-                .sorted(Comparator.comparing(c -> c.getCloudConnectorId().id()))
-                .toList();
-        return new PageImpl<>(all, pageable, all.size());
+        PageRequest pageRequest = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by("id")
+        );
+        return cloudConnectorRepositoryPort.findAll(pageRequest);
     }
 
     public CloudConnector getCloudResourceAccessClientDetails(CloudConnectorId clientId) {

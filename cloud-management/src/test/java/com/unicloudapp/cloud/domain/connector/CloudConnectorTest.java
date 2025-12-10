@@ -43,28 +43,6 @@ class CloudConnectorTest {
     }
 
     @Test
-    @DisplayName("containsResourceType reflects presence; addResourceType adds only when absent")
-    void contains_and_add_resourceType_behavior() {
-        List<CloudResourceType> types = new ArrayList<>(List.of(CloudResourceType.of("S3")));
-        CloudConnector connector = buildSample(types);
-
-        CloudResourceType s3 = CloudResourceType.of("S3");
-        CloudResourceType ec2 = CloudResourceType.of("EC2");
-
-        assertTrue(connector.containsResourceType(s3));
-        assertFalse(connector.containsResourceType(ec2));
-
-        // Add new type
-        connector.addResourceType(ec2);
-        assertTrue(connector.containsResourceType(ec2));
-        assertEquals(2, connector.getResourceTypes().size());
-
-        // Adding duplicate should not increase size
-        connector.addResourceType(ec2);
-        assertEquals(2, connector.getResourceTypes().size());
-    }
-
-    @Test
     @DisplayName("withers create new instances with updated fields, leaving original intact")
     void withers_update_fields_immutably() {
         List<CloudResourceType> types = new ArrayList<>(List.of(CloudResourceType.of("S3")));
@@ -89,36 +67,5 @@ class CloudConnectorTest {
         assertEquals(original.getHost(), withCron.getHost());
         assertEquals(original.getPort(), withLimit.getPort());
         assertEquals(original.getResourceTypes(), withName.getResourceTypes());
-    }
-
-    @Test
-    @DisplayName("deleteResourceType removes existing type and decreases size")
-    void deleteResourceType_removes_when_present() {
-        List<CloudResourceType> types = new ArrayList<>(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")));
-        CloudConnector connector = buildSample(types);
-
-        assertTrue(connector.containsResourceType(CloudResourceType.of("EC2")));
-        assertEquals(2, connector.getResourceTypes().size());
-
-        connector.deleteResourceType(CloudResourceType.of("EC2"));
-
-        assertFalse(connector.containsResourceType(CloudResourceType.of("EC2")));
-        assertEquals(1, connector.getResourceTypes().size());
-    }
-
-    @Test
-    @DisplayName("deleteResourceType does nothing when type is absent")
-    void deleteResourceType_noop_when_absent() {
-        List<CloudResourceType> types = new ArrayList<>(List.of(CloudResourceType.of("S3")));
-        CloudConnector connector = buildSample(types);
-
-        assertFalse(connector.containsResourceType(CloudResourceType.of("EC2")));
-        assertEquals(1, connector.getResourceTypes().size());
-
-        connector.deleteResourceType(CloudResourceType.of("EC2"));
-
-        // Still unchanged
-        assertFalse(connector.containsResourceType(CloudResourceType.of("EC2")));
-        assertEquals(1, connector.getResourceTypes().size());
     }
 }
