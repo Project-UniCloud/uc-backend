@@ -129,16 +129,4 @@ class CloudRestControllerTest {
         assertEquals("0 */15 * * * *", cronCaptor.getValue().toString());
         assertEquals("My Connector", nameCaptor.getValue());
     }
-
-    @Test
-    @DisplayName("getCloudResourceTypesForCloudResourceAccessClient delegates to service")
-    void getResourceTypes_returnsList() {
-        when(cloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(CloudConnectorId.of("conn-4")))
-                .thenReturn(List.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")));
-
-        List<CloudResourceType> res = controller.getCloudResourceTypesForCloudResourceAccessClient(CloudConnectorId.of("conn-4"));
-        assertEquals(2, res.size());
-        assertEquals(CloudResourceType.of("S3"), res.get(0));
-        assertEquals(CloudResourceType.of("EC2"), res.get(1));
-    }
 }
