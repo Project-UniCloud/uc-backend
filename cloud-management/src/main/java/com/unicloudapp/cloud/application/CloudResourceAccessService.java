@@ -214,6 +214,9 @@ public class CloudResourceAccessService
                         .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
                         .limitUsed(cloudResourceAccess.getUsedLimit()
                                 .getValue())
+                        .notificationLevel1(cloudResourceAccess.getNotificationLevel1().level())
+                        .notificationLevel2(cloudResourceAccess.getNotificationLevel2().level())
+                        .notificationLevel3(cloudResourceAccess.getNotificationLevel3().level())
                         .build())
                 .toList();
     }
