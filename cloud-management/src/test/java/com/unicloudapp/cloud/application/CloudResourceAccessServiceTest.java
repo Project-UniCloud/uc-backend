@@ -9,6 +9,7 @@ import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.cloud.domain.vo.NotificationLevel;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupCloudDto;
@@ -217,6 +218,9 @@ class CloudResourceAccessServiceTest {
                 .cronExpression(CronExpression.parse("0 0 * * * *"))
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(7)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .notificationLevel1(NotificationLevel.of(1))
+                .notificationLevel2(NotificationLevel.of(2))
+                .notificationLevel3(NotificationLevel.of(3))
                 .build();
         when(repository.findAllById(any())).thenReturn(List.of(cra));
 
