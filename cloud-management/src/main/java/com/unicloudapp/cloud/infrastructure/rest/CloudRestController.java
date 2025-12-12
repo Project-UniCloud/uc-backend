@@ -15,11 +15,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/cloud")
@@ -73,6 +76,20 @@ class CloudRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/connector/{cloudConnectorId}")
+    @ResponseStatus(HttpStatus.OK)
+    void putCloudConnectorDetails(
+            @RequestBody CloudConnectorUpdateRequestDto request
+    ) {
+        cloudResourceAccessService.updateCloudResourceAccessClientDetails(
+                CloudConnectorId.of(request.cloudConnectorId),
+                CostLimit.of(request.costLimit),
+                CronExpression.parse(request.defaultCronExpression),
+                request.cloudConnectorName
+        );
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/connector")
     @ResponseStatus(HttpStatus.CREATED)
     void postCloudConnector(
@@ -87,4 +104,11 @@ class CloudRestController {
                 request.name()
         );
     }
+
+    private record CloudConnectorUpdateRequestDto(
+            String cloudConnectorId,
+            BigDecimal costLimit,
+            String defaultCronExpression,
+            String cloudConnectorName
+    ) { }
 }

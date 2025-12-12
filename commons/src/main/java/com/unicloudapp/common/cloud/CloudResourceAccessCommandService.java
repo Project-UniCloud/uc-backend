@@ -7,6 +7,7 @@ import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
+import org.springframework.scheduling.support.CronExpression;
 
 import java.util.List;
 import java.util.Map;
@@ -46,4 +47,6 @@ public interface CloudResourceAccessCommandService {
     void assignCloudResourceAccess(CloudConnectorId cloudConnectorId, CloudResourceType cloudResourceType, UserLogin lecturerLogin);
 
     void assignCloudResourceAccess(CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, CloudResourceType cloudResourceType);
+
+    void updateCloudResourceAccessClientDetails(CloudConnectorId of, CostLimit of1, CronExpression parse, String cloudConnectorName);
 }

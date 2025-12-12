@@ -36,6 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -385,6 +386,18 @@ public class CloudResourceAccessService
         CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
                 .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
         cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).assignCloudResourceAccess(cloudResourceType, groupUniqueName, null);
+    }
+
+    @Override
+    @Transactional
+    public void updateCloudResourceAccessClientDetails(CloudConnectorId of, CostLimit of1, CronExpression parse, String cloudConnectorName) {
+        Optional<CloudConnector> cloudConnector = cloudConnectorRepositoryPort.findByClientId(of);
+        cloudConnector.ifPresent(t -> {
+            t.updateName(cloudConnectorName);
+            t.updateCostLimit(of1);
+            t.updateCron(parse);
+            cloudConnectorRepositoryPort.save(t);
+        });
     }
 
     @Scheduled(cron = "${adapters.costSyncCron}")

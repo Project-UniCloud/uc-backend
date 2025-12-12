@@ -31,4 +31,16 @@ public class CloudConnector {
         resourceTypes.clear();
         resourceTypes.addAll(supportedResourceTypes);
     }
+
+    public void updateCostLimit(CostLimit costLimit) {
+        defaultCostLimit = costLimit;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateCron(CronExpression cronExpression) {
+        this.cronExpression = cronExpression;
+    }
 }
