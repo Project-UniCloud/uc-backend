@@ -196,6 +196,10 @@ public class GroupService {
         );
         if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudConnectorId)) {
             cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudConnectorId, lecturers, cloudResourceType);
+        } else {
+            cloudResourceAccessCommandService.assignCloudResourceAccess(cloudConnectorId, groupUniqueName, cloudResourceType);
+            lecturers.forEach(lecturer ->
+                    cloudResourceAccessCommandService.assignCloudResourceAccess(cloudConnectorId, cloudResourceType, lecturer.getKey()));
         }
         CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
                 cloudConnectorId,

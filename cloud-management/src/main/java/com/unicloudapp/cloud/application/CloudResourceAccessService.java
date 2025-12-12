@@ -276,8 +276,8 @@ public class CloudResourceAccessService
                     .to(lecturer.getValue().getValue())
                     .subject("Your access to cloud resources has been granted")
                     .text(
-                            mail.replace("{username}", lecturer.getKey().getValue() + "-" + groupUniqueName.toStringWithoutSpaces())
-                                    .replace("{password}", groupUniqueName.toStringWithoutSpaces())
+                            mail.replace("{username}", lecturer.getKey().getValue())
+                                    .replace("{password}", lecturer.getKey().getValue() + "_password123$")
                     )
                     .type(NotificationType.EMAIL)
                     .build();
@@ -314,8 +314,8 @@ public class CloudResourceAccessService
                     .to(user.getValue().getValue())
                     .subject("Your access to cloud resources has been granted")
                     .text(
-                            mail.replace("{username}", user.getKey().getValue() + "-" + groupUniqueName.toStringWithoutSpaces())
-                                    .replace("{password}", groupUniqueName.toStringWithoutSpaces())
+                            mail.replace("{username}", user.getKey().getValue())
+                                    .replace("{password}", user.getKey().getValue() + "_password123$")
                     )
                     .type(NotificationType.EMAIL)
                     .build();
@@ -371,6 +371,20 @@ public class CloudResourceAccessService
         CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
                 .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
         cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).removeGroup(groupUniqueName);
+    }
+
+    @Override
+    public void assignCloudResourceAccess(CloudConnectorId cloudConnectorId, CloudResourceType cloudResourceType, UserLogin lecturerLogin) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).assignCloudResourceAccess(cloudResourceType, null, lecturerLogin);
+    }
+
+    @Override
+    public void assignCloudResourceAccess(CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, CloudResourceType cloudResourceType) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort.findByClientId(cloudConnectorId)
+                .orElseThrow(() -> new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).assignCloudResourceAccess(cloudResourceType, groupUniqueName, null);
     }
 
     @Scheduled(cron = "${adapters.costSyncCron}")

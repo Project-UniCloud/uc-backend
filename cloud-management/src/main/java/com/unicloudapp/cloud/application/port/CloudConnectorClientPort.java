@@ -37,4 +37,6 @@ public interface CloudConnectorClientPort {
     Map<LocalDate, BigDecimal> getTotalCostInTime(GroupUniqueName groupUniqueName);
 
     List<CloudResourceType> getSupportedResourceTypes();
+
+    void assignCloudResourceAccess(CloudResourceType resourceType, GroupUniqueName groupUniqueName, UserLogin lecturer);
 }

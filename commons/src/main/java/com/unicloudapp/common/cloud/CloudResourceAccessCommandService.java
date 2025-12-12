@@ -42,4 +42,8 @@ public interface CloudResourceAccessCommandService {
     void cleanUpResources(Set<CloudResourceAccessId> cloudVendorConnectorId, GroupUniqueName groupUniqueName, boolean force);
 
     void removeGroup(GroupUniqueName groupUniqueName, CloudConnectorId cloudConnectorId);
+
+    void assignCloudResourceAccess(CloudConnectorId cloudConnectorId, CloudResourceType cloudResourceType, UserLogin lecturerLogin);
+
+    void assignCloudResourceAccess(CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, CloudResourceType cloudResourceType);
 }

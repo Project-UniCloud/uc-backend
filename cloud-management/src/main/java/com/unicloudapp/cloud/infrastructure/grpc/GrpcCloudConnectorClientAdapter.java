@@ -164,4 +164,26 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
             throw e;
         }
     }
+
+    @Override
+    public void assignCloudResourceAccess(CloudResourceType resourceType, GroupUniqueName groupUniqueName, UserLogin lecturer) {
+        AdapterInterface.AssignPoliciesRequest.Builder builder = AdapterInterface.AssignPoliciesRequest.newBuilder()
+                .addAllResourceTypes(List.of(resourceType.getName()));
+        if (groupUniqueName != null) {
+            builder.setGroupName(groupUniqueName.toString());
+        }
+        if (lecturer != null) {
+            builder.setUserName(lecturer.toString());
+        }
+        try {
+            AdapterInterface.AssignPoliciesResponse response = stub.assignPolicies(builder.build());
+            if (!response.getSuccess()) {
+                throw new RuntimeException("Assign policies failed. Message: " + response.getMessage());
+            }
+            log.info("Policies assigned successfully for group: {}. Lecturer: {}. {}", groupUniqueName, lecturer, response.getMessage());
+        } catch (StatusRuntimeException e) {
+            log.warn(e.getMessage(), e);
+            throw e;
+        }
+    }
 }
