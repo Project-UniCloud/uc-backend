@@ -79,10 +79,11 @@ class CloudRestController {
     @PutMapping("/connector/{cloudConnectorId}")
     @ResponseStatus(HttpStatus.OK)
     void putCloudConnectorDetails(
-            @RequestBody CloudConnectorUpdateRequestDto request
+            @RequestBody CloudConnectorUpdateRequestDto request,
+            @PathVariable String cloudConnectorId
     ) {
         cloudResourceAccessService.updateCloudResourceAccessClientDetails(
-                CloudConnectorId.of(request.cloudConnectorId),
+                CloudConnectorId.of(cloudConnectorId),
                 CostLimit.of(request.costLimit),
                 CronExpression.parse(request.defaultCronExpression),
                 request.cloudConnectorName
@@ -106,7 +107,6 @@ class CloudRestController {
     }
 
     private record CloudConnectorUpdateRequestDto(
-            String cloudConnectorId,
             BigDecimal costLimit,
             String defaultCronExpression,
             String cloudConnectorName
