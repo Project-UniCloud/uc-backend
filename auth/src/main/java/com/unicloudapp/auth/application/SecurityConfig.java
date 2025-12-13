@@ -1,10 +1,10 @@
 package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
-import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +35,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableMethodSecurity
@@ -124,9 +125,12 @@ class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource(@Value("${ORIGIN:http://localhost:3000}") String allowedOrigins) {
+    CorsConfigurationSource corsConfigurationSource(@Value("${ORIGIN:http://localhost:3000}") String originEnv) {
         CorsConfiguration configuration = new CorsConfiguration();
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        List<String> origins = Arrays.stream(originEnv.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
         configuration.setAllowedOrigins(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
