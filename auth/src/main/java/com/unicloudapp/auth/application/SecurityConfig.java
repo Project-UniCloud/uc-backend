@@ -124,7 +124,7 @@ class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource(@Value("${ORIGIN}") String allowedOrigins) {
+    CorsConfigurationSource corsConfigurationSource(@Value("${ORIGIN:http://localhost:3000}") String allowedOrigins) {
         CorsConfiguration configuration = new CorsConfiguration();
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
         configuration.setAllowedOrigins(origins);
