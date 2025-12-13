@@ -3,8 +3,7 @@ FROM gradle:9.2.1-jdk25 AS build
 WORKDIR /build
 
 COPY . .
-
-RUN gradle :bootstrap:bootJar
+RUN gradle :bootstrap:bootJar --no-daemon
 
 FROM eclipse-temurin:25-jre
 
@@ -14,10 +13,14 @@ WORKDIR /app
 
 COPY --from=build /build/bootstrap/build/libs/*.jar app.jar
 
-RUN chown -R appuser:appuser /app
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+RUN chown -R appuser:appuser /app /entrypoint.sh
 
 USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["java", "-jar", "app.jar"]
