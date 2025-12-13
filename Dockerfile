@@ -13,7 +13,7 @@ WORKDIR /app
 
 COPY --from=build /build/bootstrap/build/libs/*.jar app.jar
 
-COPY docker/entrypoint.sh /entrypoint.sh
+COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 RUN chown -R appuser:appuser /app /entrypoint.sh
