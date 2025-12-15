@@ -17,7 +17,7 @@ val lombokVersion = "1.18.42"
 val jakartaValidationVersion = "3.1.1"
 val hibernateValidatorVersion = "9.1.0.Final"
 val mapStructVersion = "1.6.3"
-val spockVersion = "2.4-M7-groovy-5.0"
+val spockVersion = "2.4-groovy-5.0"
 
 dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
