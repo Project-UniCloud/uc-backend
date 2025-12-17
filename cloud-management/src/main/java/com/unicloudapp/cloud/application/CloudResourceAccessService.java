@@ -405,8 +405,10 @@ public class CloudResourceAccessService
     protected void updateCostUsed() {
         cloudConnectorRepositoryPort.findAll()
                 .forEach(cloudResourceAccessClient -> {
-                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId()).updateUsedCost(LocalDate.EPOCH, LocalDate.now());
-                    groupUniqueNameUsedLimitMap.forEach((groupUniqueName, usedLimit) -> {
+                    CloudConnectorClientPort cloudConnectorClient = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId());
+                    var now = LocalDate.now();
+                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClient.updateUsedCost(now.minusYears(1), now);
+                    groupUniqueNameUsedLimitMap.forEach((_, usedLimit) -> {
                         Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
                                 cloudResourceAccessClient.getCloudConnectorId(),
                                 cloudResourceAccessClient.getResourceTypes().getFirst()
