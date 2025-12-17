@@ -3,7 +3,7 @@ import com.google.protobuf.gradle.proto
 
 plugins {
     id("java")
-    id("com.google.protobuf") version "0.9.5"
+    id("com.google.protobuf") version "0.9.6"
     id("io.spring.dependency-management")
     id("org.springframework.boot")
 }
