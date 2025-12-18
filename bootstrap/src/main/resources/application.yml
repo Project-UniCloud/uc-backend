@@ -41,7 +41,7 @@ auth:
     facultyPeopleOu: OU=Faculty,OU=People
 
 adapters:
-  costSyncCron: 0 0 * * * *
+  costSyncCron: ${COST_SYNC_CRON:0 */10 * * * *}
 server:
   servlet:
     context-path: /api
