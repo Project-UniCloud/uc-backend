@@ -100,7 +100,7 @@ class GrpcCloudConnectorControllerTest {
         AdapterInterface.CostResponse resp = AdapterInterface.CostResponse.newBuilder()
                 .setAmount(12.34)
                 .build();
-        when(stub.getTotalCost(any())).thenReturn(resp);
+        when(stub.getTotalCostForGroup(any())).thenReturn(resp);
 
         UsedLimit usedLimit = controller.updateUsedCost(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), GroupUniqueName.fromString("AI 2024L"));
         assertEquals(0, usedLimit.getValue().compareTo(new BigDecimal("12.34")));
@@ -110,7 +110,7 @@ class GrpcCloudConnectorControllerTest {
     @DisplayName("updateUsedCost with no costs returns zero UsedLimit")
     void updateUsedCost_empty() {
         AdapterInterface.CostResponse resp = AdapterInterface.CostResponse.newBuilder().setAmount(0.0).build();
-        when(stub.getTotalCost(any())).thenReturn(resp);
+        when(stub.getTotalCostForGroup(any())).thenReturn(resp);
         UsedLimit usedLimit = controller.updateUsedCost(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(1), GroupUniqueName.fromString("AI 2024L"));
         assertEquals(0, usedLimit.getValue().compareTo(BigDecimal.ZERO));
     }

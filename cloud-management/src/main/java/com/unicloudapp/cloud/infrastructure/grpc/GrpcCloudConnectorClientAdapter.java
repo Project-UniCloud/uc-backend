@@ -74,7 +74,7 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                 .setEndDate(endDate.toString())
                 .setGroupName(groupUniqueName.toString())
                 .build();
-        AdapterInterface.CostResponse totalCostsForAllGroups = stub.getTotalCost(request);
+        AdapterInterface.CostResponse totalCostsForAllGroups = stub.getTotalCostForGroup(request);
         return UsedLimit.of(BigDecimal.valueOf(totalCostsForAllGroups.getAmount()));
     }
 
