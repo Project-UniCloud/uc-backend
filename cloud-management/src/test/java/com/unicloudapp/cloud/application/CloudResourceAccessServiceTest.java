@@ -354,7 +354,7 @@ class CloudResourceAccessServiceTest {
     void updateCostUsed_updatesAndSaves() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         UsedLimit newUsed = UsedLimit.of(new BigDecimal("42"));
-        when(cloudConnectorClientA.updateUsedCost(any(), any())).thenReturn(Map.of(group, newUsed));
+        when(cloudConnectorClientA.updateUsedCost(any(), any(), eq(group))).thenReturn(newUsed);
 
         CloudResourceAccess cra = CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
@@ -367,13 +367,17 @@ class CloudResourceAccessServiceTest {
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
                 .build();
 
-        when(repository.findAllByCloudClientIdAndResourceType(cloudConnectorA.getCloudConnectorId(), cloudConnectorA.getResourceTypes().getFirst()))
-                .thenReturn(Set.of(cra));
-        when(repository.findAllById(Set.of(cra.getCloudResourceAccessId()))).thenReturn(List.of(cra));
+        GroupCloudDto groupCloudDto = new GroupCloudDto(group, List.of(cra.getCloudResourceAccessId()));
+        when(groupQueryService.getActiveGroups()).thenReturn(List.of(groupCloudDto));
+
+        when(repository.findAllById(anySet())).thenReturn(List.of(cra));
+        // Ensure repository.findAll() returns the connectors used in the loop
+        when(cloudConnectorRepositoryPort.findAll()).thenReturn(List.of(cloudConnectorA));
 
         service.updateCostUsed();
 
         verify(repository).save(cra);
+        assertEquals(newUsed, cra.getUsedLimit());
     }
 
     @SuppressWarnings("unchecked")

@@ -24,7 +24,7 @@ public interface CloudConnectorClientPort {
 
     String createUsers(List<UserLogin> users, GroupUniqueName groupUniqueName);
 
-    Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate);
+    UsedLimit updateUsedCost(LocalDate startDate, LocalDate endDate, GroupUniqueName groupUniqueName);
 
     void cleanUpResources(GroupUniqueName groupUniqueName, boolean force);
 

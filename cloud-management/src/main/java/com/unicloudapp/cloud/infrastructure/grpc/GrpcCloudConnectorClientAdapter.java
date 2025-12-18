@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -69,18 +68,14 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
     }
 
     @Override
-    public Map<GroupUniqueName, UsedLimit> updateUsedCost(LocalDate startDate, LocalDate endDate) {
+    public UsedLimit updateUsedCost(LocalDate startDate, LocalDate endDate, GroupUniqueName groupUniqueName) {
         AdapterInterface.CostRequest request = AdapterInterface.CostRequest.newBuilder()
                 .setStartDate(startDate.toString())
                 .setEndDate(endDate.toString())
+                .setGroupName(groupUniqueName.toString())
                 .build();
-        AdapterInterface.AllGroupsCostResponse totalCostsForAllGroups = stub.getTotalCostsForAllGroups(request);
-        return totalCostsForAllGroups.getGroupCostsList()
-                .stream()
-                .collect(Collectors.toMap(
-                        groupCost -> GroupUniqueName.fromStringWithoutSpaces(groupCost.getGroupName()),
-                        groupCost -> UsedLimit.of(BigDecimal.valueOf(groupCost.getAmount()))
-                ));
+        AdapterInterface.CostResponse totalCostsForAllGroups = stub.getTotalCost(request);
+        return UsedLimit.of(BigDecimal.valueOf(totalCostsForAllGroups.getAmount()));
     }
 
     @Override

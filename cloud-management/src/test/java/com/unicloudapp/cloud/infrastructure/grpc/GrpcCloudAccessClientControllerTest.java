@@ -95,35 +95,24 @@ class GrpcCloudConnectorControllerTest {
     }
 
     @Test
-    @DisplayName("updateUsedCost maps group costs to map of GroupUniqueName -> UsedLimit")
-    void updateUsedCost_maps() {
-        AdapterInterface.GroupCost gc1 = AdapterInterface.GroupCost.newBuilder()
-                .setGroupName("AI 2024L")
+    @DisplayName("updateUsedCost returns UsedLimit for specified group")
+    void updateUsedCost_returnsUsedLimit() {
+        AdapterInterface.CostResponse resp = AdapterInterface.CostResponse.newBuilder()
                 .setAmount(12.34)
                 .build();
-        AdapterInterface.GroupCost gc2 = AdapterInterface.GroupCost.newBuilder()
-                .setGroupName("DS 2025Z")
-                .setAmount(0.0)
-                .build();
-        AdapterInterface.AllGroupsCostResponse resp = AdapterInterface.AllGroupsCostResponse.newBuilder()
-                .addGroupCosts(gc1)
-                .addGroupCosts(gc2)
-                .build();
-        when(stub.getTotalCostsForAllGroups(any())).thenReturn(resp);
+        when(stub.getTotalCost(any())).thenReturn(resp);
 
-        Map<GroupUniqueName, UsedLimit> map = controller.updateUsedCost(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31));
-        assertEquals(2, map.size());
-        assertEquals(0, map.get(GroupUniqueName.fromString("DS 2025Z")).getValue().compareTo(BigDecimal.ZERO));
-        assertEquals(0, map.get(GroupUniqueName.fromString("AI 2024L")).getValue().compareTo(new BigDecimal("12.34")));
+        UsedLimit usedLimit = controller.updateUsedCost(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), GroupUniqueName.fromString("AI 2024L"));
+        assertEquals(0, usedLimit.getValue().compareTo(new BigDecimal("12.34")));
     }
 
     @Test
-    @DisplayName("updateUsedCost with no costs returns empty map")
+    @DisplayName("updateUsedCost with no costs returns zero UsedLimit")
     void updateUsedCost_empty() {
-        AdapterInterface.AllGroupsCostResponse resp = AdapterInterface.AllGroupsCostResponse.newBuilder().build();
-        when(stub.getTotalCostsForAllGroups(any())).thenReturn(resp);
-        Map<GroupUniqueName, UsedLimit> map = controller.updateUsedCost(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(1));
-        assertTrue(map.isEmpty());
+        AdapterInterface.CostResponse resp = AdapterInterface.CostResponse.newBuilder().setAmount(0.0).build();
+        when(stub.getTotalCost(any())).thenReturn(resp);
+        UsedLimit usedLimit = controller.updateUsedCost(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(1), GroupUniqueName.fromString("AI 2024L"));
+        assertEquals(0, usedLimit.getValue().compareTo(BigDecimal.ZERO));
     }
 
     @Test

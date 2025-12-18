@@ -407,16 +407,12 @@ public class CloudResourceAccessService
                 .forEach(cloudResourceAccessClient -> {
                     CloudConnectorClientPort cloudConnectorClient = cloudConnectorClients.get(cloudResourceAccessClient.getCloudConnectorId());
                     var now = LocalDate.now();
-                    Map<GroupUniqueName, UsedLimit> groupUniqueNameUsedLimitMap = cloudConnectorClient.updateUsedCost(now.minusYears(1), now);
-                    groupUniqueNameUsedLimitMap.forEach((_, usedLimit) -> {
-                        Set<CloudResourceAccessId> cloudResourceAccessIds = getCloudResourceAccessesByCloudClientIdAndResourceType(
-                                cloudResourceAccessClient.getCloudConnectorId(),
-                                cloudResourceAccessClient.getResourceTypes().getFirst()
-                        );
-                        List<CloudResourceAccess> allById = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
-                        allById.forEach(CloudResourceAccess -> {
-                            CloudResourceAccess.updateUsedLimit(usedLimit);
-                            cloudResourceAccessRepository.save(CloudResourceAccess);
+                    groupQueryService.getActiveGroups().forEach(group -> {
+                        List<CloudResourceAccess> cloudResourceAccesses = cloudResourceAccessRepository.findAllById(new HashSet<>(group.cloudResourceAccesses()));
+                        cloudResourceAccesses.forEach(cloudResourceAccess -> {
+                            UsedLimit cost = cloudConnectorClient.updateUsedCost(now.minusYears(1), now, group.groupUniqueName());
+                            cloudResourceAccess.updateUsedLimit(cost);
+                            cloudResourceAccessRepository.save(cloudResourceAccess);
                         });
                     });
                 });
