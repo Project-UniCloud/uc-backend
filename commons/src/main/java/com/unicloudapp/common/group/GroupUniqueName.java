@@ -12,7 +12,7 @@ public record GroupUniqueName(
 ) {
 
     public static GroupUniqueName fromString(String groupName) {
-        if (groupName == null || !groupName.matches(".* \\d{4}[ZL]")) {
+        if (groupName == null || !groupName.matches(".*\\d{4}[ZL]")) {
             throw new IllegalArgumentException("Niepoprawny format nazwy grupy: " + groupName);
         }
         int lastSpaceIndex = groupName.lastIndexOf(' ');
@@ -28,7 +28,7 @@ public record GroupUniqueName(
         return groupName + " " + semester;
     }
 
-    public String toStringWithoutSpaces() {
-        return toString().replace(" ", "-");
+    public static GroupUniqueName fromStringWithoutSpaces(String groupName) {
+        return fromString(groupName.replace("-", " "));
     }
 }

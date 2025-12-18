@@ -78,7 +78,7 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
         return totalCostsForAllGroups.getGroupCostsList()
                 .stream()
                 .collect(Collectors.toMap(
-                        groupCost -> GroupUniqueName.fromString(groupCost.getGroupName()),
+                        groupCost -> GroupUniqueName.fromStringWithoutSpaces(groupCost.getGroupName()),
                         groupCost -> UsedLimit.of(BigDecimal.valueOf(groupCost.getAmount()))
                 ));
     }
