@@ -28,8 +28,17 @@ class GroupUniqueNameTest {
     @Test
     @DisplayName("fromString throws for missing space")
     void fromString_missingSpace_thenThrows() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("AI2024L"));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> GroupUniqueName.fromString("AI-2024L"));
         assertTrue(ex.getMessage().contains("Niepoprawny format"));
+    }
+
+    @Test
+    @DisplayName("fromString throws for missing space")
+    void fromStringWithoutSpaces() {
+        GroupUniqueName unique = GroupUniqueName.fromStringWithoutSpaces("AI-2024L");
+        assertEquals(GroupName.of("AI"), unique.groupName());
+        assertEquals(Semester.of("2024L"), unique.semester());
+        assertEquals("AI 2024L", unique.toString());
     }
 
     @Test
