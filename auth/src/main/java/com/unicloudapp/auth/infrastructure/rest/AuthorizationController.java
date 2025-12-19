@@ -1,5 +1,6 @@
 package com.unicloudapp.auth.infrastructure.rest;
 
+import com.unicloudapp.auth.application.AuthCookieConfigurationProperties;
 import com.unicloudapp.auth.application.AuthenticatedResult;
 import com.unicloudapp.auth.application.port.in.AuthenticationUseCase;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 class AuthorizationController {
 
     private final AuthenticationUseCase authenticationUseCase;
+    private final AuthCookieConfigurationProperties authCookieConfigurationProperties;
 
     @PostMapping("/auth")
     protected ResponseEntity<AuthenticateResponse> authenticate(
@@ -32,9 +34,9 @@ class AuthorizationController {
         );
         ResponseCookie cookie = ResponseCookie.from("jwt", authenticatedResult.token())
                 .httpOnly(true)
-                .secure(true)
+                .secure(authCookieConfigurationProperties.secure())
                 .path("/")
-                .sameSite("Strict")
+                .sameSite(authCookieConfigurationProperties.sameSite())
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.ok()
@@ -45,9 +47,9 @@ class AuthorizationController {
     protected ResponseEntity<Void> logout() {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(authCookieConfigurationProperties.secure())
                 .path("/")
-                .sameSite("Strict")
+                .sameSite(authCookieConfigurationProperties.sameSite())
                 .maxAge(0)
                 .build();
 
