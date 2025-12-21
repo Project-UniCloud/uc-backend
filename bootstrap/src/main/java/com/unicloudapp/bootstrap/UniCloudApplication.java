@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
@@ -15,6 +16,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 @EntityScan(basePackages = "com.unicloudapp")
 @ConfigurationPropertiesScan("com.unicloudapp")
 @EnableScheduling
+@EnableAsync
 @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 class UniCloudApplication {
 
