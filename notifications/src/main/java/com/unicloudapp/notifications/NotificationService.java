@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
@@ -26,6 +27,7 @@ class NotificationService {
     private final UserQueryService userQueryService;
     private final JavaMailSender mailSender;
 
+    @Async
     @EventListener(CloudUserCreatedEvent.class)
     protected void handle(CloudUserCreatedEvent event) {
         UserLogin userLogin = event.userLogin();
