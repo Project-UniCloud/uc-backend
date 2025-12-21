@@ -12,6 +12,7 @@ import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.cloud.domain.vo.NotificationLevel;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.cloud.event.CloudUserCreatedEvent;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -72,6 +74,7 @@ class CloudResourceAccessServiceTest {
     CloudResourceAccessRepositoryPort repository;
     CloudConnectorRepositoryPort cloudConnectorRepositoryPort;
     GroupQueryService groupQueryService;
+    ApplicationEventPublisher applicationEventPublisher;
 
     CloudConnectorClientPort cloudConnectorClientA;
     CloudConnectorClientPort cloudConnectorClientB;
@@ -89,6 +92,7 @@ class CloudResourceAccessServiceTest {
         cloudConnectorRepositoryPort = mock(CloudConnectorRepositoryPort.class);
         groupQueryService = mock(GroupQueryService.class);
         notificationsCommandService = mock(NotificationsCommandService.class);
+        applicationEventPublisher = mock(ApplicationEventPublisher.class);
         cloudResourceAccessFactory = mock(CloudResourceAccessFactory.class);
         cloudControllerClientFactoryPort = mock(CloudConnectorClientFactoryPort.class);
 
@@ -133,9 +137,9 @@ class CloudResourceAccessServiceTest {
                 cloudConnectorRepositoryPort,
                 repository,
                 groupQueryService,
-                notificationsCommandService,
                 cloudResourceAccessFactory,
-                cloudControllerClientFactoryPort
+                cloudControllerClientFactoryPort,
+                applicationEventPublisher
         );
         service.init();
     }
@@ -313,7 +317,7 @@ class CloudResourceAccessServiceTest {
     }
 
     @Test
-    @DisplayName("createGroup delegates to client; throws when client missing")
+    @DisplayName("createGroup delegates to client and publishes events; throws when client missing")
     void createGroup_behavior() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         List<Map.Entry<UserLogin, Email>> lecturers = List.of(Map.entry(UserLogin.of("john"), Email.empty()));
@@ -322,6 +326,7 @@ class CloudResourceAccessServiceTest {
                 .map(Map.Entry::getKey)
                 .toList();
         verify(cloudConnectorClientA).createGroup(group, lecturerLogins, CloudResourceType.of("EC2"));
+        verify(applicationEventPublisher, times(lecturers.size())).publishEvent(any(CloudUserCreatedEvent.class));
         assertThrows(IllegalArgumentException.class, () ->
                 service.createGroup(group, CloudConnectorId.of("missing"), lecturers, CloudResourceType.of("EC2")));
     }
@@ -339,7 +344,7 @@ class CloudResourceAccessServiceTest {
     }
 
     @Test
-    @DisplayName("createUsers delegates to client")
+    @DisplayName("createUsers delegates to client and publishes events")
     void createUsers_delegate() {
         List<Map.Entry<UserLogin, Email>> users = List.of(Map.entry(UserLogin.of("u1"), Email.empty()));
         List<UserLogin> logins = users.stream().map(Map.Entry::getKey).toList();
@@ -347,6 +352,7 @@ class CloudResourceAccessServiceTest {
         String res = service.createUsers(CloudConnectorId.of("b-client"), users, GroupUniqueName.fromString("AI 2024L"));
         assertEquals("ok", res);
         verify(cloudConnectorClientB).createUsers(logins, GroupUniqueName.fromString("AI 2024L"));
+        verify(applicationEventPublisher, times(users.size())).publishEvent(any(CloudUserCreatedEvent.class));
     }
 
     @Test
