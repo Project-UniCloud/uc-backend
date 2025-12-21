@@ -211,6 +211,48 @@ class CloudResourceAccessServiceTest {
     }
 
     @Test
+    @DisplayName("getCloudResourceDetails (single) maps all fields")
+    void getCloudResourceDetails_single_maps() {
+        CloudResourceAccess cra = CloudResourceAccess.builder()
+                .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.of(new BigDecimal("123.45")))
+                .usedLimit(UsedLimit.of(new BigDecimal("10")))
+                .cronExpression(CronExpression.parse("0 0 * * * *"))
+                .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(7)))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .notificationLevel1(NotificationLevel.of(1))
+                .notificationLevel2(NotificationLevel.of(2))
+                .notificationLevel3(NotificationLevel.of(3))
+                .build();
+        when(repository.findById(cra.getCloudResourceAccessId())).thenReturn(Optional.of(cra));
+
+        CloudResourceRowView row = service.getCloudResourceDetails(cra.getCloudResourceAccessId());
+        assertEquals(cra.getCloudResourceAccessId().getValue(), row.id());
+        assertEquals("S3", row.name());
+        assertEquals(new BigDecimal("123.45"), row.costLimit());
+        assertEquals("a-client", row.clientId());
+        assertEquals("ACTIVE", row.status());
+        assertEquals("0 0 * * * *", row.cronCleanupSchedule());
+        assertNotNull(row.lastUsedAt());
+        assertEquals(cra.getExpiresAt().getValue(), row.expiresAt());
+        assertEquals(new BigDecimal("10"), row.limitUsed());
+        assertEquals(1, row.notificationLevel1());
+        assertEquals(2, row.notificationLevel2());
+        assertEquals(3, row.notificationLevel3());
+    }
+
+    @Test
+    @DisplayName("getCloudResourceDetails (single) throws when not found")
+    void getCloudResourceDetails_single_notFound() {
+        CloudResourceAccessId id = CloudResourceAccessId.of(UUID.randomUUID());
+        when(repository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(java.util.NoSuchElementException.class, () -> service.getCloudResourceDetails(id));
+    }
+
+    @Test
     @DisplayName("getCloudResourceTypesDetails maps all fields")
     void getCloudResourceDetails_maps() {
         CloudResourceAccess cra = CloudResourceAccess.builder()
@@ -239,6 +281,51 @@ class CloudResourceAccessServiceTest {
         assertNotNull(row.lastUsedAt());
         assertEquals(cra.getExpiresAt().getValue(), row.expiresAt());
         assertEquals(new BigDecimal("10"), row.limitUsed());
+        assertEquals(1, row.notificationLevel1());
+        assertEquals(2, row.notificationLevel2());
+        assertEquals(3, row.notificationLevel3());
+    }
+
+    @Test
+    @DisplayName("getCloudResourceDetails (multiple) handles empty and multiple")
+    void getCloudResourceDetails_set_behavior() {
+        // Empty
+        when(repository.findAllById(anySet())).thenReturn(List.of());
+        assertTrue(service.getCloudResourceDetails(Set.of()).isEmpty());
+
+        // Multiple
+        CloudResourceAccess cra1 = CloudResourceAccess.builder()
+                .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
+                .cloudConnectorId(CloudConnectorId.of("a-client"))
+                .cloudResourceType(CloudResourceType.of("S3"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(CronExpression.parse("0 0 * * * *"))
+                .expiresAt(ExpiresDate.of(LocalDate.now()))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .notificationLevel1(NotificationLevel.of(1))
+                .notificationLevel2(NotificationLevel.of(2))
+                .notificationLevel3(NotificationLevel.of(3))
+                .build();
+        CloudResourceAccess cra2 = CloudResourceAccess.builder()
+                .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
+                .cloudConnectorId(CloudConnectorId.of("b-client"))
+                .cloudResourceType(CloudResourceType.of("EC2"))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(CronExpression.parse("0 0 * * * *"))
+                .expiresAt(ExpiresDate.of(LocalDate.now()))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .notificationLevel1(NotificationLevel.of(1))
+                .notificationLevel2(NotificationLevel.of(2))
+                .notificationLevel3(NotificationLevel.of(3))
+                .build();
+
+        when(repository.findAllById(anySet())).thenReturn(List.of(cra1, cra2));
+        List<CloudResourceRowView> results = service.getCloudResourceDetails(Set.of(cra1.getCloudResourceAccessId(), cra2.getCloudResourceAccessId()));
+        assertEquals(2, results.size());
+        assertTrue(results.stream().anyMatch(r -> r.name().equals("S3")));
+        assertTrue(results.stream().anyMatch(r -> r.name().equals("EC2")));
     }
 
     @Test
