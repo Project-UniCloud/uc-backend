@@ -16,6 +16,8 @@ public interface CloudResourceAccessQueryService {
 
     List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
 
+    CloudResourceRowView getCloudResourceDetails(CloudResourceAccessId cloudResourceAccess);
+
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
             CloudConnectorId cloudConnectorId, CloudResourceType resourceType
     );

@@ -347,22 +347,20 @@ public class GroupService {
     ) {
         Group group = groupRepository.findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
-        Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
-        List<CloudResourceRowView> cloudResourceDetails =
-                cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccesses);
-        CloudResourceRowView cloudResourceDetailsFirst = cloudResourceDetails.getFirst();
-        if (!cloudResourceAccessId.getValue().equals(cloudResourceDetailsFirst.id())) {
+        CloudResourceRowView cloudResourceDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessId);
+        if (!cloudResourceAccessId.getValue().equals(cloudResourceDetails.id())) {
             throw new RuntimeException("Cloud resource access not found with id: " + cloudResourceAccessId);
         }
         return CloudResourceAccessDetailsDto.builder()
-                .id(cloudResourceDetailsFirst.id())
-                .cron(cloudResourceDetailsFirst.cronCleanupSchedule())
-                .limit(cloudResourceDetailsFirst.costLimit())
-                .expiresAt(cloudResourceDetailsFirst.expiresAt())
-                .status(cloudResourceDetailsFirst.status())
-                .notificationLevel1(cloudResourceDetailsFirst.notificationLevel1())
-                .notificationLevel2(cloudResourceDetailsFirst.notificationLevel2())
-                .notificationLevel3(cloudResourceDetailsFirst.notificationLevel3())
+                .id(cloudResourceDetails.id())
+                .cron(cloudResourceDetails.cronCleanupSchedule())
+                .limit(cloudResourceDetails.costLimit())
+                .expiresAt(cloudResourceDetails.expiresAt())
+                .status(cloudResourceDetails.status())
+                .notificationLevel1(cloudResourceDetails.notificationLevel1())
+                .notificationLevel2(cloudResourceDetails.notificationLevel2())
+                .notificationLevel3(cloudResourceDetails.notificationLevel3())
                 .build();
     }
 

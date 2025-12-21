@@ -201,8 +201,8 @@ public class CloudResourceAccessService
 
     @Override
     public List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
-        List<CloudResourceAccess> CloudResourceAccesses = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
-        return CloudResourceAccesses.stream()
+        List<CloudResourceAccess> cloudResourceAccesses = cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
+        return cloudResourceAccesses.stream()
                 .map(cloudResourceAccess -> CloudResourceRowView.builder()
                         .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
                         .name(cloudResourceAccess.getCloudResourceType().getName())
@@ -219,6 +219,28 @@ public class CloudResourceAccessService
                         .notificationLevel3(cloudResourceAccess.getNotificationLevel3().level())
                         .build())
                 .toList();
+    }
+
+    @Override
+    public CloudResourceRowView getCloudResourceDetails(CloudResourceAccessId cloudResourceAccessId) {
+        Optional<CloudResourceAccess> cloudResourceAccessDetails = cloudResourceAccessRepository.findById(cloudResourceAccessId);
+        return cloudResourceAccessDetails
+                .map(cloudResourceAccess -> CloudResourceRowView.builder()
+                        .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
+                        .name(cloudResourceAccess.getCloudResourceType().getName())
+                        .costLimit(cloudResourceAccess.getCostLimit().getCost())
+                        .clientId(cloudResourceAccess.getCloudConnectorId().id())
+                        .status(cloudResourceAccess.getStatus().getStatus().name())
+                        .cronCleanupSchedule(cloudResourceAccess.getCronExpression().toString())
+                        .lastUsedAt(LocalDateTime.now())
+                        .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
+                        .limitUsed(cloudResourceAccess.getUsedLimit()
+                                .getValue())
+                        .notificationLevel1(cloudResourceAccess.getNotificationLevel1().level())
+                        .notificationLevel2(cloudResourceAccess.getNotificationLevel2().level())
+                        .notificationLevel3(cloudResourceAccess.getNotificationLevel3().level())
+                        .build())
+                .orElseThrow();
     }
 
     @Override
