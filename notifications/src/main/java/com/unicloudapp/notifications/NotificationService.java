@@ -6,7 +6,6 @@ import com.unicloudapp.common.notifications.SendNotificationCommand;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.user.UserLogin;
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
 @Slf4j
@@ -56,8 +54,8 @@ class NotificationService {
             helper.setFrom("notifications@unicloud.projektstudencki.pl", "Unicloud");
             mailSender.send(mimeMessage);
             System.out.println("📨 Wysłano e-mail HTML do " + sendNotificationCommand.to());
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            log.error("Error while sending email to {}", sendNotificationCommand.to(), e);
         }
     }
 

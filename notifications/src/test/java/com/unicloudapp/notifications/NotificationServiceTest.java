@@ -79,8 +79,8 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw RuntimeException when mail sending fails")
-    void shouldThrowRuntimeExceptionWhenMailSendingFails() {
+    @DisplayName("Should log error but not throw exception when mail sending fails")
+    void shouldLogErrorButNotThrowExceptionWhenMailSendingFails() {
         // given
         UserLogin userLogin = UserLogin.of("testuser");
         CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin);
@@ -96,6 +96,6 @@ class NotificationServiceTest {
         doThrow(new RuntimeException("Mail server down")).when(mailSender).send(any(MimeMessage.class));
 
         // when & then
-        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> notificationService.handle(event));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> notificationService.handle(event));
     }
 }
