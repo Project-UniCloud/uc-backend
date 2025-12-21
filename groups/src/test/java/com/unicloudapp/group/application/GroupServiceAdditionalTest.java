@@ -24,7 +24,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -75,7 +75,7 @@ class GroupServiceAdditionalTest {
                 .cronCleanupSchedule("0 0 * * * *")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceDetails(Set.of(accessId))).thenReturn(List.of(row));
+        when(cloudQuery.getCloudResourceDetails(accessId)).thenReturn(row);
 
         var dto = service.getCloudResourceAccess(groupId, accessId);
         assertEquals(accessUuid, dto.id());
@@ -115,7 +115,7 @@ class GroupServiceAdditionalTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of(row));
+        when(cloudQuery.getCloudResourceDetails(any(CloudResourceAccessId.class))).thenReturn(row);
 
         assertThrows(RuntimeException.class, () -> service.getCloudResourceAccess(groupId, requestedId));
     }

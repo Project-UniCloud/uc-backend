@@ -134,7 +134,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row1));
+        when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of(row1));
 
         service.addStudent(groupId, s);
 
@@ -247,8 +247,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row));
-
+        when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of(row));
         service.addStudents(gid, list);
 
         verify(group, times(1)).addStudent(id1);
@@ -274,7 +273,7 @@ class GroupServiceTest {
         CostLimit limit = CostLimit.of(new BigDecimal("5"));
 
         // no existing access types
-        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of());
+        when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of());
         when(userQueryService.getUserLoginsByIds(anySet())).thenReturn(List.of(UserLogin.of("lect")));
         when(cloudQuery.isCloudGroupExists(GroupUniqueName.fromString("AI 2024L"), clientId)).thenReturn(false);
         CloudResourceAccessId newId = CloudResourceAccessId.of(UUID.randomUUID());
@@ -298,7 +297,7 @@ class GroupServiceTest {
                 .status("ACTIVE")
                 .build();
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
-        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(row));
+        when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of(row));
         assertThrows(RuntimeException.class, () -> service.grantCloudResourceAccess(gid, clientId, type, limit));
     }
 
@@ -432,7 +431,7 @@ class GroupServiceTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceDetails(any())).thenReturn(List.of(rowA, rowB));
+        when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of(rowA, rowB));
 
         service.activate(gid);
 
