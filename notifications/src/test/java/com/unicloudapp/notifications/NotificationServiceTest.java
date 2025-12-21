@@ -77,4 +77,25 @@ class NotificationServiceTest {
         verify(mailSender, never()).createMimeMessage();
         verify(mailSender, never()).send(any(MimeMessage.class));
     }
+
+    @Test
+    @DisplayName("Should throw RuntimeException when mail sending fails")
+    void shouldThrowRuntimeExceptionWhenMailSendingFails() {
+        // given
+        UserLogin userLogin = UserLogin.of("testuser");
+        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin);
+        UserDetails userDetails = UserDetails.builder()
+                .login(userLogin)
+                .email(Email.of("test@example.com"))
+                .build();
+
+        when(userQueryService.getUserDetailsByUsername(userLogin)).thenReturn(Optional.of(userDetails));
+
+        MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+        when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
+        doThrow(new RuntimeException("Mail server down")).when(mailSender).send(any(MimeMessage.class));
+
+        // when & then
+        org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class, () -> notificationService.handle(event));
+    }
 }
