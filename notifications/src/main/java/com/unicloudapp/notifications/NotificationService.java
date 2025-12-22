@@ -27,10 +27,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class NotificationService {
+public class NotificationService {
 
     private final UserQueryService userQueryService;
     private final JavaMailSender mailSender;
+    private final GroupQueryService groupQueryService;
 
     private static final String mail;
     private static final String budgetMail;
@@ -49,8 +50,6 @@ class NotificationService {
             throw new RuntimeException(e);
         }
     }
-
-    private final GroupQueryService groupQueryService;
 
     @Async
     @EventListener(CloudUserCreatedEvent.class)

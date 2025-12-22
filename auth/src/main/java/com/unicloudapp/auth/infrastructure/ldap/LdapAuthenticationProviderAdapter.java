@@ -180,5 +180,30 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
         private final String firstName;
         private final String lastName;
         private final String email;
+
+        @Override
+        public UUID getUuid() {
+            return uuid;
+        }
+
+        @Override
+        public String getLogin() {
+            return login;
+        }
+
+        @Override
+        public String getFirstName() {
+            return firstName;
+        }
+
+        @Override
+        public String getLastName() {
+            return lastName;
+        }
+
+        @Override
+        public String getEmail() {
+            return email;
+        }
     }
 }

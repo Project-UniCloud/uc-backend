@@ -12,8 +12,11 @@ public class LastName {
     String value;
 
     public static LastName of(@Nullable String value) throws IllegalArgumentException {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("TODO");
+        if (value == null) {
+            throw new NullPointerException("Last name cannot be null");
+        }
+        if (value.isBlank()) {
+            throw new IllegalArgumentException("Last name cannot be blank");
         }
         return new LastName(value);
     }
