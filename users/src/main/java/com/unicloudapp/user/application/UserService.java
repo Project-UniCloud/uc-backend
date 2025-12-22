@@ -43,7 +43,7 @@ implements UserValidationService,
         if (userRepository.existsByLogin(command.login())) {
             throw new UserAlreadyExistsException(command.login());
         }
-        Set<UserRole.Type> roleTypes = new HashSet<>(){{add(UserRole.Type.LECTURER);}};
+        Set<UserRole.Type> roleTypes = new HashSet<>(List.of(UserRole.Type.LECTURER));
         if (adminProperties.getAdmins().contains(UserLogin.of(command.login()))) {
             roleTypes.add(UserRole.Type.ADMIN);
         }
