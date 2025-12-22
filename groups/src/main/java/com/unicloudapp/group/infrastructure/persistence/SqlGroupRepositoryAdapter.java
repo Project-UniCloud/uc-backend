@@ -1,10 +1,12 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
 import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupDto;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupFilterCriteria;
 import com.unicloudapp.group.application.GroupRowProjection;
@@ -160,6 +162,17 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
                     );
                 }).toList();
     }
+
+    @Override
+    public GroupDto findByCloudResourceAccessId(CloudResourceAccessId cloudResourceAccessId) {
+        return new GroupDto(
+                groupJpaRepository.findByCloudResourceAccessesContaining(Set.of(cloudResourceAccessId.getValue()))
+                        .getLecturers()
+                        .stream()
+                        .map(UserId::of)
+                        .collect(Collectors.toSet())
+        );
+    }
 }
 
 @Repository
@@ -180,6 +193,8 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
     );
 
     List<GroupCloudDtoProjection> findAllProjectedByGroupStatus(GroupStatus.Type groupStatus);
+
+    GroupEntity findByCloudResourceAccessesContaining(Set<UUID> cloudResourceAccesses);
 }
 
 interface GroupCloudDtoProjection {

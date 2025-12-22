@@ -13,6 +13,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.cloud.event.CloudBudgetThresholdExceededEvent;
 import com.unicloudapp.common.cloud.event.CloudUserCreatedEvent;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupQueryService;
@@ -43,6 +44,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -421,6 +424,7 @@ public class CloudResourceAccessService
                         cloudResourceAccesses.forEach(cloudResourceAccess -> {
                             UsedLimit cost = cloudConnectorClient.updateUsedCost(now.minusYears(1), now, group.groupUniqueName());
                             cloudResourceAccess.updateUsedLimit(cost);
+                            publishCloudCostUpdated(cloudResourceAccess);
                             cloudResourceAccessRepository.save(cloudResourceAccess);
                         });
                     });
@@ -457,5 +461,39 @@ public class CloudResourceAccessService
             scheduledFuture.cancel(false);
         }
         scheduledTasks.remove(cloudResourceAccessId);
+    }
+
+    private void publishCloudCostUpdated(CloudResourceAccess cloudResourceAccess) {
+        if (cloudResourceAccess.getCostLimit().getCost().compareTo(BigDecimal.ZERO) == 0
+                || cloudResourceAccess.getUsedLimit().getValue().compareTo(BigDecimal.ZERO) == 0) {
+            return;
+        }
+        int usedBudgetPercentage =
+                cloudResourceAccess.getUsedLimit().getValue()
+                        .multiply(BigDecimal.valueOf(100))
+                        .divide(
+                                cloudResourceAccess.getCostLimit().getCost(),
+                                0,
+                                RoundingMode.HALF_EVEN
+                        )
+                        .intValueExact();
+        int notificationLevel1 = cloudResourceAccess.getNotificationLevel1().level();
+        int notificationLevel2 = cloudResourceAccess.getNotificationLevel2().level();
+        int notificationLevel3 = cloudResourceAccess.getNotificationLevel3().level();
+
+        var event = CloudBudgetThresholdExceededEvent.builder()
+                .occurredAt(Instant.now())
+                .cloudResourceAccessId(cloudResourceAccess.getCloudResourceAccessId())
+                .limit(cloudResourceAccess.getUsedLimit())
+                .costLimit(cloudResourceAccess.getCostLimit());
+        if (usedBudgetPercentage >= notificationLevel3) {
+            event.notificationLevel(3);
+        } else if (usedBudgetPercentage >= notificationLevel2) {
+            event.notificationLevel(2);
+        } else if (usedBudgetPercentage >= notificationLevel1) {
+            event.notificationLevel(1);
+        }
+
+        applicationEventPublisher.publishEvent(event.build());
     }
 }

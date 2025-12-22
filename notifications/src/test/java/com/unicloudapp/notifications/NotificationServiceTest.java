@@ -1,9 +1,16 @@
 package com.unicloudapp.notifications;
 
+import com.unicloudapp.common.cloud.event.CloudBudgetThresholdExceededEvent;
 import com.unicloudapp.common.cloud.event.CloudUserCreatedEvent;
+import com.unicloudapp.common.group.GroupDto;
+import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import com.unicloudapp.common.vo.cloud.UsedLimit;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
@@ -13,8 +20,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import java.util.Optional;
-import java.util.Properties;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,13 +32,15 @@ class NotificationServiceTest {
 
     private UserQueryService userQueryService;
     private JavaMailSender mailSender;
+    private GroupQueryService groupQueryService;
     private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
         userQueryService = mock(UserQueryService.class);
         mailSender = mock(JavaMailSender.class);
-        notificationService = new NotificationService(userQueryService, mailSender);
+        groupQueryService = mock(GroupQueryService.class);
+        notificationService = new NotificationService(userQueryService, mailSender, groupQueryService);
     }
 
     @Test
@@ -97,5 +107,65 @@ class NotificationServiceTest {
 
         // when & then
         org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> notificationService.handle(event));
+    }
+
+    @Test
+    @DisplayName("Should send email to admins when CloudBudgetThresholdExceededEvent is handled")
+    void shouldSendEmailToAdminsWhenCloudBudgetThresholdExceededEventHandled() throws Exception {
+        // given
+        CloudResourceAccessId cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID());
+        CloudBudgetThresholdExceededEvent event = CloudBudgetThresholdExceededEvent.builder()
+                .cloudResourceAccessId(cloudResourceAccessId)
+                .notificationLevel(80)
+                .limit(UsedLimit.of(new BigDecimal("85.00")))
+                .costLimit(CostLimit.of(new BigDecimal("100.00")))
+                .occurredAt(Instant.now())
+                .build();
+
+        UserDetails admin = UserDetails.builder()
+                .login(UserLogin.of("admin"))
+                .email(Email.of("admin@example.com"))
+                .build();
+
+        when(userQueryService.getAdmins()).thenReturn(List.of(admin));
+
+        UserId lecturerId = UserId.of(UUID.randomUUID());
+        when(groupQueryService.getGroupByCloudResourceAccess(cloudResourceAccessId))
+                .thenReturn(new GroupDto(Set.of(lecturerId)));
+
+        UserLogin lecturerLogin = UserLogin.of("lecturer");
+        Email lecturerEmail = Email.of("lecturer@example.com");
+        when(userQueryService.getUserLoginsAndEmailsByIds(Set.of(lecturerId)))
+                .thenReturn(List.of(Map.entry(lecturerLogin, lecturerEmail)));
+
+        MimeMessage adminMimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+        MimeMessage lecturerMimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+        when(mailSender.createMimeMessage())
+                .thenReturn(adminMimeMessage)
+                .thenReturn(lecturerMimeMessage);
+
+        // when
+        notificationService.handle(event);
+
+        // then
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender, times(2)).send(captor.capture());
+        List<MimeMessage> sentMessages = captor.getAllValues();
+
+        assertThat(sentMessages).hasSize(2);
+        assertThat(sentMessages.stream().anyMatch(msg -> {
+            try {
+                return msg.getRecipients(MimeMessage.RecipientType.TO)[0].toString().equals("admin@example.com");
+            } catch (Exception e) {
+                return false;
+            }
+        })).isTrue();
+        assertThat(sentMessages.stream().anyMatch(msg -> {
+            try {
+                return msg.getRecipients(MimeMessage.RecipientType.TO)[0].toString().equals("lecturer@example.com");
+            } catch (Exception e) {
+                return false;
+            }
+        })).isTrue();
     }
 }

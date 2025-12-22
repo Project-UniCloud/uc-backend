@@ -23,4 +23,6 @@ public interface UserQueryService {
     List<Map.Entry<UserLogin, Email>> getUserLoginsAndEmailsByIds(Set<UserId> userIds);
 
     Optional<UserDetails> getUserDetailsByUsername(UserLogin userLogin);
+
+    List<UserDetails> getAdmins();
 }

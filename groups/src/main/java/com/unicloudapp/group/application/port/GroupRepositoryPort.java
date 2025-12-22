@@ -1,5 +1,6 @@
 package com.unicloudapp.group.application.port;
 
+import com.unicloudapp.common.group.GroupDto;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
@@ -40,4 +41,6 @@ public interface GroupRepositoryPort {
     );
 
     List<GroupCloudDto> findActiveGroups();
+
+    GroupDto findByCloudResourceAccessId(CloudResourceAccessId cloudResourceAccessId);
 }

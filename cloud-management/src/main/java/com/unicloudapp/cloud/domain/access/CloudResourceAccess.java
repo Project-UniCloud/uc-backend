@@ -4,7 +4,7 @@ import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
-import com.unicloudapp.cloud.domain.vo.NotificationLevel;
+import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

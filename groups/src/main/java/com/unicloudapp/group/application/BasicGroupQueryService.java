@@ -1,7 +1,9 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupDto;
 import com.unicloudapp.common.group.GroupQueryService;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,5 +21,10 @@ class BasicGroupQueryService implements GroupQueryService {
     @Transactional(readOnly = true)
     public List<GroupCloudDto> getActiveGroups() {
         return groupRepository.findActiveGroups();
+    }
+
+    @Override
+    public GroupDto getGroupByCloudResourceAccess(CloudResourceAccessId cloudResourceAccessId) {
+        return groupRepository.findByCloudResourceAccessId(cloudResourceAccessId);
     }
 }
