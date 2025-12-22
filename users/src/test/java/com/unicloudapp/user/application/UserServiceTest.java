@@ -239,4 +239,65 @@ class UserServiceTest {
         assertThat(saved).isEmpty();
         assertThat(ids).containsExactlyInAnyOrder(UserId.of(id1), UserId.of(id2));
     }
+
+    @Test
+    @DisplayName("getAdmins should return list of admins when they exist")
+    void getAdmins_returnsAdmins_whenTheyExist() {
+        // given
+        User admin1 = mock(User.class);
+        User admin2 = mock(User.class);
+        
+        UserId id1 = UserId.of(UUID.randomUUID());
+        UserLogin login1 = UserLogin.of("admin1");
+        FirstName fn1 = FirstName.of("Admin");
+        LastName ln1 = LastName.of("One");
+        Email email1 = Email.of("admin1@example.com");
+        UserRole role = UserRole.of(UserRole.Type.ADMIN);
+
+        when(admin1.getUserId()).thenReturn(id1);
+        when(admin1.getUserLogin()).thenReturn(login1);
+        when(admin1.getFirstName()).thenReturn(fn1);
+        when(admin1.getLastName()).thenReturn(ln1);
+        when(admin1.getEmail()).thenReturn(email1);
+        when(admin1.getUserRole()).thenReturn(role);
+
+        UserId id2 = UserId.of(UUID.randomUUID());
+        UserLogin login2 = UserLogin.of("admin2");
+        FirstName fn2 = FirstName.of("Admin");
+        LastName ln2 = LastName.of("Two");
+        Email email2 = Email.of("admin2@example.com");
+
+        when(admin2.getUserId()).thenReturn(id2);
+        when(admin2.getUserLogin()).thenReturn(login2);
+        when(admin2.getFirstName()).thenReturn(fn2);
+        when(admin2.getLastName()).thenReturn(ln2);
+        when(admin2.getEmail()).thenReturn(email2);
+        when(admin2.getUserRole()).thenReturn(role);
+
+        when(userRepository.findAllByRole(role)).thenReturn(List.of(admin1, admin2));
+
+        // when
+        List<com.unicloudapp.common.user.UserDetails> result = userService.getAdmins();
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).userId()).isEqualTo(id1);
+        assertThat(result.get(1).userId()).isEqualTo(id2);
+        verify(userRepository).findAllByRole(role);
+    }
+
+    @Test
+    @DisplayName("getAdmins should return empty list when no admins exist")
+    void getAdmins_returnsEmptyList_whenNoAdminsExist() {
+        // given
+        UserRole role = UserRole.of(UserRole.Type.ADMIN);
+        when(userRepository.findAllByRole(role)).thenReturn(List.of());
+
+        // when
+        List<com.unicloudapp.common.user.UserDetails> result = userService.getAdmins();
+
+        // then
+        assertThat(result).isEmpty();
+        verify(userRepository).findAllByRole(role);
+    }
 }
