@@ -3,7 +3,6 @@ package com.unicloudapp.group.application;
 import com.opencsv.bean.CsvBindByName;
 import com.unicloudapp.common.validation.*;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @NoArgsConstructor

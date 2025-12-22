@@ -1,7 +1,12 @@
 package com.unicloudapp.auth.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
+
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import com.unicloudapp.common.vo.user.UserRole;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,12 +15,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class LdapAuthenticationProviderTest {
@@ -70,7 +69,9 @@ class LdapAuthenticationProviderTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getAuthorities()).extracting("authority").containsExactlyInAnyOrder("ROLE_LECTURER", "ROLE_ADMIN");
+        assertThat(result.getAuthorities())
+                .extracting("authority")
+                .containsExactlyInAnyOrder("ROLE_LECTURER", "ROLE_ADMIN");
     }
 
     @Test
@@ -90,7 +91,8 @@ class LdapAuthenticationProviderTest {
 
     @Test
     void shouldSupportUsernamePasswordAuthenticationToken() {
-        assertThat(authenticationProvider.supports(UsernamePasswordAuthenticationToken.class)).isTrue();
+        assertThat(authenticationProvider.supports(UsernamePasswordAuthenticationToken.class))
+                .isTrue();
     }
 
     @Test

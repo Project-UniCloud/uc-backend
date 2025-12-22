@@ -1,5 +1,8 @@
 package com.unicloudapp.group.domain;
 
+import static com.unicloudapp.group.domain.vo.GroupStatus.Type.ACTIVE;
+import static com.unicloudapp.group.domain.vo.GroupStatus.Type.ARCHIVED;
+
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
@@ -9,15 +12,11 @@ import com.unicloudapp.group.domain.vo.Description;
 import com.unicloudapp.group.domain.vo.EndDate;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import com.unicloudapp.group.domain.vo.StartDate;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.unicloudapp.group.domain.vo.GroupStatus.Type.ACTIVE;
-import static com.unicloudapp.group.domain.vo.GroupStatus.Type.ARCHIVED;
 
 @Builder(access = AccessLevel.PACKAGE)
 @Getter
@@ -42,12 +41,8 @@ public class Group {
         cloudResourceAccesses.add(cloudResourceAccessId);
     }
 
-    public void update(GroupName name,
-                       Set<UserId> lecturers,
-                       StartDate startDate,
-                       EndDate endDate,
-                       Description description
-    ) {
+    public void update(
+            GroupName name, Set<UserId> lecturers, StartDate startDate, EndDate endDate, Description description) {
         this.name = name;
         this.lecturers = new HashSet<>(lecturers);
         this.startDate = startDate;
@@ -63,6 +58,7 @@ public class Group {
         this.groupStatus = GroupStatus.of(ARCHIVED);
     }
 
+    @SuppressWarnings("unused")
     static class GroupBuilder {
 
         GroupBuilder students(Set<UserId> students) {

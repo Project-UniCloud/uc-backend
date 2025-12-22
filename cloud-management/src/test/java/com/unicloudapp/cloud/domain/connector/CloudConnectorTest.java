@@ -1,17 +1,16 @@
 package com.unicloudapp.cloud.domain.connector;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.scheduling.support.CronExpression;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.support.CronExpression;
 
 class CloudConnectorTest {
 

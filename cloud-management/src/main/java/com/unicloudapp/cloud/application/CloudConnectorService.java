@@ -5,13 +5,12 @@ import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import jakarta.transaction.Transactional;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -23,13 +22,12 @@ public class CloudConnectorService {
 
     @Transactional
     public void createConnector(
-        CloudConnectorId cloudConnectorId,
-        String host,
-        Integer port,
-        CostLimit costLimit,
-        CronExpression cronExpression,
-        String name
-    ) {
+            CloudConnectorId cloudConnectorId,
+            String host,
+            Integer port,
+            CostLimit costLimit,
+            CronExpression cronExpression,
+            String name) {
         val cloudConnector = CloudConnector.builder()
                 .cloudConnectorId(cloudConnectorId)
                 .host(host)
@@ -39,8 +37,11 @@ public class CloudConnectorService {
                 .name(name)
                 .resourceTypes(Collections.emptyList())
                 .build();
-        if (cloudConnectorRepositoryPort.findByClientId(cloudConnector.getCloudConnectorId()).isPresent()) {
-            throw new IllegalArgumentException("CloudVendorConnectorId " + cloudConnector.getCloudConnectorId() + " already exists");
+        if (cloudConnectorRepositoryPort
+                .findByClientId(cloudConnector.getCloudConnectorId())
+                .isPresent()) {
+            throw new IllegalArgumentException(
+                    "CloudVendorConnectorId " + cloudConnector.getCloudConnectorId() + " already exists");
         }
         cloudConnectorRepositoryPort.save(cloudConnector);
         eventPublisher.publishEvent(new CloudConnectorCreatedEvent(cloudConnector.getCloudConnectorId(), host, port));

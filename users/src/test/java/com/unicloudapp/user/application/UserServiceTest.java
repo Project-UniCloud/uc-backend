@@ -1,5 +1,8 @@
 package com.unicloudapp.user.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.vo.Email;
@@ -7,6 +10,9 @@ import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,13 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -123,10 +122,21 @@ class UserServiceTest {
 
     @Test
     @DisplayName("importStudents should save all new users and return all generated IDs")
+    @SuppressWarnings("unchecked")
     void importStudents_allNew_savesAll_andReturnsAllIds() {
         // given
-        var s1 = StudentBasicData.builder().firstName("John").lastName("Doe").email("j@d.com").login("john").build();
-        var s2 = StudentBasicData.builder().firstName("Anna").lastName("Smith").email("a@s.com").login("anna").build();
+        var s1 = StudentBasicData.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .email("j@d.com")
+                .login("john")
+                .build();
+        var s2 = StudentBasicData.builder()
+                .firstName("Anna")
+                .lastName("Smith")
+                .email("a@s.com")
+                .login("anna")
+                .build();
         List<StudentBasicData> input = List.of(s1, s2);
 
         // Prepare two mocked users created by factory
@@ -135,8 +145,10 @@ class UserServiceTest {
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
 
-        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any())).thenReturn(u1);
-        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any())).thenReturn(u2);
+        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
+                .thenReturn(u1);
+        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
+                .thenReturn(u2);
 
         when(u1.getUserId()).thenReturn(UserId.of(id1));
         when(u2.getUserId()).thenReturn(UserId.of(id2));
@@ -164,9 +176,24 @@ class UserServiceTest {
     @DisplayName("importStudents should save only non-existing users but return all IDs")
     void importStudents_mixed_savesOnlyNew_andReturnsAllIds() {
         // given
-        var s1 = StudentBasicData.builder().firstName("John").lastName("Doe").email("john@example.com").login("john").build();
-        var s2 = StudentBasicData.builder().firstName("Anna").lastName("Smith").email("anna@example.com").login("anna").build();
-        var s3 = StudentBasicData.builder().firstName("Mike").lastName("Miles").email("mike@example.com").login("mike").build();
+        var s1 = StudentBasicData.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@example.com")
+                .login("john")
+                .build();
+        var s2 = StudentBasicData.builder()
+                .firstName("Anna")
+                .lastName("Smith")
+                .email("anna@example.com")
+                .login("anna")
+                .build();
+        var s3 = StudentBasicData.builder()
+                .firstName("Mike")
+                .lastName("Miles")
+                .email("mike@example.com")
+                .login("mike")
+                .build();
         List<StudentBasicData> input = List.of(s1, s2, s3);
 
         User u1 = mock(User.class);
@@ -176,9 +203,12 @@ class UserServiceTest {
         UUID id2 = UUID.randomUUID();
         UUID id3 = UUID.randomUUID();
 
-        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any())).thenReturn(u1);
-        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any())).thenReturn(u2);
-        when(userFactory.create(any(), eq(UserLogin.of("mike")), any(), any(), any(), any())).thenReturn(u3);
+        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
+                .thenReturn(u1);
+        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
+                .thenReturn(u2);
+        when(userFactory.create(any(), eq(UserLogin.of("mike")), any(), any(), any(), any()))
+                .thenReturn(u3);
 
         when(u1.getUserId()).thenReturn(UserId.of(id1));
         when(u2.getUserId()).thenReturn(UserId.of(id2));
@@ -192,6 +222,7 @@ class UserServiceTest {
         when(userRepository.existsByLogin("anna")).thenReturn(false);
         when(userRepository.existsByLogin("mike")).thenReturn(true);
 
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<List<User>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
         when(userRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -209,8 +240,18 @@ class UserServiceTest {
     @DisplayName("importStudents should not save any when all users already exist, but still return all IDs")
     void importStudents_allExisting_savesNone_andReturnsAllIds() {
         // given
-        var s1 = StudentBasicData.builder().firstName("John").lastName("Doe").email("john@example.com").login("john").build();
-        var s2 = StudentBasicData.builder().firstName("Anna").lastName("Smith").email("anna@example.com").login("anna").build();
+        var s1 = StudentBasicData.builder()
+                .firstName("John")
+                .lastName("Doe")
+                .email("john@example.com")
+                .login("john")
+                .build();
+        var s2 = StudentBasicData.builder()
+                .firstName("Anna")
+                .lastName("Smith")
+                .email("anna@example.com")
+                .login("anna")
+                .build();
         List<StudentBasicData> input = List.of(s1, s2);
 
         User u1 = mock(User.class);
@@ -218,8 +259,10 @@ class UserServiceTest {
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
 
-        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any())).thenReturn(u1);
-        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any())).thenReturn(u2);
+        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
+                .thenReturn(u1);
+        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
+                .thenReturn(u2);
 
         when(u1.getUserId()).thenReturn(UserId.of(id1));
         when(u2.getUserId()).thenReturn(UserId.of(id2));
@@ -229,6 +272,7 @@ class UserServiceTest {
         when(userRepository.existsByLogin("john")).thenReturn(true);
         when(userRepository.existsByLogin("anna")).thenReturn(true);
 
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<List<User>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
         when(userRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -248,7 +292,7 @@ class UserServiceTest {
         // given
         User admin1 = mock(User.class);
         User admin2 = mock(User.class);
-        
+
         UserId id1 = UserId.of(UUID.randomUUID());
         UserLogin login1 = UserLogin.of("admin1");
         FirstName fn1 = FirstName.of("Admin");

@@ -1,14 +1,7 @@
 package com.unicloudapp.group.infrastructure.rest;
 
+import java.util.UUID;
 import lombok.Builder;
 
-import java.util.UUID;
-
 @Builder
-record UserRowViewResponse(
-        UUID uuid,
-        String firstName,
-        String lastName,
-        String login,
-        String email
-) {}
+record UserRowViewResponse(UUID uuid, String firstName, String lastName, String login, String email) {}

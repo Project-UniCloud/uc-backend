@@ -1,12 +1,10 @@
 package com.unicloudapp.group.application;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.unicloudapp.common.user.UserFullName;
-import lombok.Builder;
-
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
 public record GroupDetailsView(
@@ -17,7 +15,4 @@ public record GroupDetailsView(
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
         String status,
-        String description
-) {
-
-}
+        String description) {}

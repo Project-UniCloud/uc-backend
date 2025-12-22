@@ -32,7 +32,6 @@ interface UserMapper {
                 LastName.of(userEntity.getLastName()),
                 UserRole.of(userEntity.getRoles()),
                 Email.of(userEntity.getEmail()),
-                LastLoginAt.of(userEntity.getLastLogin())
-        );
+                LastLoginAt.of(userEntity.getLastLogin()));
     }
 }

@@ -1,10 +1,10 @@
 package com.unicloudapp.common.group;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.unicloudapp.common.vo.group.GroupName;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class GroupNameTest {
 

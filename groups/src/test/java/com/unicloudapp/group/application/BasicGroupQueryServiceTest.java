@@ -1,14 +1,13 @@
 package com.unicloudapp.group.application;
 
-import com.unicloudapp.common.group.GroupCloudDto;
-import com.unicloudapp.group.application.port.GroupRepositoryPort;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
+
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.group.application.port.GroupRepositoryPort;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class BasicGroupQueryServiceTest {
 

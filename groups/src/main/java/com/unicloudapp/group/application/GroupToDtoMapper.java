@@ -4,13 +4,12 @@ import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.domain.Group;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 interface GroupToDtoMapper {
@@ -29,9 +28,7 @@ interface GroupToDtoMapper {
 
     default Set<UUID> toStringSet(Set<CloudResourceAccessId> ids) {
         if (ids == null) return Collections.emptySet();
-        return ids.stream()
-                .map(CloudResourceAccessId::getValue)
-                .collect(Collectors.toSet());
+        return ids.stream().map(CloudResourceAccessId::getValue).collect(Collectors.toSet());
     }
 
     default Set<UUID> toCloudVendorConnectorIdSet(Set<UserId> ids) {

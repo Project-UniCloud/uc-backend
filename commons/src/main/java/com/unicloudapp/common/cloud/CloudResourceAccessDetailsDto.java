@@ -1,11 +1,10 @@
 package com.unicloudapp.common.cloud;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
 public record CloudResourceAccessDetailsDto(
@@ -16,5 +15,4 @@ public record CloudResourceAccessDetailsDto(
         String status,
         Integer notificationLevel1,
         Integer notificationLevel2,
-        Integer notificationLevel3
-) { }
+        Integer notificationLevel3) {}

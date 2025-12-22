@@ -6,16 +6,16 @@ import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
@@ -31,7 +31,10 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 
     @Override
     public Set<CloudResourceAccess> getCloudResourceAccesses(Set<CloudResourceAccessId> cloudResourceAccessIds) {
-        return repository.findAllById(cloudResourceAccessIds.stream().map(CloudResourceAccessId::getValue).toList())
+        return repository
+                .findAllById(cloudResourceAccessIds.stream()
+                        .map(CloudResourceAccessId::getValue)
+                        .toList())
                 .stream()
                 .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
@@ -39,7 +42,10 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 
     @Override
     public List<CloudResourceAccess> findAllById(Set<CloudResourceAccessId> cloudResourceAccessIds) {
-        return repository.findAllById(cloudResourceAccessIds.stream().map(CloudResourceAccessId::getValue).toList())
+        return repository
+                .findAllById(cloudResourceAccessIds.stream()
+                        .map(CloudResourceAccessId::getValue)
+                        .toList())
                 .stream()
                 .map(cloudResourceAccessMapper::toDomain)
                 .toList();
@@ -47,10 +53,9 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 
     @Override
     public Set<CloudResourceAccess> findAllByCloudClientIdAndResourceType(
-            CloudConnectorId cloudConnectorId,
-            CloudResourceType resourceType
-    ) {
-        return repository.findAllByCloudConnectorIdAndResourceType(cloudConnectorId.id(), resourceType.getName())
+            CloudConnectorId cloudConnectorId, CloudResourceType resourceType) {
+        return repository
+                .findAllByCloudConnectorIdAndResourceType(cloudConnectorId.id(), resourceType.getName())
                 .stream()
                 .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
@@ -58,37 +63,30 @@ class SqlCloudResourceAccessRepositoryAdapter implements CloudResourceAccessRepo
 
     @Override
     public Set<CloudResourceAccess> findAllByCloudClientId(CloudConnectorId cloudConnectorId) {
-        return repository.findAllByCloudConnectorId(cloudConnectorId.id())
-                .stream()
+        return repository.findAllByCloudConnectorId(cloudConnectorId.id()).stream()
                 .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toSet());
     }
 
     @Override
     public Map<CloudResourceAccessId, CloudResourceAccess> findAllByStatus(CloudResourcesAccessStatus status) {
-        return repository.findAllByStatus(status.getStatus())
-                .stream()
+        return repository.findAllByStatus(status.getStatus()).stream()
                 .map(cloudResourceAccessMapper::toDomain)
                 .collect(Collectors.toMap(
-                        CloudResourceAccess::getCloudResourceAccessId,
-                        cloudResourceAccess -> cloudResourceAccess
-                ));
+                        CloudResourceAccess::getCloudResourceAccessId, cloudResourceAccess -> cloudResourceAccess));
     }
 
     @Override
     public Optional<CloudResourceAccess> findById(CloudResourceAccessId cloudResourceAccessId) {
-        return repository.findById(cloudResourceAccessId.getValue())
-                .map(cloudResourceAccessMapper::toDomain);
+        return repository.findById(cloudResourceAccessId.getValue()).map(cloudResourceAccessMapper::toDomain);
     }
 }
 
 @Repository
-interface CloudResourceAccessJpaRepository extends JpaRepository<CloudResourceAccessEntity, UUID> {
+interface CloudResourceAccessJpaRepository extends JpaRepository<@NotNull CloudResourceAccessEntity, @NotNull UUID> {
 
     Set<CloudResourceAccessEntity> findAllByCloudConnectorIdAndResourceType(
-            String CloudVendorConnectorId,
-            String resourceType
-    );
+            String CloudVendorConnectorId, String resourceType);
 
     Set<CloudResourceAccessEntity> findAllByCloudConnectorId(String CloudVendorConnectorId);
 

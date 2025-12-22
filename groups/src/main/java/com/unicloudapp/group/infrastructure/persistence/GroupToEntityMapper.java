@@ -4,9 +4,8 @@ import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import lombok.RequiredArgsConstructor;
-
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 class GroupToEntityMapper {
@@ -21,12 +20,8 @@ class GroupToEntityMapper {
                 .semester(group.getSemester().toString())
                 .startDate(group.getStartDate().getValue())
                 .endDate(group.getEndDate().getValue())
-                .lecturers(group.getLecturers().stream()
-                        .map(UserId::getValue)
-                        .collect(Collectors.toSet()))
-                .students(group.getStudents().stream()
-                        .map(UserId::getValue)
-                        .collect(Collectors.toSet()))
+                .lecturers(group.getLecturers().stream().map(UserId::getValue).collect(Collectors.toSet()))
+                .students(group.getStudents().stream().map(UserId::getValue).collect(Collectors.toSet()))
                 .cloudResourceAccesses(group.getCloudResourceAccesses().stream()
                         .map(CloudResourceAccessId::getValue)
                         .collect(Collectors.toSet()))
@@ -45,7 +40,6 @@ class GroupToEntityMapper {
                 groupEntity.getLecturers(),
                 groupEntity.getStudents(),
                 groupEntity.getCloudResourceAccesses(),
-                groupEntity.getDescription()
-        );
+                groupEntity.getDescription());
     }
 }

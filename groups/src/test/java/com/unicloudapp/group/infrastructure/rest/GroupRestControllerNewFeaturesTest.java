@@ -1,19 +1,5 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import com.unicloudapp.common.vo.group.GroupId;
-import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.group.application.GroupService;
-import com.unicloudapp.group.application.port.StudentImporterPort;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.mock.web.MockMultipartFile;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -22,6 +8,19 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.group.GroupId;
+import com.unicloudapp.group.application.GroupService;
+import com.unicloudapp.group.application.port.StudentImporterPort;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.mock.web.MockMultipartFile;
 
 class GroupRestControllerNewFeaturesTest {
 
@@ -32,9 +31,10 @@ class GroupRestControllerNewFeaturesTest {
         StudentImporterPort importer = mock(StudentImporterPort.class);
         GroupRestController controller = new GroupRestController(groupService, importer);
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-                controller.getAllGroupsByStatus(0, 10, null, null, null, CloudResourceType.of("S3").toString())
-        );
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> controller.getAllGroupsByStatus(
+                        0, 10, null, null, null, CloudResourceType.of("S3").toString()));
         assertTrue(ex.getMessage().contains("Cloud client id is required"));
     }
 
@@ -46,10 +46,17 @@ class GroupRestControllerNewFeaturesTest {
         GroupRestController controller = new GroupRestController(groupService, importer);
 
         UUID groupId = UUID.randomUUID();
-        MockMultipartFile file = new MockMultipartFile("file", "students.csv", "text/csv", "login,firstName,lastName,email\njsmith,John,Smith,john@ex.com\n".getBytes());
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "students.csv",
+                "text/csv",
+                "login,firstName,lastName,email\njsmith,John,Smith,john@ex.com\n".getBytes());
 
         StudentBasicData s = StudentBasicData.builder()
-                .login("jsmith").firstName("John").lastName("Smith").email("john@ex.com")
+                .login("jsmith")
+                .firstName("John")
+                .lastName("Smith")
+                .email("john@ex.com")
                 .build();
         when(importer.parseCsv(any())).thenReturn(List.of(s));
 

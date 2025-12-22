@@ -9,12 +9,7 @@ import org.springframework.context.annotation.Configuration;
 class UserPersistenceConfig {
 
     @Bean
-    UserRepositoryPort userRepositoryPort(
-            UserRepositoryJpa userRepositoryJpa,
-            UserMapper userMapper
-    ) {
-        return new SqlUserRepositoryAdapter(
-            userRepositoryJpa, userMapper, new UserFactory()
-        );
+    UserRepositoryPort userRepositoryPort(UserRepositoryJpa userRepositoryJpa, UserMapper userMapper) {
+        return new SqlUserRepositoryAdapter(userRepositoryJpa, userMapper, new UserFactory());
     }
 }

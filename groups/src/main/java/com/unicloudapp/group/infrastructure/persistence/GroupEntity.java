@@ -2,20 +2,16 @@ package com.unicloudapp.group.infrastructure.persistence;
 
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDate;
-import java.util.Set;
-import java.util.UUID;
-
 @Entity
-@Table(
-        name = "groups",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"name", "semester"})
-)
+@Table(name = "groups", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "semester"}))
 @RequiredArgsConstructor
 @Getter
 @Builder

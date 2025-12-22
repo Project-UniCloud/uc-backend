@@ -7,9 +7,9 @@ import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.user.*;
 import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
@@ -24,13 +24,13 @@ import com.unicloudapp.group.domain.vo.EndDate;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import com.unicloudapp.group.domain.vo.StartDate;
 import jakarta.transaction.Transactional;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Transactional
@@ -48,11 +48,10 @@ public class GroupService {
             throw new RuntimeException("Start date cannot be after end date.");
         }
         boolean isGroupWithSameNameAndSemesterExists = groupRepository.existsByNameAndSemester(
-                GroupName.of(groupDTO.name()),
-                Semester.of(groupDTO.semester())
-        );
+                GroupName.of(groupDTO.name()), Semester.of(groupDTO.semester()));
         if (isGroupWithSameNameAndSemesterExists) {
-            throw new RuntimeException("Group with name " + groupDTO.name() + " and semester " + groupDTO.semester() + " already exists.");
+            throw new RuntimeException(
+                    "Group with name " + groupDTO.name() + " and semester " + groupDTO.semester() + " already exists.");
         }
         Group group = groupFactory.create(
                 groupDTO.name(),
@@ -60,8 +59,7 @@ public class GroupService {
                 groupDTO.lecturers(),
                 groupDTO.startDate(),
                 groupDTO.endDate(),
-                groupDTO.description()
-        );
+                groupDTO.description());
         return groupRepository.save(group);
     }
 
@@ -69,14 +67,14 @@ public class GroupService {
         boolean isUserExists = userQueryService.existsByLogin(studentBasicData.getLogin());
         UserId userId;
         if (isUserExists) {
-            userId = userQueryService.getUserDetailsByUsername(UserLogin.of(studentBasicData.getLogin()))
+            userId = userQueryService
+                    .getUserDetailsByUsername(UserLogin.of(studentBasicData.getLogin()))
                     .orElseThrow()
                     .userId();
         } else {
             userId = userCommandService.createStudent(studentBasicData);
         }
-        Group group = groupRepository.findById(groupId.getUuid())
-                .orElseThrow();
+        Group group = groupRepository.findById(groupId.getUuid()).orElseThrow();
         group.addStudent(userId);
         List<CloudResourceRowView> cloudResourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
@@ -85,41 +83,39 @@ public class GroupService {
                     .map(CloudResourceRowView::clientId)
                     .collect(Collectors.toSet());
             collect.forEach(s -> {
-                        Email email;
-                        if (studentBasicData.getEmail() == null || studentBasicData.getEmail().isBlank()) {
-                            email = Email.empty();
-                        } else {
-                            try {
-                                email = Email.of(studentBasicData.getEmail());
-                            } catch (IllegalArgumentException ex) {
-                                email = Email.empty();
-                            }
-                        }
-                        cloudResourceAccessCommandService.createUsers(
-                                CloudConnectorId.of(s),
-                                List.of(Map.entry(UserLogin.of(studentBasicData.getLogin()), email)),
-                                GroupUniqueName.builder()
-                                        .semester(group.getSemester())
-                                        .groupName(group.getName())
-                                        .build()
-                        );
+                Email email;
+                if (studentBasicData.getEmail() == null
+                        || studentBasicData.getEmail().isBlank()) {
+                    email = Email.empty();
+                } else {
+                    try {
+                        email = Email.of(studentBasicData.getEmail());
+                    } catch (IllegalArgumentException ex) {
+                        email = Email.empty();
                     }
-            );
+                }
+                cloudResourceAccessCommandService.createUsers(
+                        CloudConnectorId.of(s),
+                        List.of(Map.entry(UserLogin.of(studentBasicData.getLogin()), email)),
+                        GroupUniqueName.builder()
+                                .semester(group.getSemester())
+                                .groupName(group.getName())
+                                .build());
+            });
         }
         groupRepository.save(group);
     }
 
     public GroupDetailsView findById(UUID groupId) {
         GroupDetailsProjection details = groupRepository.findGroupDetailsByUuid(groupId);
-        Set<UserFullNameDTO> lecturers = userQueryService.getFullNameForUserIds(
-                        details.getLecturers()
-                                .stream()
-                                .map(UserId::of)
-                                .toList()
-                ).values()
-                .stream()
-                .map(UserFullNameDTO::from)
-                .collect(Collectors.toSet());
+        Set<UserFullNameDTO> lecturers =
+                userQueryService
+                        .getFullNameForUserIds(
+                                details.getLecturers().stream().map(UserId::of).toList())
+                        .values()
+                        .stream()
+                        .map(UserFullNameDTO::from)
+                        .collect(Collectors.toSet());
         return GroupDetailsView.builder()
                 .groupId(details.getUuid())
                 .name(details.getName())
@@ -132,18 +128,18 @@ public class GroupService {
                 .build();
     }
 
-    public Page<UserDetails> getStudentsDetailsByGroupId(GroupId groupId, Pageable pageable) {
-        Group group = groupRepository.findById(groupId.getUuid())
+    public Page<@NotNull UserDetails> getStudentsDetailsByGroupId(GroupId groupId, Pageable pageable) {
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         int size = pageable.getPageSize();
         int page = pageable.getPageNumber();
-        return userQueryService.getUserDetailsByIds(
-                group.getStudents(), page, size
-        );
+        return userQueryService.getUserDetailsByIds(group.getStudents(), page, size);
     }
 
     public void addStudents(GroupId groupId, List<StudentBasicData> studentBasicData) {
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         List<UserId> importedStudents = userCommandService.importStudents(studentBasicData);
         importedStudents.forEach(group::addStudent);
@@ -154,17 +150,16 @@ public class GroupService {
                     .map(CloudResourceRowView::clientId)
                     .collect(Collectors.toSet());
             collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
-                            CloudConnectorId.of(s),
-                            studentBasicData.stream()
-                                    .map(studentBasic ->
-                                            Map.entry(UserLogin.of(studentBasic.getLogin()), Email.of(studentBasicData.getFirst().getEmail())))
-                                    .toList(),
-                            GroupUniqueName.builder()
-                                    .semester(group.getSemester())
-                                    .groupName(group.getName())
-                                    .build()
-                    )
-            );
+                    CloudConnectorId.of(s),
+                    studentBasicData.stream()
+                            .map(studentBasic -> Map.entry(
+                                    UserLogin.of(studentBasic.getLogin()),
+                                    Email.of(studentBasicData.getFirst().getEmail())))
+                            .toList(),
+                    GroupUniqueName.builder()
+                            .semester(group.getSemester())
+                            .groupName(group.getName())
+                            .build()));
         }
         groupRepository.save(group);
     }
@@ -174,44 +169,42 @@ public class GroupService {
             GroupId groupId,
             CloudConnectorId cloudConnectorId,
             CloudResourceType cloudResourceType,
-            CostLimit costLimit
-    ) {
-        Group group = groupRepository.findById(groupId.getUuid())
+            CostLimit costLimit) {
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         GroupUniqueName groupUniqueName = GroupUniqueName.builder()
                 .groupName(group.getName())
                 .semester(group.getSemester())
                 .build();
-        boolean hasGroupCloudResourceType = cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses())
-                .stream()
-                .anyMatch(cloudResourceTypeRowView ->
-                        cloudResourceTypeRowView.name().equals(cloudResourceType.getName())
-                                && cloudResourceTypeRowView.clientId().equals(cloudConnectorId.id())
-                );
+        boolean hasGroupCloudResourceType =
+                cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses()).stream()
+                        .anyMatch(cloudResourceTypeRowView ->
+                                cloudResourceTypeRowView.name().equals(cloudResourceType.getName())
+                                        && cloudResourceTypeRowView.clientId().equals(cloudConnectorId.id()));
         if (hasGroupCloudResourceType) {
-            throw new RuntimeException("Group already has access to cloud resource type: " + cloudResourceType.getName());
+            throw new RuntimeException(
+                    "Group already has access to cloud resource type: " + cloudResourceType.getName());
         }
-        List<Map.Entry<UserLogin, Email>> lecturers = userQueryService.getUserLoginsAndEmailsByIds(
-                group.getLecturers()
-        );
+        List<Map.Entry<UserLogin, Email>> lecturers =
+                userQueryService.getUserLoginsAndEmailsByIds(group.getLecturers());
         if (!cloudResourceAccessQueryService.isCloudGroupExists(groupUniqueName, cloudConnectorId)) {
-            cloudResourceAccessCommandService.createGroup(groupUniqueName, cloudConnectorId, lecturers, cloudResourceType);
+            cloudResourceAccessCommandService.createGroup(
+                    groupUniqueName, cloudConnectorId, lecturers, cloudResourceType);
         } else {
-            cloudResourceAccessCommandService.assignCloudResourceAccess(cloudConnectorId, groupUniqueName, cloudResourceType);
+            cloudResourceAccessCommandService.assignCloudResourceAccess(
+                    cloudConnectorId, groupUniqueName, cloudResourceType);
         }
         CloudResourceAccessId cloudResourceAccessId = cloudResourceAccessCommandService.giveGroupCloudResourceAccess(
-                cloudConnectorId,
-                cloudResourceType,
-                groupUniqueName,
-                costLimit
-        );
+                cloudConnectorId, cloudResourceType, groupUniqueName, costLimit);
         group.grantCloudResourceAccess(cloudResourceAccessId);
         groupRepository.save(group);
         return cloudResourceAccessId;
     }
 
     public List<CloudResourceRowView> getCloudResourceAccesses(GroupId groupId) {
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
         return cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccesses);
@@ -221,69 +214,56 @@ public class GroupService {
         if (!groupDTO.endDate().isAfter(groupDTO.startDate())) {
             throw new RuntimeException("End date is not after start date");
         }
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.update(
                 GroupName.of(groupDTO.name()),
                 groupDTO.lecturers().stream().map(UserId::of).collect(Collectors.toSet()),
                 StartDate.of(groupDTO.startDate()),
                 EndDate.of(groupDTO.endDate()),
-                Description.of(groupDTO.description())
-        );
+                Description.of(groupDTO.description()));
         groupRepository.save(group);
     }
 
-    public Page<GroupRowView> getGroupsByFilter(
-            GroupFilterCriteria criteria,
-            Pageable pageable
-    ) {
+    public Page<@NotNull GroupRowView> getGroupsByFilter(GroupFilterCriteria criteria, Pageable pageable) {
         Set<CloudResourceAccessId> accessIds = null;
 
         if (criteria.getCloudClientId() != null) {
             if (criteria.getResourceType() == null) {
                 accessIds = cloudResourceAccessQueryService.getCloudResourceAccessesByCloudClientId(
-                        criteria.getCloudClientId()
-                );
+                        criteria.getCloudClientId());
             } else {
                 accessIds = cloudResourceAccessQueryService.getCloudResourceAccessesByCloudClientIdAndResourceType(
-                        criteria.getCloudClientId(),
-                        criteria.getResourceType()
-                );
+                        criteria.getCloudClientId(), criteria.getResourceType());
             }
         }
 
-        Page<GroupRowProjection> groups = (accessIds != null)
+        Page<@NotNull GroupRowProjection> groups = (accessIds != null)
                 ? groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(criteria, pageable, accessIds)
                 : groupRepository.findAllByCriteria(criteria, pageable);
 
-        Map<UserId, UserFullName> userFullNames = userQueryService.getFullNameForUserIds(
-                groups.stream()
-                        .flatMap(g -> g.getLecturers().stream().map(UserId::of))
-                        .toList()
-        );
+        Map<UserId, UserFullName> userFullNames = userQueryService.getFullNameForUserIds(groups.stream()
+                .flatMap(g -> g.getLecturers().stream().map(UserId::of))
+                .toList());
 
         Map<UUID, Set<CloudResourceType>> cloudResourceTypes = groups.stream()
                 .collect(Collectors.toMap(
                         GroupRowProjection::getUuid,
                         group -> cloudResourceAccessQueryService.getCloudResourceTypes(
-                                group.getCloudResourceAccesses()
-                                        .stream()
+                                group.getCloudResourceAccesses().stream()
                                         .map(CloudResourceAccessId::of)
-                                        .collect(Collectors.toSet())
-                        )
-                ));
+                                        .collect(Collectors.toSet()))));
 
         List<GroupRowView> groupViews = groups.stream()
                 .map(group -> {
-                    String joinedLecturers = group.getLecturers()
-                            .stream()
+                    String joinedLecturers = group.getLecturers().stream()
                             .map(uuid -> userFullNames.get(UserId.of(uuid)))
                             .filter(Objects::nonNull)
                             .map(UserFullName::getFullName)
                             .collect(Collectors.joining(", "));
 
-                    String joinedAccessList = cloudResourceTypes.entrySet()
-                            .stream()
+                    String joinedAccessList = cloudResourceTypes.entrySet().stream()
                             .filter(entry -> entry.getKey().equals(group.getUuid()))
                             .flatMap(entry -> entry.getValue().stream().map(CloudResourceType::getName))
                             .collect(Collectors.joining(", "));
@@ -294,15 +274,15 @@ public class GroupService {
                             group.getSemester(),
                             group.getEndDate(),
                             joinedLecturers,
-                            joinedAccessList
-                    );
+                            joinedAccessList);
                 })
                 .toList();
         return new PageImpl<>(groupViews, groups.getPageable(), groups.getTotalElements());
     }
 
     public void activate(GroupId groupId) {
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.activate();
         GroupUniqueName groupUniqueName = GroupUniqueName.builder()
@@ -311,23 +291,22 @@ public class GroupService {
                 .build();
         List<CloudResourceRowView> resourceTypesDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses());
-        List<Map.Entry<UserLogin, Email>> studentLogins = userQueryService.getUserLoginsAndEmailsByIds(group.getStudents());
+        List<Map.Entry<UserLogin, Email>> studentLogins =
+                userQueryService.getUserLoginsAndEmailsByIds(group.getStudents());
         if (!studentLogins.isEmpty()) {
             resourceTypesDetails.stream()
                     .map(CloudResourceRowView::clientId)
                     .forEach(s -> cloudResourceAccessCommandService.createUsers(
-                            CloudConnectorId.of(s),
-                            studentLogins,
-                            groupUniqueName
-                    ));
+                            CloudConnectorId.of(s), studentLogins, groupUniqueName));
         }
         group.getCloudResourceAccesses().forEach(cloudResourceAccessCommandService::activateCloudResource);
         groupRepository.save(group);
     }
 
-    //TODO implement taking away cloud resource access to students
+    // TODO implement taking away cloud resource access to students
     public void archive(GroupId groupId) {
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         group.archive();
         GroupUniqueName groupUniqueName = GroupUniqueName.builder()
@@ -335,17 +314,15 @@ public class GroupService {
                 .groupName(group.getName())
                 .build();
         cloudResourceAccessCommandService.cleanUpResources(group.getCloudResourceAccesses(), groupUniqueName, false);
-        group.getCloudResourceAccesses().forEach(cloudResourceAccessId ->
-                deactivateCloudResourcesAccess(groupId, cloudResourceAccessId)
-        );
+        group.getCloudResourceAccesses()
+                .forEach(cloudResourceAccessId -> deactivateCloudResourcesAccess(groupId, cloudResourceAccessId));
         groupRepository.save(group);
     }
 
     public CloudResourceAccessDetailsDto getCloudResourceAccess(
-            GroupId groupId,
-            CloudResourceAccessId cloudResourceAccessId
-    ) {
-        Group group = groupRepository.findById(groupId.getUuid())
+            GroupId groupId, CloudResourceAccessId cloudResourceAccessId) {
+        groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         CloudResourceRowView cloudResourceDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessId);
@@ -365,7 +342,8 @@ public class GroupService {
     }
 
     public void saveCloudResourceAccess(GroupId groupId, CloudResourceAccessDetailsDto request) {
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         GroupUniqueName groupUniqueName = GroupUniqueName.builder()
                 .semester(group.getSemester())
@@ -375,7 +353,8 @@ public class GroupService {
     }
 
     public void deactivateCloudResourcesAccess(GroupId groupId, CloudResourceAccessId cloudResourceAccessId) {
-        Group group = groupRepository.findById(groupId.getUuid())
+        Group group = groupRepository
+                .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         GroupUniqueName groupUniqueName = GroupUniqueName.builder()
                 .groupName(group.getName())
@@ -383,7 +362,9 @@ public class GroupService {
                 .build();
         List<CloudResourceRowView> cloudResourceDetails =
                 cloudResourceAccessQueryService.getCloudResourceDetails(Set.of(cloudResourceAccessId));
-        cloudResourceAccessCommandService.removeGroup(groupUniqueName, CloudConnectorId.of(cloudResourceDetails.getFirst().clientId()));
+        cloudResourceAccessCommandService.removeGroup(
+                groupUniqueName,
+                CloudConnectorId.of(cloudResourceDetails.getFirst().clientId()));
         cloudResourceAccessCommandService.deactivateCloudResourceAccess(cloudResourceAccessId);
     }
 }

@@ -1,18 +1,17 @@
 package com.unicloudapp.group.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
 import com.unicloudapp.group.domain.vo.GroupStatus;
+import java.time.LocalDate;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class GroupToDtoMapperTest {
@@ -25,14 +24,8 @@ class GroupToDtoMapperTest {
         var groupId = UUID.randomUUID();
         var lecturerId = UUID.randomUUID();
         var studentId = UUID.randomUUID();
-        LocalDate startDate = LocalDate.of(2024,
-                1,
-                1
-        );
-        LocalDate endDate = LocalDate.of(2025,
-                1,
-                1
-        );
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2025, 1, 1);
         UUID uuid = UUID.randomUUID();
         Group group = new GroupFactory()
                 .restore(
@@ -45,8 +38,7 @@ class GroupToDtoMapperTest {
                         Set.of(lecturerId),
                         Set.of(studentId),
                         Set.of(uuid),
-                        "Test description"
-                );
+                        "Test description");
 
         GroupDTO dto = groupToDtoMapper.toDto(group);
 
@@ -61,5 +53,4 @@ class GroupToDtoMapperTest {
         assertThat(dto.students()).containsExactly(studentId);
         assertThat(dto.cloudResourceAccesses()).containsExactly(uuid);
     }
-
 }

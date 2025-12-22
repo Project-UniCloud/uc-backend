@@ -18,15 +18,13 @@ class GroupConfig {
             UserQueryService userQueryService,
             CloudResourceAccessQueryService cloudResourceAccessQueryService,
             CloudResourceAccessCommandService cloudResourceAccessCommandService,
-            UserCommandService userCommandService
-    ) {
+            UserCommandService userCommandService) {
         return new GroupService(
                 groupRepository,
                 new GroupFactory(),
                 userQueryService,
                 cloudResourceAccessQueryService,
                 cloudResourceAccessCommandService,
-                userCommandService
-        );
+                userCommandService);
     }
 }

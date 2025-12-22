@@ -1,20 +1,19 @@
 package com.unicloudapp.cloud.infrastructure.grpc;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 class GrpcCloudConnectorClientAdapterTest {
 
@@ -29,17 +28,16 @@ class GrpcCloudConnectorClientAdapterTest {
 
     @Test
     void getSupportedResourceTypes_returnsMappedList_whenServiceImplemented() {
-        AdapterInterface.GetAvailableServicesResponse response = AdapterInterface.GetAvailableServicesResponse
-                .newBuilder()
-                .addServices("EC2")
-                .addServices("S3")
-                .build();
+        AdapterInterface.GetAvailableServicesResponse response =
+                AdapterInterface.GetAvailableServicesResponse.newBuilder()
+                        .addServices("EC2")
+                        .addServices("S3")
+                        .build();
         when(stub.getAvailableServices(any())).thenReturn(response);
 
         List<CloudResourceType> result = adapter.getSupportedResourceTypes();
 
-        assertThat(result)
-                .containsExactly(CloudResourceType.of("EC2"), CloudResourceType.of("S3"));
+        assertThat(result).containsExactly(CloudResourceType.of("EC2"), CloudResourceType.of("S3"));
     }
 
     @Test

@@ -1,13 +1,12 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.util.List;
 
 @Entity
 @Getter
@@ -36,10 +35,7 @@ class CloudConnectorEntity {
     private String defaultCleanUpCron;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(
-                name = "cloud_connectors_resource_types",
-                joinColumns = @JoinColumn(name = "cloud_connector_id")
-        )
+    @CollectionTable(name = "cloud_connectors_resource_types", joinColumns = @JoinColumn(name = "cloud_connector_id"))
     @Column(name = "resource_type", nullable = false)
     private List<String> resourceTypes;
 }

@@ -1,40 +1,39 @@
 package com.unicloudapp.user.infrastructure.rest;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import tools.jackson.databind.ObjectMapper;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.*;
+
+import com.unicloudapp.common.user.UserExternalQueryService;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserRole;
-import com.unicloudapp.common.user.UserExternalQueryService;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.*;
+import tools.jackson.databind.ObjectMapper;
 
 @ContextConfiguration(classes = {UserRestController.class})
 @DisabledInAotMode
@@ -81,31 +80,22 @@ class UserRestControllerDiffblueTest {
         when(userId.getValue()).thenReturn(uuid);
         when(user.getUserId()).thenReturn(userId);
         when(createLecturerUseCase.createLecturer(Mockito.any())).thenReturn(user);
-        MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/lecturers")
-                .contentType(MediaType.APPLICATION_JSON);
-        CreateLecturerRequest createLecturerRequest = new CreateLecturerRequest(
-                "42",
-                "Jane",
-                "Doe",
-                "email@example.com"
-        );
+        MockHttpServletRequestBuilder contentTypeResult =
+                MockMvcRequestBuilders.post("/users/lecturers").contentType(MediaType.APPLICATION_JSON);
+        CreateLecturerRequest createLecturerRequest =
+                new CreateLecturerRequest("42", "Jane", "Doe", "email@example.com");
 
-        MockHttpServletRequestBuilder requestBuilder = contentTypeResult
-                .content((new ObjectMapper()).writeValueAsString(createLecturerRequest));
+        MockHttpServletRequestBuilder requestBuilder =
+                contentTypeResult.content((new ObjectMapper()).writeValueAsString(createLecturerRequest));
 
         // Act and Assert
-        var result = "{\"lecturerId\":\"%s\"}".formatted(
-                uuid
-        );
+        var result = "{\"lecturerId\":\"%s\"}".formatted(uuid);
         MockMvcBuilders.standaloneSetup(userRestController)
                 .build()
                 .perform(requestBuilder)
-                .andExpect(MockMvcResultMatchers.status()
-                        .isCreated())
-                .andExpect(MockMvcResultMatchers.content()
-                        .contentType("application/json"))
-                .andExpect(MockMvcResultMatchers.content()
-                        .string(result));
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
+                .andExpect(MockMvcResultMatchers.content().string(result));
     }
 
     /**
@@ -117,7 +107,8 @@ class UserRestControllerDiffblueTest {
      * Method under test: {@link UserRestController#createLecturer(CreateLecturerRequest)}
      */
     @Test
-    @DisplayName("Test createLecturer(CreateLecturerRequest) with 'createLecturerRequest'; then return lecturerId is randomUUID")
+    @DisplayName(
+            "Test createLecturer(CreateLecturerRequest) with 'createLecturerRequest'; then return lecturerId is randomUUID")
     @Tag("MaintainedByDiffblue")
     void testCreateLecturerWithCreateLecturerRequest_thenReturnLecturerIdIsRandomUUID() {
         //   Diffblue Cover was unable to create a Spring-specific test for this Spring method.
@@ -138,25 +129,17 @@ class UserRestControllerDiffblueTest {
                 searchLecturerUserCase,
                 userDomainDtoMapper,
                 findAllLecturersUseCase,
-                userExternalQueryService
-        );
+                userExternalQueryService);
 
         // Act
-        LecturerCreatedResponse actualCreateLecturerResult = userRestController
-                .createLecturer(new CreateLecturerRequest(
-                        "42",
-                        "Jane",
-                        "Doe"
-                        ,"email@example.com"
-                ));
+        LecturerCreatedResponse actualCreateLecturerResult =
+                userRestController.createLecturer(new CreateLecturerRequest("42", "Jane", "Doe", "email@example.com"));
 
         // Assert
         verify(userId).getValue();
         verify(createLecturerUseCase).createLecturer(isA(CreateLecturerCommand.class));
         verify(user).getUserId();
-        assertSame(randomUUIDResult,
-                actualCreateLecturerResult.lecturerId()
-        );
+        assertSame(randomUUIDResult, actualCreateLecturerResult.lecturerId());
     }
 
     /**
@@ -168,9 +151,6 @@ class UserRestControllerDiffblueTest {
     @DisplayName("Test createLecturer(CreateStudentRequest) with 'request'")
     @Tag("MaintainedByDiffblue")
     void testCreateLecturerWithRequest() throws Exception {
-        // TODO: Diffblue Cover was only able to create a partial test for this method:
-        //   Diffblue AI was unable to find a test
-
         // Arrange
         UUID randomUUIDResult = UUID.randomUUID();
         User user = mock(User.class);
@@ -178,28 +158,21 @@ class UserRestControllerDiffblueTest {
         when(userId.getValue()).thenReturn(randomUUIDResult);
         when(user.getUserId()).thenReturn(userId);
         when(createStudentUseCase.createStudent(Mockito.any())).thenReturn(user);
-        MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/users/students")
-                .contentType(MediaType.APPLICATION_JSON);
-        CreateStudentRequest createStudentRequest = new CreateStudentRequest(
-                "s123442",
-                "Jane",
-                "Doe",
-                "mail@mail.com"
-        );
+        MockHttpServletRequestBuilder contentTypeResult =
+                MockMvcRequestBuilders.post("/users/students").contentType(MediaType.APPLICATION_JSON);
+        CreateStudentRequest createStudentRequest = new CreateStudentRequest("s123442", "Jane", "Doe", "mail@mail.com");
 
-        MockHttpServletRequestBuilder requestBuilder = contentTypeResult
-                .content((new ObjectMapper()).writeValueAsString(createStudentRequest));
+        MockHttpServletRequestBuilder requestBuilder =
+                contentTypeResult.content((new ObjectMapper()).writeValueAsString(createStudentRequest));
 
         // Act and Assert
         MockMvcBuilders.standaloneSetup(userRestController)
                 .build()
                 .perform(requestBuilder)
-                .andExpect(MockMvcResultMatchers.status()
-                        .isCreated())
-                .andExpect(MockMvcResultMatchers.content()
-                        .contentType("application/json"))
-                .andExpect(MockMvcResultMatchers.content()
-                        .string("{\"studentId\":\"%s\"}".formatted(randomUUIDResult)));
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
+                .andExpect(
+                        MockMvcResultMatchers.content().string("{\"studentId\":\"%s\"}".formatted(randomUUIDResult)));
     }
 
     /**
@@ -228,24 +201,17 @@ class UserRestControllerDiffblueTest {
                 searchLecturerUserCase,
                 userDomainDtoMapper,
                 findAllLecturersUseCase,
-                userExternalQueryService
-        );
+                userExternalQueryService);
 
         // Act
-        StudentCreatedResponse studentCreatedResponse = userRestController
-                .createStudent(new CreateStudentRequest("42",
-                        "Jane",
-                        "Doe",
-                        "mail@mail.com"
-                ));
+        StudentCreatedResponse studentCreatedResponse =
+                userRestController.createStudent(new CreateStudentRequest("42", "Jane", "Doe", "mail@mail.com"));
 
         // Assert
         verify(userId).getValue();
         verify(createStudentUseCase).createStudent(isA(CreateStudentCommand.class));
         verify(user).getUserId();
-        assertSame(randomUUIDResult,
-                studentCreatedResponse.studentId()
-        );
+        assertSame(randomUUIDResult, studentCreatedResponse.studentId());
     }
 
     /**
@@ -270,23 +236,20 @@ class UserRestControllerDiffblueTest {
                 .lastLoginAt(LocalDateTime.of(1970, 1, 1, 0, 0))
                 .build();
         when(userDomainDtoMapper.toUserFoundResponse(Mockito.any())).thenReturn(buildResult);
-        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/users/{userId}",
-                randomUUIDResult
-        );
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/users/{userId}", randomUUIDResult);
 
         // Act and Assert
         MockMvcBuilders.standaloneSetup(userRestController)
                 .build()
                 .perform(requestBuilder)
-                .andExpect(MockMvcResultMatchers.status()
-                        .isOk())
-                .andExpect(MockMvcResultMatchers.content()
-                        .contentType("application/json"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json"))
                 .andExpect(MockMvcResultMatchers.content()
                         .string(String.format(
                                 "{\"userId\":\"%s\",\"login\":\"Login\",\"firstName\":\"Jane\",\"lastName\":\"Doe\""
-                                        + ",\"email\":\"jane.doe@example.org\"," +
-                                        "\"lastLoginAt\":\"1970-01-01T00:00:00\",\"userRoles\":[\"ADMIN\"]}", randomUUIDResult)));
+                                        + ",\"email\":\"jane.doe@example.org\","
+                                        + "\"lastLoginAt\":\"1970-01-01T00:00:00\",\"userRoles\":[\"ADMIN\"]}",
+                                randomUUIDResult)));
     }
 
     /**
@@ -299,7 +262,8 @@ class UserRestControllerDiffblueTest {
      * Method under test: {@link UserRestController#getUserById(UUID)}
      */
     @Test
-    @DisplayName("Test getUserById(UUID); given UserRepositoryPort findById(UserId) return of User; then calls findById(UserId)")
+    @DisplayName(
+            "Test getUserById(UUID); given UserRepositoryPort findById(UserId) return of User; then calls findById(UserId)")
     @Tag("MaintainedByDiffblue")
     void testGetUserById_givenUserRepositoryPortFindByIdReturnOfUser_thenCallsFindById() {
         // Arrange
@@ -336,7 +300,8 @@ class UserRestControllerDiffblueTest {
     }
 
     @Test
-    @DisplayName("Test getUserById(UUID); given UserService findUserById(UserId) return 'null'; then calls findUserById(UserId)")
+    @DisplayName(
+            "Test getUserById(UUID); given UserService findUserById(UserId) return 'null'; then calls findUserById(UserId)")
     @Tag("MaintainedByDiffblue")
     void testGetUserById_givenUserServiceFindUserByIdReturnNull_thenCallsFindUserById() {
         // Arrange
@@ -371,4 +336,3 @@ class UserRestControllerDiffblueTest {
         assertSame(userId, actualUserById.userId());
     }
 }
-

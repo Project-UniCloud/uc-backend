@@ -28,8 +28,7 @@ class CloudResourceAccessServiceConfig {
                 groupQueryService,
                 new CloudResourceAccessFactory(),
                 cloudConnectorClientFactoryPort,
-                applicationEventPublisher
-        );
+                applicationEventPublisher);
     }
 
     @Bean

@@ -5,7 +5,6 @@ import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,9 +19,7 @@ public interface CloudResourceAccessRepositoryPort {
     List<CloudResourceAccess> findAllById(Set<CloudResourceAccessId> cloudResourceAccessIds);
 
     Set<CloudResourceAccess> findAllByCloudClientIdAndResourceType(
-            CloudConnectorId cloudConnectorId,
-            CloudResourceType resourceType
-    );
+            CloudConnectorId cloudConnectorId, CloudResourceType resourceType);
 
     Set<CloudResourceAccess> findAllByCloudClientId(CloudConnectorId cloudConnectorId);
 

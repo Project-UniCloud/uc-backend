@@ -9,7 +9,6 @@ import com.unicloudapp.group.domain.vo.Description;
 import com.unicloudapp.group.domain.vo.EndDate;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import com.unicloudapp.group.domain.vo.StartDate;
-
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,14 +23,11 @@ public class GroupFactory {
             Set<UUID> lecturers,
             LocalDate startDate,
             LocalDate endDate,
-            String description
-    ) {
+            String description) {
         return Group.builder()
                 .groupId(GroupId.of(UUID.randomUUID()))
                 .groupStatus(GroupStatus.of(GroupStatus.Type.INACTIVE))
-                .lecturers(lecturers.stream()
-                        .map(UserId::of)
-                        .collect(Collectors.toSet()))
+                .lecturers(lecturers.stream().map(UserId::of).collect(Collectors.toSet()))
                 .students(new HashSet<>())
                 .cloudResourceAccesses(new HashSet<>())
                 .name(GroupName.of(groupName))
@@ -42,17 +38,17 @@ public class GroupFactory {
                 .build();
     }
 
-    public Group restore(UUID groupId,
-                         String name,
-                         GroupStatus.Type status,
-                         String semester,
-                         LocalDate startDate,
-                         LocalDate endDate,
-                         Set<UUID> lecturers,
-                         Set<UUID> students,
-                         Set<UUID> cloudResourceAccesses,
-                         String description
-    ) {
+    public Group restore(
+            UUID groupId,
+            String name,
+            GroupStatus.Type status,
+            String semester,
+            LocalDate startDate,
+            LocalDate endDate,
+            Set<UUID> lecturers,
+            Set<UUID> students,
+            Set<UUID> cloudResourceAccesses,
+            String description) {
         return Group.builder()
                 .groupId(GroupId.of(groupId))
                 .name(GroupName.of(name))
@@ -60,12 +56,8 @@ public class GroupFactory {
                 .semester(Semester.of(semester))
                 .startDate(StartDate.of(startDate))
                 .endDate(EndDate.of(endDate))
-                .lecturers(lecturers.stream()
-                        .map(UserId::of)
-                        .collect(Collectors.toSet()))
-                .students(students.stream()
-                        .map(UserId::of)
-                        .collect(Collectors.toSet()))
+                .lecturers(lecturers.stream().map(UserId::of).collect(Collectors.toSet()))
+                .students(students.stream().map(UserId::of).collect(Collectors.toSet()))
                 .cloudResourceAccesses(cloudResourceAccesses.stream()
                         .map(CloudResourceAccessId::of)
                         .collect(Collectors.toSet()))

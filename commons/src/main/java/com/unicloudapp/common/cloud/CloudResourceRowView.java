@@ -1,12 +1,11 @@
 package com.unicloudapp.common.cloud;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
 public record CloudResourceRowView(
@@ -21,7 +20,4 @@ public record CloudResourceRowView(
         String status,
         Integer notificationLevel1,
         Integer notificationLevel2,
-        Integer notificationLevel3
-) {
-
-}
+        Integer notificationLevel3) {}

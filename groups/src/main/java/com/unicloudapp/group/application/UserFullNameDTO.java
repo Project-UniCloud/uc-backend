@@ -1,7 +1,6 @@
 package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.user.UserFullName;
-
 import java.util.UUID;
 
 record UserFullNameDTO(UUID userId, String firstName, String lastName) {
@@ -10,7 +9,6 @@ record UserFullNameDTO(UUID userId, String firstName, String lastName) {
         return new UserFullNameDTO(
                 userFullName.userId().getValue(),
                 userFullName.firstName().getValue(),
-                userFullName.lastName().getValue()
-        );
+                userFullName.lastName().getValue());
     }
 }

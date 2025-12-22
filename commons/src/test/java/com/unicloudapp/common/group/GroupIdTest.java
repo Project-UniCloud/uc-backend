@@ -1,12 +1,11 @@
 package com.unicloudapp.common.group;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.unicloudapp.common.vo.group.GroupId;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class GroupIdTest {
 

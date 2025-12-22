@@ -1,27 +1,26 @@
 package com.unicloudapp.cloud.infrastructure.rest;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.cloud.application.CloudConnectorService;
 import com.unicloudapp.cloud.application.CloudResourceAccessService;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.support.CronExpression;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class CloudRestControllerTest {
 
@@ -36,13 +35,14 @@ class CloudRestControllerTest {
         controller = new CloudRestController(cloudResourceAccessService, cloudConnectorService);
     }
 
-    private CloudConnector buildConnector(String id,
-                                          String name,
-                                          String host,
-                                          int port,
-                                          BigDecimal defaultLimit,
-                                          String cron,
-                                          List<CloudResourceType> types) {
+    private CloudConnector buildConnector(
+            String id,
+            String name,
+            String host,
+            int port,
+            BigDecimal defaultLimit,
+            String cron,
+            List<CloudResourceType> types) {
         return CloudConnector.builder()
                 .cloudConnectorId(CloudConnectorId.of(id))
                 .name(name)
@@ -58,19 +58,26 @@ class CloudRestControllerTest {
     @DisplayName("getCloudConnectors maps domain page to view page")
     void getCloudConnectors_mapsPage() {
         CloudConnector a = buildConnector(
-                "a-client", "A", "localhost", 1234,
-                new BigDecimal("10.00"), "0 0 * * * *",
-                new ArrayList<>(List.of(CloudResourceType.of("S3")))
-        );
+                "a-client",
+                "A",
+                "localhost",
+                1234,
+                new BigDecimal("10.00"),
+                "0 0 * * * *",
+                new ArrayList<>(List.of(CloudResourceType.of("S3"))));
         CloudConnector b = buildConnector(
-                "b-client", "B", "localhost", 1235,
-                new BigDecimal("1"), "0 */5 * * * *",
-                new ArrayList<>(List.of(CloudResourceType.of("EC2")))
-        );
-        Page<CloudConnector> page = new PageImpl<>(List.of(a, b), PageRequest.of(0, 10), 2);
-        when(cloudResourceAccessService.getCloudResourceAccessClients(PageRequest.of(0, 10))).thenReturn(page);
+                "b-client",
+                "B",
+                "localhost",
+                1235,
+                new BigDecimal("1"),
+                "0 */5 * * * *",
+                new ArrayList<>(List.of(CloudResourceType.of("EC2"))));
+        Page<@NotNull CloudConnector> page = new PageImpl<>(List.of(a, b), PageRequest.of(0, 10), 2);
+        when(cloudResourceAccessService.getCloudResourceAccessClients(PageRequest.of(0, 10)))
+                .thenReturn(page);
 
-        Page<CloudConnectorRowView> result = controller.getCloudConnectors(0, 10);
+        Page<@NotNull CloudConnectorRowView> result = controller.getCloudConnectors(0, 10);
 
         assertEquals(2, result.getContent().size());
         CloudConnectorRowView first = result.getContent().getFirst();
@@ -84,10 +91,7 @@ class CloudRestControllerTest {
     @DisplayName("getCloudConnectorDetails returns details dto with inactive flag")
     void getCloudConnectorDetails_returnsDto() {
         CloudConnector details = buildConnector(
-                "conn-1", "Connector 1", "h", 1,
-                new BigDecimal("99.99"), "0 */10 * * * *",
-                new ArrayList<>()
-        );
+                "conn-1", "Connector 1", "h", 1, new BigDecimal("99.99"), "0 */10 * * * *", new ArrayList<>());
         when(cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of("conn-1")))
                 .thenReturn(details);
 
@@ -104,9 +108,7 @@ class CloudRestControllerTest {
     @DisplayName("postCloudConnector delegates to service with converted types")
     void postCloudConnector_delegates() {
         CloudConnectorSaveRequestDto request = new CloudConnectorSaveRequestDto(
-                "conn-2", "localhost", 8080,
-                new BigDecimal("12.34"), "0 */15 * * * *", "My Connector"
-        );
+                "conn-2", "localhost", 8080, new BigDecimal("12.34"), "0 */15 * * * *", "My Connector");
 
         controller.postCloudConnector(request);
 
@@ -117,10 +119,14 @@ class CloudRestControllerTest {
         ArgumentCaptor<CronExpression> cronCaptor = ArgumentCaptor.forClass(CronExpression.class);
         ArgumentCaptor<String> nameCaptor = ArgumentCaptor.forClass(String.class);
 
-        verify(cloudConnectorService).createConnector(
-                idCaptor.capture(), hostCaptor.capture(), portCaptor.capture(),
-                limitCaptor.capture(), cronCaptor.capture(), nameCaptor.capture()
-        );
+        verify(cloudConnectorService)
+                .createConnector(
+                        idCaptor.capture(),
+                        hostCaptor.capture(),
+                        portCaptor.capture(),
+                        limitCaptor.capture(),
+                        cronCaptor.capture(),
+                        nameCaptor.capture());
 
         assertEquals("conn-2", idCaptor.getValue().id());
         assertEquals("localhost", hostCaptor.getValue());

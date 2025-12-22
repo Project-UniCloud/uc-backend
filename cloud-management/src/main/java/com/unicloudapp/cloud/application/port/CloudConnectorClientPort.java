@@ -1,10 +1,9 @@
 package com.unicloudapp.cloud.application.port;
 
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.common.group.GroupUniqueName;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -12,11 +11,7 @@ import java.util.Map;
 
 public interface CloudConnectorClientPort {
 
-    void createGroup(
-            GroupUniqueName groupUniqueName,
-            List<UserLogin> lecturerLogins,
-            CloudResourceType resourceType
-    );
+    void createGroup(GroupUniqueName groupUniqueName, List<UserLogin> lecturerLogins, CloudResourceType resourceType);
 
     boolean isRunning();
 

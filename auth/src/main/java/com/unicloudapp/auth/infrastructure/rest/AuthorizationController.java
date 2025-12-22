@@ -5,7 +5,9 @@ import com.unicloudapp.auth.application.AuthenticatedResult;
 import com.unicloudapp.auth.application.port.in.AuthenticationUseCase;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -24,14 +26,10 @@ class AuthorizationController {
     private final AuthCookieConfigurationProperties authCookieConfigurationProperties;
 
     @PostMapping("/auth")
-    protected ResponseEntity<AuthenticateResponse> authenticate(
-            @Valid @RequestBody AuthenticateRequest authenticateRequest,
-            HttpServletResponse response
-    ) {
-        AuthenticatedResult authenticatedResult = authenticationUseCase.authenticate(
-                authenticateRequest.login(),
-                authenticateRequest.password()
-        );
+    protected ResponseEntity<@NotNull AuthenticateResponse> authenticate(
+            @Valid @RequestBody AuthenticateRequest authenticateRequest, HttpServletResponse response) {
+        AuthenticatedResult authenticatedResult =
+                authenticationUseCase.authenticate(authenticateRequest.login(), authenticateRequest.password());
         ResponseCookie cookie = ResponseCookie.from("jwt", authenticatedResult.token())
                 .httpOnly(true)
                 .secure(authCookieConfigurationProperties.secure())
@@ -46,7 +44,7 @@ class AuthorizationController {
     }
 
     @PostMapping("/auth/logout")
-    protected ResponseEntity<Void> logout() {
+    protected ResponseEntity<@NotNull Void> logout() {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
                 .secure(authCookieConfigurationProperties.secure())
@@ -55,7 +53,8 @@ class AuthorizationController {
                 .maxAge(0)
                 .build();
 
-        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+        HttpServletResponse response = ((ServletRequestAttributes)
+                        Objects.requireNonNull(RequestContextHolder.getRequestAttributes()))
                 .getResponse();
 
         if (response != null) {

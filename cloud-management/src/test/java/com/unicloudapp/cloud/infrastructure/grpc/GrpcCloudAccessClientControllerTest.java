@@ -1,26 +1,26 @@
 package com.unicloudapp.cloud.infrastructure.grpc;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.common.group.GroupUniqueName;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class GrpcCloudConnectorControllerTest {
 
-    private final CloudAdapterGrpc.CloudAdapterBlockingStub stub = mock(CloudAdapterGrpc.CloudAdapterBlockingStub.class);
+    private final CloudAdapterGrpc.CloudAdapterBlockingStub stub =
+            mock(CloudAdapterGrpc.CloudAdapterBlockingStub.class);
     private final GrpcCloudConnectorClientAdapter controller = new GrpcCloudConnectorClientAdapter(stub);
 
     @Test
@@ -34,7 +34,8 @@ class GrpcCloudConnectorControllerTest {
         AdapterInterface.GroupCreatedResponse response = AdapterInterface.GroupCreatedResponse.newBuilder()
                 .setGroupName("AI 2024L")
                 .build();
-        ArgumentCaptor<AdapterInterface.CreateGroupWithLeadersRequest> captor = ArgumentCaptor.forClass(AdapterInterface.CreateGroupWithLeadersRequest.class);
+        ArgumentCaptor<AdapterInterface.CreateGroupWithLeadersRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.CreateGroupWithLeadersRequest.class);
         when(stub.createGroupWithLeaders(captor.capture())).thenReturn(response);
 
         // Act
@@ -51,9 +52,8 @@ class GrpcCloudConnectorControllerTest {
     @Test
     @DisplayName("isRunning delegates to stub.getStatus")
     void isRunning_delegates() {
-        AdapterInterface.StatusResponse resp = AdapterInterface.StatusResponse.newBuilder()
-                .setIsHealthy(true)
-                .build();
+        AdapterInterface.StatusResponse resp =
+                AdapterInterface.StatusResponse.newBuilder().setIsHealthy(true).build();
         when(stub.getStatus(any())).thenReturn(resp);
 
         boolean healthy = controller.isRunning();
@@ -68,7 +68,8 @@ class GrpcCloudConnectorControllerTest {
         AdapterInterface.GroupExistsResponse resp = AdapterInterface.GroupExistsResponse.newBuilder()
                 .setExists(true)
                 .build();
-        ArgumentCaptor<AdapterInterface.GroupExistsRequest> captor = ArgumentCaptor.forClass(AdapterInterface.GroupExistsRequest.class);
+        ArgumentCaptor<AdapterInterface.GroupExistsRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.GroupExistsRequest.class);
         when(stub.groupExists(captor.capture())).thenReturn(resp);
 
         boolean exists = controller.isCloudGroupExists(name);
@@ -84,7 +85,8 @@ class GrpcCloudConnectorControllerTest {
         AdapterInterface.CreateUsersForGroupResponse resp = AdapterInterface.CreateUsersForGroupResponse.newBuilder()
                 .setMessage("ok")
                 .build();
-        ArgumentCaptor<AdapterInterface.CreateUsersForGroupRequest> captor = ArgumentCaptor.forClass(AdapterInterface.CreateUsersForGroupRequest.class);
+        ArgumentCaptor<AdapterInterface.CreateUsersForGroupRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.CreateUsersForGroupRequest.class);
         when(stub.createUsersForGroup(captor.capture())).thenReturn(resp);
 
         String message = controller.createUsers(users, group);
@@ -97,21 +99,23 @@ class GrpcCloudConnectorControllerTest {
     @Test
     @DisplayName("updateUsedCost returns UsedLimit for specified group")
     void updateUsedCost_returnsUsedLimit() {
-        AdapterInterface.CostResponse resp = AdapterInterface.CostResponse.newBuilder()
-                .setAmount(12.34)
-                .build();
+        AdapterInterface.CostResponse resp =
+                AdapterInterface.CostResponse.newBuilder().setAmount(12.34).build();
         when(stub.getTotalCostForGroup(any())).thenReturn(resp);
 
-        UsedLimit usedLimit = controller.updateUsedCost(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), GroupUniqueName.fromString("AI 2024L"));
+        UsedLimit usedLimit = controller.updateUsedCost(
+                LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 31), GroupUniqueName.fromString("AI 2024L"));
         assertEquals(0, usedLimit.getValue().compareTo(new BigDecimal("12.34")));
     }
 
     @Test
     @DisplayName("updateUsedCost with no costs returns zero UsedLimit")
     void updateUsedCost_empty() {
-        AdapterInterface.CostResponse resp = AdapterInterface.CostResponse.newBuilder().setAmount(0.0).build();
+        AdapterInterface.CostResponse resp =
+                AdapterInterface.CostResponse.newBuilder().setAmount(0.0).build();
         when(stub.getTotalCostForGroup(any())).thenReturn(resp);
-        UsedLimit usedLimit = controller.updateUsedCost(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(1), GroupUniqueName.fromString("AI 2024L"));
+        UsedLimit usedLimit = controller.updateUsedCost(
+                LocalDate.EPOCH, LocalDate.EPOCH.plusDays(1), GroupUniqueName.fromString("AI 2024L"));
         assertEquals(0, usedLimit.getValue().compareTo(BigDecimal.ZERO));
     }
 
@@ -123,7 +127,8 @@ class GrpcCloudConnectorControllerTest {
                 .setSuccess(true)
                 .addDeletedResources("bucket1")
                 .build();
-        ArgumentCaptor<AdapterInterface.CleanupGroupRequest> captor = ArgumentCaptor.forClass(AdapterInterface.CleanupGroupRequest.class);
+        ArgumentCaptor<AdapterInterface.CleanupGroupRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.CleanupGroupRequest.class);
         when(stub.cleanupGroupResources(captor.capture())).thenReturn(resp);
 
         assertDoesNotThrow(() -> controller.cleanUpResources(group, true));
@@ -146,7 +151,7 @@ class GrpcCloudConnectorControllerTest {
         assertTrue(ex.getMessage().contains("Cleanup group resources failed"));
         assertTrue(ex.getMessage().contains("oops"));
     }
-    
+
     @Test
     @DisplayName("removeGroup success sends request and does not throw")
     void removeGroup_success() {
@@ -155,7 +160,8 @@ class GrpcCloudConnectorControllerTest {
                 .setSuccess(true)
                 .addRemovedUsers("u1")
                 .build();
-        ArgumentCaptor<AdapterInterface.RemoveGroupRequest> captor = ArgumentCaptor.forClass(AdapterInterface.RemoveGroupRequest.class);
+        ArgumentCaptor<AdapterInterface.RemoveGroupRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.RemoveGroupRequest.class);
         when(stub.removeGroup(captor.capture())).thenReturn(resp);
 
         assertDoesNotThrow(() -> controller.removeGroup(group));
@@ -178,7 +184,8 @@ class GrpcCloudConnectorControllerTest {
         assertTrue(ex.getMessage().contains("oops"));
     }
 
-    // ================= New tests for issue: countCloudResources, getCostsPerResourceType, getTotalCostInTime =================
+    // ================= New tests for issue: countCloudResources, getCostsPerResourceType, getTotalCostInTime
+    // =================
 
     @Test
     @DisplayName("countCloudResources builds request and returns count")
@@ -186,10 +193,10 @@ class GrpcCloudConnectorControllerTest {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         CloudResourceType type = CloudResourceType.of("S3");
 
-        AdapterInterface.ResourceCountResponse resp = AdapterInterface.ResourceCountResponse.newBuilder()
-                .setCount(7)
-                .build();
-        ArgumentCaptor<AdapterInterface.ResourceCountRequest> captor = ArgumentCaptor.forClass(AdapterInterface.ResourceCountRequest.class);
+        AdapterInterface.ResourceCountResponse resp =
+                AdapterInterface.ResourceCountResponse.newBuilder().setCount(7).build();
+        ArgumentCaptor<AdapterInterface.ResourceCountRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.ResourceCountRequest.class);
         when(stub.getResourceCount(captor.capture())).thenReturn(resp);
 
         Integer count = controller.countCloudResources(group, type);
@@ -205,9 +212,8 @@ class GrpcCloudConnectorControllerTest {
     void countCloudResources_zeroCount() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
         CloudResourceType type = CloudResourceType.of("EC2");
-        AdapterInterface.ResourceCountResponse resp = AdapterInterface.ResourceCountResponse.newBuilder()
-                .setCount(0)
-                .build();
+        AdapterInterface.ResourceCountResponse resp =
+                AdapterInterface.ResourceCountResponse.newBuilder().setCount(0).build();
         when(stub.getResourceCount(any())).thenReturn(resp);
 
         Integer count = controller.countCloudResources(group, type);
@@ -223,14 +229,18 @@ class GrpcCloudConnectorControllerTest {
                 .putCosts("S3", 12.34)
                 .putCosts("EC2", 0.0)
                 .build();
-        ArgumentCaptor<AdapterInterface.GroupLast6MonthsCostRequest> captor = ArgumentCaptor.forClass(AdapterInterface.GroupLast6MonthsCostRequest.class);
+        ArgumentCaptor<AdapterInterface.GroupLast6MonthsCostRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.GroupLast6MonthsCostRequest.class);
         when(stub.getGroupCostsLast6MonthsByService(captor.capture())).thenReturn(resp);
 
-        Map<com.unicloudapp.common.vo.cloud.CloudResourceType, java.math.BigDecimal> map = controller.getCostsPerResourceType(group);
+        Map<com.unicloudapp.common.vo.cloud.CloudResourceType, java.math.BigDecimal> map =
+                controller.getCostsPerResourceType(group);
 
         assertEquals(2, map.size());
-        assertEquals(new java.math.BigDecimal("12.34"), map.get(com.unicloudapp.common.vo.cloud.CloudResourceType.of("S3")));
-        assertEquals(new java.math.BigDecimal("0.0"), map.get(com.unicloudapp.common.vo.cloud.CloudResourceType.of("EC2")));
+        assertEquals(
+                new java.math.BigDecimal("12.34"), map.get(com.unicloudapp.common.vo.cloud.CloudResourceType.of("S3")));
+        assertEquals(
+                new java.math.BigDecimal("0.0"), map.get(com.unicloudapp.common.vo.cloud.CloudResourceType.of("EC2")));
         assertEquals("AI 2024L", captor.getValue().getGroupName());
     }
 
@@ -238,10 +248,12 @@ class GrpcCloudConnectorControllerTest {
     @DisplayName("getCostsPerResourceType returns empty map when response has no entries")
     void getCostsPerResourceType_emptyMapReturnsEmpty() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
-        AdapterInterface.GroupCostMapResponse resp = AdapterInterface.GroupCostMapResponse.newBuilder().build();
+        AdapterInterface.GroupCostMapResponse resp =
+                AdapterInterface.GroupCostMapResponse.newBuilder().build();
         when(stub.getGroupCostsLast6MonthsByService(any())).thenReturn(resp);
 
-        Map<com.unicloudapp.common.vo.cloud.CloudResourceType, java.math.BigDecimal> map = controller.getCostsPerResourceType(group);
+        Map<com.unicloudapp.common.vo.cloud.CloudResourceType, java.math.BigDecimal> map =
+                controller.getCostsPerResourceType(group);
         assertTrue(map.isEmpty());
     }
 
@@ -254,7 +266,8 @@ class GrpcCloudConnectorControllerTest {
                 .putMonthCosts("01-01-2024", 1.23)
                 .putMonthCosts("15-02-2024", 4.56)
                 .build();
-        ArgumentCaptor<AdapterInterface.GroupLast6MonthsCostRequest> captor = ArgumentCaptor.forClass(AdapterInterface.GroupLast6MonthsCostRequest.class);
+        ArgumentCaptor<AdapterInterface.GroupLast6MonthsCostRequest> captor =
+                ArgumentCaptor.forClass(AdapterInterface.GroupLast6MonthsCostRequest.class);
         when(stub.getGroupMonthlyCostsLast6Months(captor.capture())).thenReturn(resp);
 
         Map<java.time.LocalDate, java.math.BigDecimal> map = controller.getTotalCostInTime(group);
@@ -271,7 +284,8 @@ class GrpcCloudConnectorControllerTest {
     @DisplayName("getTotalCostInTime returns empty map when response has no entries")
     void getTotalCostInTime_emptyMapReturnsEmpty() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
-        AdapterInterface.GroupMonthlyCostsResponse resp = AdapterInterface.GroupMonthlyCostsResponse.newBuilder().build();
+        AdapterInterface.GroupMonthlyCostsResponse resp =
+                AdapterInterface.GroupMonthlyCostsResponse.newBuilder().build();
         when(stub.getGroupMonthlyCostsLast6Months(any())).thenReturn(resp);
 
         Map<java.time.LocalDate, java.math.BigDecimal> map = controller.getTotalCostInTime(group);

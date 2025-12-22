@@ -1,19 +1,5 @@
 package com.unicloudapp.cloud.application;
 
-import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
-import com.unicloudapp.cloud.domain.connector.CloudConnector;
-import com.unicloudapp.common.vo.cloud.CloudConnectorId;
-import com.unicloudapp.common.vo.cloud.CostLimit;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.support.CronExpression;
-
-import java.math.BigDecimal;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -23,6 +9,19 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.unicloudapp.cloud.application.port.CloudConnectorRepositoryPort;
+import com.unicloudapp.cloud.domain.connector.CloudConnector;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
+import com.unicloudapp.common.vo.cloud.CostLimit;
+import java.math.BigDecimal;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.support.CronExpression;
 
 class CloudConnectorServiceTest {
 
@@ -66,9 +65,7 @@ class CloudConnectorServiceTest {
         // Present -> should throw and not save
         reset(repository);
         when(repository.findByClientId(id)).thenReturn(Optional.of(saved));
-        assertThrows(IllegalArgumentException.class, () ->
-                service.createConnector(id, host, port, limit, cron, name)
-        );
+        assertThrows(IllegalArgumentException.class, () -> service.createConnector(id, host, port, limit, cron, name));
         verify(repository, never()).save(any());
     }
 }

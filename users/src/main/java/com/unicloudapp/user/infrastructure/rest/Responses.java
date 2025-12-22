@@ -4,21 +4,16 @@ import com.unicloudapp.common.vo.user.UserRole;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
-record LecturerCreatedResponse(UUID lecturerId) {
-
-}
+record LecturerCreatedResponse(UUID lecturerId) {}
 
 @Builder
-record StudentCreatedResponse(UUID studentId) {
-
-}
+record StudentCreatedResponse(UUID studentId) {}
 
 @Builder
 record UserFoundResponse(
@@ -28,16 +23,11 @@ record UserFoundResponse(
         @NotBlank String lastName,
         @Nullable String email,
         @Nullable LocalDateTime lastLoginAt,
-        @NotNull Set<UserRole.Type> userRoles
-) {
-
-}
+        @NotNull Set<UserRole.Type> userRoles) {}
 
 record LecturerFullNameResponse(
         @NotNull UUID userId,
         @NotBlank String firstName,
         @NotBlank String lastName,
         @NotBlank String login,
-        @NotBlank String email
-) {
-}
+        @NotBlank String email) {}

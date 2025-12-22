@@ -1,9 +1,15 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.common.vo.cloud.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,13 +18,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SqlCloudResourceAccessRepositoryAdapterTest {
@@ -47,11 +46,43 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
         id1 = UUID.randomUUID();
         id2 = UUID.randomUUID();
 
-        entity1 = entity(id1, "client-A", "S3", new BigDecimal("10"), new BigDecimal("3"), LocalDate.of(2030, 1, 1), "@daily", CloudResourcesAccessStatus.Status.ACTIVE);
-        entity2 = entity(id2, "client-B", "EC2", new BigDecimal("20"), new BigDecimal("5"), null, "0 0 * * * *", CloudResourcesAccessStatus.Status.INACTIVE);
+        entity1 = entity(
+                id1,
+                "client-A",
+                "S3",
+                new BigDecimal("10"),
+                new BigDecimal("3"),
+                LocalDate.of(2030, 1, 1),
+                "@daily",
+                CloudResourcesAccessStatus.Status.ACTIVE);
+        entity2 = entity(
+                id2,
+                "client-B",
+                "EC2",
+                new BigDecimal("20"),
+                new BigDecimal("5"),
+                null,
+                "0 0 * * * *",
+                CloudResourcesAccessStatus.Status.INACTIVE);
 
-        domain1 = domain(id1, "client-A", "S3", new BigDecimal("10"), new BigDecimal("3"), LocalDate.of(2030, 1, 1), "@daily", CloudResourcesAccessStatus.Status.ACTIVE);
-        domain2 = domain(id2, "client-B", "EC2", new BigDecimal("20"), new BigDecimal("5"), null, "0 0 * * * *", CloudResourcesAccessStatus.Status.INACTIVE);
+        domain1 = domain(
+                id1,
+                "client-A",
+                "S3",
+                new BigDecimal("10"),
+                new BigDecimal("3"),
+                LocalDate.of(2030, 1, 1),
+                "@daily",
+                CloudResourcesAccessStatus.Status.ACTIVE);
+        domain2 = domain(
+                id2,
+                "client-B",
+                "EC2",
+                new BigDecimal("20"),
+                new BigDecimal("5"),
+                null,
+                "0 0 * * * *",
+                CloudResourcesAccessStatus.Status.INACTIVE);
     }
 
     @Test
@@ -68,6 +99,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void getCloudResourceAccesses_translatesIds_and_mapsToSet() {
         // given
         Set<CloudResourceAccessId> ids = Set.of(CloudResourceAccessId.of(id1), CloudResourceAccessId.of(id2));
@@ -88,10 +120,13 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void findAllById_translatesIds_and_mapsToList_preservingOrder() {
         // given
-        Set<CloudResourceAccessId> ids = new LinkedHashSet<>(List.of(CloudResourceAccessId.of(id1), CloudResourceAccessId.of(id2)));
-        when(repository.findAllById(any(Iterable.class))).thenReturn(List.of(entity2, entity1)); // repo may return different order
+        Set<CloudResourceAccessId> ids =
+                new LinkedHashSet<>(List.of(CloudResourceAccessId.of(id1), CloudResourceAccessId.of(id2)));
+        when(repository.findAllById(any(Iterable.class)))
+                .thenReturn(List.of(entity2, entity1)); // repo may return different order
         when(mapper.toDomain(entity2)).thenReturn(domain2);
         when(mapper.toDomain(entity1)).thenReturn(domain1);
 
@@ -107,7 +142,8 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
         // given
         CloudConnectorId clientId = CloudConnectorId.of("client-A");
         CloudResourceType resourceType = CloudResourceType.of("S3");
-        when(repository.findAllByCloudConnectorIdAndResourceType("client-A", "S3")).thenReturn(Set.of(entity1));
+        when(repository.findAllByCloudConnectorIdAndResourceType("client-A", "S3"))
+                .thenReturn(Set.of(entity1));
         when(mapper.toDomain(entity1)).thenReturn(domain1);
 
         // when
@@ -137,7 +173,8 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     void findAllByStatus_delegates_and_collectsToMap() {
         // given
         CloudResourcesAccessStatus status = CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE);
-        when(repository.findAllByStatus(CloudResourcesAccessStatus.Status.ACTIVE)).thenReturn(Set.of(entity1));
+        when(repository.findAllByStatus(CloudResourcesAccessStatus.Status.ACTIVE))
+                .thenReturn(Set.of(entity1));
         when(mapper.toDomain(entity1)).thenReturn(domain1);
 
         // when
@@ -162,30 +199,35 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void emptyRepositoryResults_returnEmptyCollections() {
         // given
         when(repository.findAllById(any(Iterable.class))).thenReturn(Collections.emptyList());
-        when(repository.findAllByCloudConnectorIdAndResourceType(anyString(), anyString())).thenReturn(Collections.emptySet());
+        when(repository.findAllByCloudConnectorIdAndResourceType(anyString(), anyString()))
+                .thenReturn(Collections.emptySet());
         when(repository.findAllByCloudConnectorId(anyString())).thenReturn(Collections.emptySet());
         when(repository.findAllByStatus(any())).thenReturn(Collections.emptySet());
 
         // when / then
         assertThat(adapter.getCloudResourceAccesses(Set.of())).isEmpty();
         assertThat(adapter.findAllById(Set.of())).isEmpty();
-        assertThat(adapter.findAllByCloudClientIdAndResourceType(CloudConnectorId.of("x"), CloudResourceType.of("y"))).isEmpty();
+        assertThat(adapter.findAllByCloudClientIdAndResourceType(CloudConnectorId.of("x"), CloudResourceType.of("y")))
+                .isEmpty();
         assertThat(adapter.findAllByCloudClientId(CloudConnectorId.of("x"))).isEmpty();
-        assertThat(adapter.findAllByStatus(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))).isEmpty();
+        assertThat(adapter.findAllByStatus(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE)))
+                .isEmpty();
     }
 
     // Helpers
-    private static CloudResourceAccessEntity entity(UUID id,
-                                            String clientId,
-                                            String resourceType,
-                                            BigDecimal cost,
-                                            BigDecimal used,
-                                            LocalDate expiresAt,
-                                            String cron,
-                                            CloudResourcesAccessStatus.Status status) {
+    private static CloudResourceAccessEntity entity(
+            UUID id,
+            String clientId,
+            String resourceType,
+            BigDecimal cost,
+            BigDecimal used,
+            LocalDate expiresAt,
+            String cron,
+            CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccessEntity.builder()
                 .cloudResourceAccessId(id)
                 .cloudConnectorId(clientId)
@@ -198,21 +240,25 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
                 .build();
     }
 
-    private static CloudResourceAccess domain(UUID id,
-                                      String clientId,
-                                      String resourceType,
-                                      BigDecimal cost,
-                                      BigDecimal used,
-                                      LocalDate expiresAt,
-                                      String cron,
-                                      CloudResourcesAccessStatus.Status status) {
+    private static CloudResourceAccess domain(
+            UUID id,
+            String clientId,
+            String resourceType,
+            BigDecimal cost,
+            BigDecimal used,
+            LocalDate expiresAt,
+            String cron,
+            CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccess.builder()
                 .cloudResourceAccessId(CloudResourceAccessId.of(id))
                 .cloudConnectorId(CloudConnectorId.of(clientId))
                 .cloudResourceType(CloudResourceType.of(resourceType))
                 .costLimit(CostLimit.of(cost))
                 .usedLimit(UsedLimit.of(used))
-                .expiresAt(expiresAt == null ? ExpiresDate.of(java.time.LocalDate.now().plusDays(30)) : ExpiresDate.expirable(expiresAt))
+                .expiresAt(
+                        expiresAt == null
+                                ? ExpiresDate.of(java.time.LocalDate.now().plusDays(30))
+                                : ExpiresDate.expirable(expiresAt))
                 .cronExpression(org.springframework.scheduling.support.CronExpression.parse(cron))
                 .status(CloudResourcesAccessStatus.of(status))
                 .build();

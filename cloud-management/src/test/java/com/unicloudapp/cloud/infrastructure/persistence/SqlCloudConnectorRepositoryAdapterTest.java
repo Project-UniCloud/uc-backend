@@ -1,9 +1,17 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,14 +21,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.support.CronExpression;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class SqlCloudConnectorRepositoryAdapterTest {
 
@@ -119,7 +119,7 @@ class SqlCloudConnectorRepositoryAdapterTest {
         Pageable pageable = PageRequest.of(1, 2);
         CloudConnectorEntity e1 = sampleEntity("x");
         CloudConnectorEntity e2 = sampleEntity("y");
-        Page<CloudConnectorEntity> entityPage = new PageImpl<>(List.of(e1, e2), pageable, 7);
+        Page<@NotNull CloudConnectorEntity> entityPage = new PageImpl<>(List.of(e1, e2), pageable, 7);
 
         CloudConnector d1 = sampleDomain("x");
         CloudConnector d2 = sampleDomain("y");
@@ -128,7 +128,7 @@ class SqlCloudConnectorRepositoryAdapterTest {
         when(mapper.toDomain(e1)).thenReturn(d1);
         when(mapper.toDomain(e2)).thenReturn(d2);
 
-        Page<CloudConnector> result = adapter.findAll(pageable);
+        Page<@NotNull CloudConnector> result = adapter.findAll(pageable);
 
         assertEquals(2, result.getContent().size());
         assertEquals(List.of(d1, d2), result.getContent());

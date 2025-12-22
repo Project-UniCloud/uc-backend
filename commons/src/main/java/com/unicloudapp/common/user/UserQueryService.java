@@ -3,12 +3,12 @@ package com.unicloudapp.common.user;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
-import org.springframework.data.domain.Page;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
 
 public interface UserQueryService {
 
@@ -16,7 +16,7 @@ public interface UserQueryService {
 
     Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds);
 
-    Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize);
+    Page<@NotNull UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize);
 
     List<UserLogin> getUserLoginsByIds(Set<UserId> userIds);
 

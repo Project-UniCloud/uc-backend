@@ -8,11 +8,7 @@ import lombok.Builder;
 
 @Builder
 public record CreateStudentCommand(
-        @StudentLogin
-        @NotBlank
-        @Size(min = 7, max = 7)
-        String login,
+        @StudentLogin @NotBlank @Size(min = 7, max = 7) String login,
         @NotBlank String firstName,
         @NotBlank String lastName,
-        @Email String email
-) { }
+        @Email String email) {}

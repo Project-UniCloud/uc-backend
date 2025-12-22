@@ -2,11 +2,11 @@ package com.unicloudapp.cloud.application.port;
 
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CloudConnectorRepositoryPort {
 
@@ -16,5 +16,5 @@ public interface CloudConnectorRepositoryPort {
 
     List<CloudConnector> findAll();
 
-    Page<CloudConnector> findAll(Pageable pageable);
+    Page<@NotNull CloudConnector> findAll(Pageable pageable);
 }

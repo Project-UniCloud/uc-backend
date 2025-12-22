@@ -1,39 +1,38 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import tools.jackson.databind.ObjectMapper;
-import com.unicloudapp.common.vo.group.GroupId;
-import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.common.user.UserValidationService;
-import com.unicloudapp.group.application.GroupDTO;
-import com.unicloudapp.group.application.GroupService;
-import com.unicloudapp.group.application.port.StudentImporterPort;
-import com.unicloudapp.group.domain.Group;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.aot.DisabledInAotMode;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.UUID;
-
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserValidationService;
+import com.unicloudapp.common.vo.group.GroupId;
+import com.unicloudapp.group.application.GroupDTO;
+import com.unicloudapp.group.application.GroupService;
+import com.unicloudapp.group.application.port.StudentImporterPort;
+import com.unicloudapp.group.domain.Group;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.aot.DisabledInAotMode;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.ObjectMapper;
 
 @ContextConfiguration(classes = GroupRestController.class)
 @DisabledInAotMode
@@ -62,35 +61,22 @@ class GroupRestControllerDiffblueTest {
     @Tag("MaintainedByDiffblue")
     void testCreateGroup() throws Exception {
         // Arrange
-        MockHttpServletRequestBuilder contentTypeResult = MockMvcRequestBuilders.post("/groups")
-                .contentType(MediaType.APPLICATION_JSON);
+        MockHttpServletRequestBuilder contentTypeResult =
+                MockMvcRequestBuilders.post("/groups").contentType(MediaType.APPLICATION_JSON);
 
         ObjectMapper objectMapper = new ObjectMapper();
         HashSet<UUID> lecturers = new HashSet<>();
-        LocalDate startDate = LocalDate.of(1970,
-                1,
-                1
-        );
-        MockHttpServletRequestBuilder requestBuilder = contentTypeResult.content(objectMapper.writeValueAsString(
-                new CreateGroupRequest("Name",
-                        "Semester",
-                        lecturers,
-                        startDate,
-                        LocalDate.of(1970,
-                                1,
-                                1
-                        ),
-                        "Description"
-                )));
+        LocalDate startDate = LocalDate.of(1970, 1, 1);
+        MockHttpServletRequestBuilder requestBuilder =
+                contentTypeResult.content(objectMapper.writeValueAsString(new CreateGroupRequest(
+                        "Name", "Semester", lecturers, startDate, LocalDate.of(1970, 1, 1), "Description")));
         Group group = mock(Group.class);
         UUID uuid = UUID.randomUUID();
         when(group.getGroupId()).thenReturn(GroupId.of(uuid));
         when(groupService.createGroup(Mockito.any())).thenReturn(group);
 
         // Act
-        MockMvcBuilders.standaloneSetup(groupRestController)
-                .build()
-                .perform(requestBuilder);
+        MockMvcBuilders.standaloneSetup(groupRestController).build().perform(requestBuilder);
     }
 
     /**
@@ -118,30 +104,16 @@ class GroupRestControllerDiffblueTest {
         when(groupService.createGroup(Mockito.any())).thenReturn(group);
         GroupRestController groupRestController = new GroupRestController(groupService, studentBasicData);
         HashSet<UUID> lecturers = new HashSet<>();
-        LocalDate startDate = LocalDate.of(1970,
-                1,
-                1
-        );
+        LocalDate startDate = LocalDate.of(1970, 1, 1);
 
         // Act
-        UUID actualCreateGroupResult = groupRestController
-                .createGroup(new CreateGroupRequest("Name",
-                        "Semester",
-                        lecturers,
-                        startDate,
-                        LocalDate.of(1970,
-                                1,
-                                1
-                        ),
-                        "Description"
-                ));
+        UUID actualCreateGroupResult = groupRestController.createGroup(new CreateGroupRequest(
+                "Name", "Semester", lecturers, startDate, LocalDate.of(1970, 1, 1), "Description"));
 
         // Assert
         verify(groupService).createGroup(isA(GroupDTO.class));
         verify(group).getGroupId();
-        assertSame(uuid,
-                actualCreateGroupResult
-        );
+        assertSame(uuid, actualCreateGroupResult);
     }
 
     @Test
@@ -156,13 +128,12 @@ class GroupRestControllerDiffblueTest {
                 .login("s123123")
                 .build();
 
-        doNothing().when(groupService)
-                .addStudent(Mockito.any(), Mockito.any());
+        doNothing().when(groupService).addStudent(Mockito.any(), Mockito.any());
 
         String json = new ObjectMapper().writeValueAsString(requestData);
 
-        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
-                .post("/groups/{groupId}/students", groupId)
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.post(
+                        "/groups/{groupId}/students", groupId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json);
 

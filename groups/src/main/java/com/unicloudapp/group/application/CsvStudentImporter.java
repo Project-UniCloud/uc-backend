@@ -4,21 +4,20 @@ import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.group.application.port.StudentImporterPort;
-import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 @Component
 class CsvStudentImporter implements StudentImporterPort {
 
     public List<StudentBasicData> parseCsv(MultipartFile file) throws IOException {
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader =
+                new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
 
             CsvToBean<StudentCsv> csvToBean = new CsvToBeanBuilder<StudentCsv>(reader)
                     .withType(StudentCsv.class)
@@ -27,21 +26,17 @@ class CsvStudentImporter implements StudentImporterPort {
                     .withThrowExceptions(true)
                     .build();
 
-
-            List<StudentBasicData> studentBasicDataList = csvToBean.parse()
-                    .stream()
+            List<StudentBasicData> studentBasicDataList = csvToBean.parse().stream()
                     .map(studentCsv -> new StudentBasicData(
                             studentCsv.getFirstName(),
                             studentCsv.getLastName(),
                             "s" + studentCsv.getLogin(),
-                            studentCsv.getEmail()
-                    ))
+                            studentCsv.getEmail()))
                     .toList();
             if (studentBasicDataList.isEmpty() || studentBasicDataList.stream().anyMatch(s -> s.getLogin() == null)) {
                 throw new RuntimeException("CSV format is invalid or missing required columns");
             }
             return studentBasicDataList;
-
         }
     }
 }

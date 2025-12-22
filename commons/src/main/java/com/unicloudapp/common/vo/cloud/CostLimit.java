@@ -1,10 +1,9 @@
 package com.unicloudapp.common.vo.cloud;
 
+import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-
-import java.math.BigDecimal;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

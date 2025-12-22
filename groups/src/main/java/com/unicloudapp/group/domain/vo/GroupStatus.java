@@ -15,8 +15,9 @@ public class GroupStatus {
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Getter
     public enum Type {
-
-        ACTIVE("Aktywna"), INACTIVE("Nieaktywna"), ARCHIVED("Zarchiwizowana");
+        ACTIVE("Aktywna"),
+        INACTIVE("Nieaktywna"),
+        ARCHIVED("Zarchiwizowana");
 
         private final String displayName;
     }

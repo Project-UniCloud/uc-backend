@@ -4,6 +4,7 @@ import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,7 +23,8 @@ class ExpiredGroupsCleaner {
                 .status(GroupStatus.of(GroupStatus.Type.ACTIVE))
                 .pastExpiresDate(true)
                 .build();
-        Page<GroupRowProjection> allByCriteria = groupRepository.findAllByCriteria(groupFilterCriteria, Pageable.unpaged());
+        Page<@NotNull GroupRowProjection> allByCriteria =
+                groupRepository.findAllByCriteria(groupFilterCriteria, Pageable.unpaged());
         allByCriteria.forEach(group -> groupService.archive(GroupId.of(group.getUuid())));
     }
 }

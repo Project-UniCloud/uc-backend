@@ -3,6 +3,10 @@ package com.unicloudapp.auth.application;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.user.UserLogin;
+import java.time.Clock;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -25,11 +29,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.time.Clock;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
@@ -40,31 +39,27 @@ class SecurityConfig {
             HttpSecurity http,
             UserDetailsService userDetailsService,
             JwtConfigurationProperties jwtProperties,
-            CorsConfigurationSource corsConfigurationSource
-    ) {
+            CorsConfigurationSource corsConfigurationSource) {
         return http.csrf(AbstractHttpConfigurer::disable) // NOSONAR - Using stateless JWT authentication
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                                "/auth", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .addFilterBefore(
                         new JwtAuthenticationFilter(
                                 new JwtTokenParser(jwtProperties.secret()),
                                 userDetailsService,
-                                new JwtValidator(jwtProperties.secret())
-                        ),
-                        UsernamePasswordAuthenticationFilter.class
-                )
+                                new JwtValidator(jwtProperties.secret())),
+                        UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            LdapAuthenticationProvider ldapAuthProvider
-    ) {
+    public AuthenticationManager authenticationManager(LdapAuthenticationProvider ldapAuthProvider) {
         return new ProviderManager(List.of(ldapAuthProvider));
     }
 
@@ -77,13 +72,13 @@ class SecurityConfig {
     Clock clock() {
         return Clock.systemUTC();
     }
-    
+
     @Bean
-    UserDetailsService userDetailsService(
-            UserQueryService userQueryService
-    ) {
+    UserDetailsService userDetailsService(UserQueryService userQueryService) {
         return username -> {
-            UserDetails userDetails = userQueryService.getUserDetailsByUsername(UserLogin.of(username)).orElseThrow();
+            UserDetails userDetails = userQueryService
+                    .getUserDetailsByUsername(UserLogin.of(username))
+                    .orElseThrow();
             return User.builder()
                     .username(userDetails.login().getValue())
                     .roles(userDetails.roles().getRoles().stream()

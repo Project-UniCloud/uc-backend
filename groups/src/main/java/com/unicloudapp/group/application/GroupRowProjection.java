@@ -7,9 +7,14 @@ import java.util.UUID;
 public interface GroupRowProjection {
 
     UUID getUuid();
+
     String getName();
+
     String getSemester();
+
     LocalDate getEndDate();
+
     Set<UUID> getLecturers();
+
     Set<UUID> getCloudResourceAccesses();
 }

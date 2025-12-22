@@ -1,5 +1,7 @@
 package com.unicloudapp.cloud.domain.access;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
@@ -7,18 +9,15 @@ import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
+import java.math.BigDecimal;
+import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.scheduling.support.CronExpression;
-
-import java.math.BigDecimal;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class CloudResourceAccessFactoryTest {
 
@@ -46,7 +45,8 @@ class CloudResourceAccessFactoryTest {
 
         // Defaults from factory
         assertEquals(UsedLimit.empty().getValue(), access.getUsedLimit().getValue());
-        assertEquals(CloudResourcesAccessStatus.Status.INACTIVE, access.getStatus().getStatus());
+        assertEquals(
+                CloudResourcesAccessStatus.Status.INACTIVE, access.getStatus().getStatus());
         assertEquals(50, access.getNotificationLevel1().level());
         assertEquals(80, access.getNotificationLevel2().level());
         assertEquals(95, access.getNotificationLevel3().level());
@@ -72,21 +72,28 @@ class CloudResourceAccessFactoryTest {
     @ParameterizedTest
     @MethodSource("invalidRequiredArgs")
     @DisplayName("create throws IllegalArgumentException when required args are null")
-    void create_throwsOnNullRequired(CloudResourceAccessId id,
-                                     CloudConnectorId connectorId,
-                                     CloudResourceType type,
-                                     CostLimit cost) {
-        assertThrows(IllegalArgumentException.class, () ->
-                factory.create(id, connectorId, type, cost, null, null)
-        );
+    void create_throwsOnNullRequired(
+            CloudResourceAccessId id, CloudConnectorId connectorId, CloudResourceType type, CostLimit cost) {
+        assertThrows(IllegalArgumentException.class, () -> factory.create(id, connectorId, type, cost, null, null));
     }
 
     private static Stream<Arguments> invalidRequiredArgs() {
         return Stream.of(
                 Arguments.of(null, CloudConnectorId.of("x"), CloudResourceType.of("S3"), CostLimit.of(BigDecimal.ONE)),
-                Arguments.of(CloudResourceAccessId.of(UUID.randomUUID()), null, CloudResourceType.of("S3"), CostLimit.of(BigDecimal.ONE)),
-                Arguments.of(CloudResourceAccessId.of(UUID.randomUUID()), CloudConnectorId.of("x"), null, CostLimit.of(BigDecimal.ONE)),
-                Arguments.of(CloudResourceAccessId.of(UUID.randomUUID()), CloudConnectorId.of("x"), CloudResourceType.of("S3"), null)
-        );
+                Arguments.of(
+                        CloudResourceAccessId.of(UUID.randomUUID()),
+                        null,
+                        CloudResourceType.of("S3"),
+                        CostLimit.of(BigDecimal.ONE)),
+                Arguments.of(
+                        CloudResourceAccessId.of(UUID.randomUUID()),
+                        CloudConnectorId.of("x"),
+                        null,
+                        CostLimit.of(BigDecimal.ONE)),
+                Arguments.of(
+                        CloudResourceAccessId.of(UUID.randomUUID()),
+                        CloudConnectorId.of("x"),
+                        CloudResourceType.of("S3"),
+                        null));
     }
 }

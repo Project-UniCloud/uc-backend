@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
@@ -18,19 +17,16 @@ record CreateGroupRequest(
         @NotEmpty Set<UUID> lecturers,
         @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
         @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
-        String description
-) { }
+        String description) {}
 
 record GiveCloudResourceAccessRequest(
         @NotBlank String cloudConnectorId,
         @NotBlank String cloudResourceType,
-        @PositiveOrZero BigDecimal costLimit
-) {}
+        @PositiveOrZero BigDecimal costLimit) {}
 
 record UpdateGroupDetailsRequest(
         @GroupName String name,
         @NotEmpty Set<UUID> lecturers,
         @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
         @NotNull @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,
-        String description
-) {}
+        String description) {}

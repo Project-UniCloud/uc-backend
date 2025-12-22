@@ -3,16 +3,23 @@ package com.unicloudapp.auth.infrastructure.ldap;
 import com.unicloudapp.auth.application.LdapProperties;
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import com.unicloudapp.common.auth.AdminProperties;
-import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.user.FirstName;
-import com.unicloudapp.common.vo.user.LastName;
-import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserCreateCommand;
 import com.unicloudapp.common.user.UserExternalQueryService;
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.FirstName;
+import com.unicloudapp.common.vo.user.LastName;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import javax.naming.directory.DirContext;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,14 +35,6 @@ import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-
-import javax.naming.directory.DirContext;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -60,11 +59,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             filter.and(new EqualsFilter("objectClass", "user"));
             filter.and(new EqualsFilter("sAMAccountName", username));
 
-            List<UserRecord> found = ldapTemplate.search(
-                    "",
-                    filter.encode(),
-                    buildUserContextMapper()
-            );
+            List<UserRecord> found = ldapTemplate.search("", filter.encode(), buildUserContextMapper());
 
             if (found.isEmpty()) {
                 return null;
@@ -79,15 +74,13 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             UserRole role = UserRole.of(roleTypes);
 
             if (!userQueryService.existsByLogin(username)) {
-                userCommandService.createUser(
-                        UserCreateCommand.builder()
-                                .userLogin(UserLogin.of(username))
-                                .firstName(FirstName.of(user.firstName()))
-                                .lastName(LastName.of(user.lastName()))
-                                .userRole(role)
-                                .email(Email.of(user.email()))
-                                .build()
-                );
+                userCommandService.createUser(UserCreateCommand.builder()
+                        .userLogin(UserLogin.of(username))
+                        .firstName(FirstName.of(user.firstName()))
+                        .lastName(LastName.of(user.lastName()))
+                        .userRole(role)
+                        .email(Email.of(user.email()))
+                        .build());
             }
 
             return role;
@@ -101,9 +94,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
     }
 
     private UserRole.Type mapOuToRoleType(String dn) {
-        return dn != null && dn.contains("OU=Faculty")
-                ? UserRole.Type.LECTURER
-                : UserRole.Type.STUDENT;
+        return dn != null && dn.contains("OU=Faculty") ? UserRole.Type.LECTURER : UserRole.Type.STUDENT;
     }
 
     @Override
@@ -128,11 +119,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
 
             String facultyBaseDn = ldapProperties.facultyPeopleOu();
 
-            List<UserRecord> found = ldapTemplate.search(
-                    facultyBaseDn,
-                    filter.encode(),
-                    buildUserContextMapper()
-            );
+            List<UserRecord> found = ldapTemplate.search(facultyBaseDn, filter.encode(), buildUserContextMapper());
 
             List<UserFullNameAndLoginProjection> users = new ArrayList<>();
             for (UserRecord ur : found) {
@@ -143,13 +130,16 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
 
                 users.add(new DefaultUserFullNameAndLoginProjection(
                         userQueryService.existsByLogin(login)
-                                ? userQueryService.getUserDetailsByUsername(UserLogin.of(login))
-                                .orElseThrow()
-                                .userId()
-                                .getValue()
+                                ? userQueryService
+                                        .getUserDetailsByUsername(UserLogin.of(login))
+                                        .orElseThrow()
+                                        .userId()
+                                        .getValue()
                                 : null,
-                        login, firstName, lastName, email)
-                );
+                        login,
+                        firstName,
+                        lastName,
+                        email));
             }
 
             return users;

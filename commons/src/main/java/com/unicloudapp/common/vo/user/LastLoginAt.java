@@ -1,11 +1,10 @@
 package com.unicloudapp.common.vo.user;
 
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.jetbrains.annotations.Nullable;
-
-import java.time.LocalDateTime;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

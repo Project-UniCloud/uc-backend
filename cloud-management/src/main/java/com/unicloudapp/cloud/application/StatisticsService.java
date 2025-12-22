@@ -5,10 +5,6 @@ import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -17,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,16 +31,18 @@ public class StatisticsService {
         int allActiveResourcesCount = 0;
         BigDecimal averageActiveGroupCost = BigDecimal.ZERO;
         for (GroupCloudDto activeGroup : activeGroups) {
-            List<CloudResourceRowView> cloudResourceDetails
-                    = cloudResourceAccessService.getCloudResourceDetails(new HashSet<>(activeGroup.cloudResourceAccesses()));
+            List<CloudResourceRowView> cloudResourceDetails = cloudResourceAccessService.getCloudResourceDetails(
+                    new HashSet<>(activeGroup.cloudResourceAccesses()));
             for (CloudResourceRowView cloudResourceDetail : cloudResourceDetails) {
                 overallCostFromActiveGroups = overallCostFromActiveGroups.add(cloudResourceDetail.limitUsed());
             }
-            GroupCloudDto groupCloudDto = new GroupCloudDto(activeGroup.groupUniqueName(), activeGroup.cloudResourceAccesses());
+            GroupCloudDto groupCloudDto =
+                    new GroupCloudDto(activeGroup.groupUniqueName(), activeGroup.cloudResourceAccesses());
             allActiveResourcesCount += cloudResourceAccessService.countResources(groupCloudDto);
         }
         if (!activeGroups.isEmpty()) {
-            averageActiveGroupCost = overallCostFromActiveGroups.divide(BigDecimal.valueOf(activeGroups.size()), 2, RoundingMode.HALF_UP);
+            averageActiveGroupCost = overallCostFromActiveGroups.divide(
+                    BigDecimal.valueOf(activeGroups.size()), 2, RoundingMode.HALF_UP);
         }
         return new OverallCostValuesDto(overallCostFromActiveGroups, allActiveResourcesCount, averageActiveGroupCost);
     }
@@ -50,11 +51,11 @@ public class StatisticsService {
         List<GroupCloudDto> activeGroups = groupQueryService.getActiveGroups();
         Map<CloudResourceType, BigDecimal> result = new HashMap<>();
         for (GroupCloudDto activeGroup : activeGroups) {
-            Map<CloudResourceType, BigDecimal> costsPerResourceType = cloudResourceAccessService.getCostsByResourceTypes(activeGroup);
+            Map<CloudResourceType, BigDecimal> costsPerResourceType =
+                    cloudResourceAccessService.getCostsByResourceTypes(activeGroup);
             result.putAll(costsPerResourceType);
         }
-        return result.entrySet()
-                .stream()
+        return result.entrySet().stream()
                 .map(entry -> new CostPerResourceTypeDto(entry.getKey().toString(), entry.getValue()))
                 .toList();
     }
@@ -63,16 +64,15 @@ public class StatisticsService {
         List<GroupCloudDto> activeGroups = groupQueryService.getActiveGroups();
         Map<GroupUniqueName, BigDecimal> result = new HashMap<>();
         for (GroupCloudDto activeGroup : activeGroups) {
-            List<CloudResourceRowView> cloudResourceDetails
-                    = cloudResourceAccessService.getCloudResourceDetails(new HashSet<>(activeGroup.cloudResourceAccesses()));
+            List<CloudResourceRowView> cloudResourceDetails = cloudResourceAccessService.getCloudResourceDetails(
+                    new HashSet<>(activeGroup.cloudResourceAccesses()));
             BigDecimal overallCost = BigDecimal.ZERO;
             for (CloudResourceRowView cloudResourceDetail : cloudResourceDetails) {
                 overallCost = overallCost.add(cloudResourceDetail.limitUsed());
             }
             result.put(activeGroup.groupUniqueName(), overallCost);
         }
-        return result.entrySet()
-                .stream()
+        return result.entrySet().stream()
                 .map(entry -> new CostPerGroupDto(entry.getKey().toString(), entry.getValue()))
                 .toList();
     }
@@ -85,21 +85,17 @@ public class StatisticsService {
             totalCostInTime.forEach((key, value) ->
                     result.put(key, result.getOrDefault(key, BigDecimal.ZERO).add(value)));
         }
-        return result.entrySet()
-                .stream()
+        return result.entrySet().stream()
                 .map(entry -> new CostPerMonthDto(entry.getKey(), entry.getValue()))
                 .toList();
     }
 
     public record OverallCostValuesDto(
-            BigDecimal overallCostFromActiveGroups,
-            int allActiveResourcesCount,
-            BigDecimal averageActiveGroupCost
-    ) { }
+            BigDecimal overallCostFromActiveGroups, int allActiveResourcesCount, BigDecimal averageActiveGroupCost) {}
 
-    public record CostPerMonthDto(LocalDate date, BigDecimal cost) { }
+    public record CostPerMonthDto(LocalDate date, BigDecimal cost) {}
 
-    public record CostPerResourceTypeDto(String resourceType, BigDecimal cost) { }
+    public record CostPerResourceTypeDto(String resourceType, BigDecimal cost) {}
 
-    public record CostPerGroupDto(String groupUniqueName, BigDecimal cost) { }
+    public record CostPerGroupDto(String groupUniqueName, BigDecimal cost) {}
 }

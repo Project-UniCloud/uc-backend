@@ -1,5 +1,9 @@
 package com.unicloudapp.notifications;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.common.cloud.event.CloudBudgetThresholdExceededEvent;
 import com.unicloudapp.common.cloud.event.CloudUserCreatedEvent;
 import com.unicloudapp.common.group.GroupDto;
@@ -14,19 +18,14 @@ import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
 import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mail.javamail.JavaMailSender;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 class NotificationServiceTest {
 
@@ -55,7 +54,7 @@ class NotificationServiceTest {
                 .build();
 
         when(userQueryService.getUserDetailsByUsername(userLogin)).thenReturn(Optional.of(userDetails));
-        
+
         MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
         when(mailSender.createMimeMessage()).thenReturn(mimeMessage);
 
@@ -66,8 +65,9 @@ class NotificationServiceTest {
         ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender).send(captor.capture());
         MimeMessage sentMessage = captor.getValue();
-        
-        assertThat(sentMessage.getRecipients(MimeMessage.RecipientType.TO)[0].toString()).isEqualTo("test@example.com");
+
+        assertThat(sentMessage.getRecipients(MimeMessage.RecipientType.TO)[0].toString())
+                .isEqualTo("test@example.com");
         assertThat(sentMessage.getSubject()).isEqualTo("Your access to cloud resources has been granted");
     }
 
@@ -111,7 +111,7 @@ class NotificationServiceTest {
 
     @Test
     @DisplayName("Should send email to admins when CloudBudgetThresholdExceededEvent is handled")
-    void shouldSendEmailToAdminsWhenCloudBudgetThresholdExceededEventHandled() throws Exception {
+    void shouldSendEmailToAdminsWhenCloudBudgetThresholdExceededEventHandled() {
         // given
         CloudResourceAccessId cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID());
         CloudBudgetThresholdExceededEvent event = CloudBudgetThresholdExceededEvent.builder()
@@ -140,9 +140,7 @@ class NotificationServiceTest {
 
         MimeMessage adminMimeMessage = new MimeMessage(Session.getInstance(new Properties()));
         MimeMessage lecturerMimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-        when(mailSender.createMimeMessage())
-                .thenReturn(adminMimeMessage)
-                .thenReturn(lecturerMimeMessage);
+        when(mailSender.createMimeMessage()).thenReturn(adminMimeMessage).thenReturn(lecturerMimeMessage);
 
         // when
         notificationService.handle(event);
@@ -154,18 +152,24 @@ class NotificationServiceTest {
 
         assertThat(sentMessages).hasSize(2);
         assertThat(sentMessages.stream().anyMatch(msg -> {
-            try {
-                return msg.getRecipients(MimeMessage.RecipientType.TO)[0].toString().equals("admin@example.com");
-            } catch (Exception e) {
-                return false;
-            }
-        })).isTrue();
+                    try {
+                        return msg.getRecipients(MimeMessage.RecipientType.TO)[0]
+                                .toString()
+                                .equals("admin@example.com");
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }))
+                .isTrue();
         assertThat(sentMessages.stream().anyMatch(msg -> {
-            try {
-                return msg.getRecipients(MimeMessage.RecipientType.TO)[0].toString().equals("lecturer@example.com");
-            } catch (Exception e) {
-                return false;
-            }
-        })).isTrue();
+                    try {
+                        return msg.getRecipients(MimeMessage.RecipientType.TO)[0]
+                                .toString()
+                                .equals("lecturer@example.com");
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }))
+                .isTrue();
     }
 }
