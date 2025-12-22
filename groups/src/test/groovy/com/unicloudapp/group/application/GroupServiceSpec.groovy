@@ -123,54 +123,6 @@ class GroupServiceSpec extends Specification {
         exception.message == "Start date cannot be after end date."
     }
 
-    //TODO
-    /*def "should add a student to the group"() {
-        given:
-        def groupId = GroupId.of(UUID.randomUUID())
-        def studentBasicData = new StudentBasicData(
-                "John",
-                "Doe",
-                "john.doe@example.com",
-                "123456"
-        )
-        def userId = UserId.of(UUID.randomUUID())
-        def group = Mock(Group)
-
-        when:
-        groupService.addStudent(groupId, studentBasicData)
-
-        then:
-        1 * userCommandService.createStudent(studentBasicData) >> userId
-        1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
-        1 * group.addStudent(userId)
-        1 * groupRepository.save(group) >> group
-    }*/
-
-    //TODO
-    /*def "should add multiple students to the group"() {
-        given:
-        def groupId = GroupId.of(UUID.randomUUID())
-        def studentBasicDataList = [
-            new StudentBasicData("John", "Doe", "john.doe@example.com", "123456"),
-            new StudentBasicData("Jane", "Smith", "jane.smith@example.com", "789012")
-        ]
-        def userIds = [
-            UserId.of(UUID.randomUUID()),
-            UserId.of(UUID.randomUUID())
-        ]
-        def group = Mock(Group)
-
-        when:
-        groupService.addStudents(groupId, studentBasicDataList)
-
-        then:
-        1 * userCommandService.importStudents(studentBasicDataList) >> userIds
-        1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
-        1 * group.addStudent(userIds[0])
-        1 * group.addStudent(userIds[1])
-        1 * groupRepository.save(group) >> group
-    }*/
-
     def "should throw exception when adding students to non-existent group"() {
         given:
         def groupId = GroupId.of(UUID.randomUUID())
@@ -290,31 +242,6 @@ class GroupServiceSpec extends Specification {
         def exception = thrown(RuntimeException)
         exception.message == "Group not found with id: " + groupId
     }
-
-    //TODO
-    /*def "should get all groups by status"() {
-        given:
-        def pageable = PageRequest.of(0, 10)
-        def status = GroupStatus.Type.ACTIVE
-        def groupProjection = Mock(GroupRowProjection)
-        def userId = UUID.randomUUID()
-        def userFullName = new UserFullName(UserId.of(userId), FirstName.of("John"), LastName.of("Doe"))
-        def cloudResourceType = CloudResourceType.of("ec2")
-
-        when:
-        def result = groupService.getAllGroupsByStatus(pageable, status, null)
-
-        then:
-        1 * groupRepository.findAllByStatus(0, 10, status) >> [groupProjection]
-        1 * groupRepository.countByStatus(status) >> 1L
-        2 * groupProjection.getLecturers() >> [userId]
-        3 * groupProjection.getUuid() >> UUID.randomUUID()
-        1 * groupProjection.getCloudResourceAccesses() >> [UUID.randomUUID()]
-        1 * userQueryService.getFullNameForUserIds(_) >> [(UserId.of(userId)): userFullName]
-        1 * cloudResourceAccessQueryService.getCloudResourceTypes(_) >> [cloudResourceType]
-        result.totalElements == 1
-        result.content.size() == 1
-    }*/
 
     def "should find group by id"() {
         given:
