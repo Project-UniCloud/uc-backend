@@ -61,7 +61,7 @@ class GlobalExceptionHandlerTest {
     @DisplayName("Generic Exception -> 400 Unknown error with message")
     void handleGenericException() {
         String message = "Something went wrong";
-        ResponseEntity<@NotNull ProblemDetail> resp = handler.handle(new Exception(message));
+        ResponseEntity<@NotNull ProblemDetail> resp = handler.handleGenericException(new Exception(message));
 
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(resp.getBody()).isNotNull();
