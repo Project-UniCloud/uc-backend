@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -261,13 +262,12 @@ class UserRestControllerDiffblueTest {
         when(findUserUseCase.findUserById(Mockito.any())).thenReturn(mock(User.class));
         UserFoundResponse buildResult = UserFoundResponse.builder()
                 .userId(randomUUIDResult)
-                .userRole(UserRole.Type.ADMIN)
+                .userRoles(Set.of(UserRole.Type.ADMIN))
                 .login("Login")
                 .firstName("Jane")
                 .lastName("Doe")
                 .email("jane.doe@example.org")
                 .lastLoginAt(LocalDateTime.of(1970, 1, 1, 0, 0))
-                .userRole(UserRole.Type.ADMIN)
                 .build();
         when(userDomainDtoMapper.toUserFoundResponse(Mockito.any())).thenReturn(buildResult);
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.get("/users/{userId}",
@@ -286,7 +286,7 @@ class UserRestControllerDiffblueTest {
                         .string(String.format(
                                 "{\"userId\":\"%s\",\"login\":\"Login\",\"firstName\":\"Jane\",\"lastName\":\"Doe\""
                                         + ",\"email\":\"jane.doe@example.org\"," +
-                                        "\"lastLoginAt\":\"1970-01-01T00:00:00\",\"userRole\":\"ADMIN\"}", randomUUIDResult)));
+                                        "\"lastLoginAt\":\"1970-01-01T00:00:00\",\"userRoles\":[\"ADMIN\"]}", randomUUIDResult)));
     }
 
     /**
@@ -310,7 +310,7 @@ class UserRestControllerDiffblueTest {
         var lastLogin = LocalDateTime.now();
         UserFoundResponse buildResult = UserFoundResponse.builder()
                 .userId(userId)
-                .userRole(UserRole.Type.ADMIN)
+                .userRoles(Set.of(UserRole.Type.ADMIN))
                 .lastLoginAt(lastLogin)
                 .firstName("Jane")
                 .lastName("Doe")
@@ -331,7 +331,7 @@ class UserRestControllerDiffblueTest {
         assertEquals("Jane", actualUserById.firstName());
         assertEquals("Login", actualUserById.login());
         assertEquals("jane.doe@example.org", actualUserById.email());
-        assertEquals(UserRole.Type.ADMIN, actualUserById.userRole());
+        assertEquals(Set.of(UserRole.Type.ADMIN), actualUserById.userRoles());
         assertSame(userId, actualUserById.userId());
     }
 
@@ -345,7 +345,7 @@ class UserRestControllerDiffblueTest {
         var lastLogin = LocalDateTime.now();
         UserFoundResponse buildResult = UserFoundResponse.builder()
                 .userId(userId)
-                .userRole(UserRole.Type.ADMIN)
+                .userRoles(Set.of(UserRole.Type.ADMIN))
                 .lastLoginAt(lastLogin)
                 .firstName("Jane")
                 .lastName("Doe")
@@ -367,7 +367,7 @@ class UserRestControllerDiffblueTest {
         assertEquals("Jane", actualUserById.firstName());
         assertEquals("Login", actualUserById.login());
         assertEquals("jane.doe@example.org", actualUserById.email());
-        assertEquals(UserRole.Type.ADMIN, actualUserById.userRole());
+        assertEquals(Set.of(UserRole.Type.ADMIN), actualUserById.userRoles());
         assertSame(userId, actualUserById.userId());
     }
 }

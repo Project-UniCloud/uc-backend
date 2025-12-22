@@ -15,7 +15,7 @@ interface UserMapper {
     @Mapping(source = "userLogin.value", target = "login")
     @Mapping(source = "firstName.value", target = "firstName")
     @Mapping(source = "lastName.value", target = "lastName")
-    @Mapping(source = "userRole.value", target = "role")
+    @Mapping(source = "userRole.roles", target = "roles")
     @Mapping(source = "email.value", target = "email")
     @Mapping(source = "lastLoginAt.value", target = "lastLogin")
     UserEntity userToEntity(User user);
@@ -30,7 +30,7 @@ interface UserMapper {
                 UserLogin.of(userEntity.getLogin()),
                 FirstName.of(userEntity.getFirstName()),
                 LastName.of(userEntity.getLastName()),
-                UserRole.of(userEntity.getRole()),
+                UserRole.of(userEntity.getRoles()),
                 Email.of(userEntity.getEmail()),
                 LastLoginAt.of(userEntity.getLastLogin())
         );

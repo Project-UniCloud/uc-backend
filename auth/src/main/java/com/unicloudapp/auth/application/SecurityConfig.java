@@ -71,7 +71,7 @@ class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationProviderPort ldapProvider,
-            AdminProperties adminProperties
+            AdminConfigurationProperties adminConfigurationProperties
     ) {
         AuthenticationProvider ldapAuthProvider = new AuthenticationProvider() {
             @Override
@@ -81,10 +81,16 @@ class SecurityConfig {
 
                 UserRole userRole = ldapProvider.authenticate(username, password);
                 if (userRole != null) {
+                    List<String> roles = userRole.getRoles().stream()
+                            .map(Enum::name)
+                            .collect(Collectors.toList());
+                    if (adminConfigurationProperties.admins().contains(username)) {
+                        roles.add("ADMIN");
+                    }
                     org.springframework.security.core.userdetails.UserDetails user = User.builder()
                             .username(username)
                             .password(password)
-                            .roles(adminProperties.admins().contains(username) ? "ADMIN" : userRole.getValue().name())
+                            .roles(roles.toArray(new String[0]))
                             .build();
                     return new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
                 }
@@ -118,7 +124,9 @@ class SecurityConfig {
             UserDetails userDetails = userQueryService.getUserDetailsByUsername(UserLogin.of(username)).orElseThrow();
             return User.builder()
                     .username(userDetails.login().getValue())
-                    .roles(userDetails.role().getValue().name())
+                    .roles(userDetails.roles().getRoles().stream()
+                            .map(Enum::name)
+                            .toArray(String[]::new))
                     .password("")
                     .build();
         };

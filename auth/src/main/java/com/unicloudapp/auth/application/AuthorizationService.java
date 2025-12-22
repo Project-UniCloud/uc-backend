@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +33,13 @@ class AuthorizationService implements AuthenticationUseCase {
         );
         User user = (User) authenticated.getPrincipal();
         String token = buildToken(user);
-        String role = authenticated.getAuthorities()
+        Set<UserRole.Type> roles = authenticated.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
                 .map(r -> r.replace("ROLE_", ""))
-                .findFirst()
-                .orElseThrow();
-        return new AuthenticatedResult(token, UserRole.of(UserRole.Type.valueOf(role)));
+                .map(UserRole.Type::valueOf)
+                .collect(Collectors.toSet());
+        return new AuthenticatedResult(token, UserRole.of(roles));
     }
 
 

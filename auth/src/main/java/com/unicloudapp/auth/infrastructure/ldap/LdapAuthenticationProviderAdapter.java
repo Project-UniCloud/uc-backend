@@ -1,8 +1,8 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
-import com.unicloudapp.auth.application.AdminProperties;
 import com.unicloudapp.auth.application.LdapProperties;
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
+import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.FirstName;
 import com.unicloudapp.common.vo.user.LastName;
@@ -32,7 +32,9 @@ import org.springframework.stereotype.Component;
 import javax.naming.directory.DirContext;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -69,9 +71,12 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             }
 
             UserRecord user = found.getFirst();
-            UserRole role = adminProperties.admins().contains(username)
-                    ? UserRole.of(UserRole.Type.ADMIN)
-                    : mapOuToRole(user.dn());
+            if (adminProperties.getAdmins().contains(UserLogin.of(username))) {
+                return UserRole.of(UserRole.Type.ADMIN);
+            }
+            Set<UserRole.Type> roleTypes = new HashSet<>();
+            roleTypes.add(mapOuToRoleType(user.dn()));
+            UserRole role = UserRole.of(roleTypes);
 
             if (!userQueryService.existsByLogin(username)) {
                 userCommandService.createUser(
@@ -95,10 +100,10 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
         }
     }
 
-    private UserRole mapOuToRole(String dn) {
+    private UserRole.Type mapOuToRoleType(String dn) {
         return dn != null && dn.contains("OU=Faculty")
-                ? UserRole.of(UserRole.Type.LECTURER)
-                : UserRole.of(UserRole.Type.STUDENT);
+                ? UserRole.Type.LECTURER
+                : UserRole.Type.STUDENT;
     }
 
     @Override

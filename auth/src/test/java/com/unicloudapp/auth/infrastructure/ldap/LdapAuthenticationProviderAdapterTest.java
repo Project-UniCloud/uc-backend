@@ -1,15 +1,17 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
-import com.unicloudapp.auth.application.AdminProperties;
 import com.unicloudapp.auth.application.LdapProperties;
-import com.unicloudapp.common.vo.user.UserRole;
+import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
@@ -18,17 +20,26 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.naming.directory.DirContext;
-import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class LdapAuthenticationProviderAdapterTest {
 
     private UserQueryService userQueryService;
     private UserCommandService userCommandService;
-    private AdminProperties adminProperties;
+    private AdminProperties adminConfigurationProperties;
     private LdapTemplate ldapTemplate;
     private LdapProperties ldapProperties;
 
@@ -36,7 +47,7 @@ class LdapAuthenticationProviderAdapterTest {
     void setUp() {
         userQueryService = mock(UserQueryService.class);
         userCommandService = mock(UserCommandService.class);
-        adminProperties = new AdminProperties(Collections.emptyList());
+        adminConfigurationProperties = mock(AdminProperties.class);
         ldapTemplate = mock(LdapTemplate.class);
         ldapProperties = new LdapProperties(
                 "labs.wmi.amu.edu.pl",
@@ -60,7 +71,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -90,7 +101,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -112,20 +123,21 @@ class LdapAuthenticationProviderAdapterTest {
         when(ldapTemplate.getContextSource()).thenReturn(cs);
         when(cs.getContext(anyString(), anyString())).thenReturn(mock(DirContext.class));
         // LDAP search returns one user
-        when(ldapTemplate.search(anyString(), anyString(), (org.springframework.ldap.core.ContextMapper) any())).thenAnswer(inv -> {
-            org.springframework.ldap.core.ContextMapper<?> mapper = inv.getArgument(2);
+        when(ldapTemplate.search(anyString(), anyString(), (ContextMapper) any())).thenAnswer(inv -> {
+            ContextMapper<?> mapper = inv.getArgument(2);
             DirContextAdapter entry = ldapEntry(
                     "CN=Admin User,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
                     "admin1", "Admin", "User", "admin1@labs.wmi.amu.edu.pl");
             Object mapped = mapper.mapFromContext(entry);
-            return java.util.List.of(mapped);
+            return List.of(mapped);
         });
         when(userQueryService.existsByLogin("admin1")).thenReturn(true);
+        when(adminConfigurationProperties.getAdmins()).thenReturn(List.of(UserLogin.of("admin1")));
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                new AdminProperties(java.util.List.of("admin1")),
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -159,7 +171,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -184,7 +196,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -223,7 +235,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -249,7 +261,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );
@@ -275,7 +287,7 @@ class LdapAuthenticationProviderAdapterTest {
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
                 userQueryService,
                 userCommandService,
-                adminProperties,
+                adminConfigurationProperties,
                 ldapTemplate,
                 ldapProperties
         );

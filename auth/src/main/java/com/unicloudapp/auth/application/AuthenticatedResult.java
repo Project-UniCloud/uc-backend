@@ -4,5 +4,5 @@ import com.unicloudapp.common.vo.user.UserRole;
 
 public record AuthenticatedResult(
         String token,
-        UserRole role
+        UserRole roles
 ) {}

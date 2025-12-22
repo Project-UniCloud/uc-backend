@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Builder
@@ -31,7 +32,9 @@ class UserEntity {
     private String email;
     private LocalDateTime lastLogin;
 
-    @Column(nullable = false)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_uuid"))
+    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
-    private UserRole.Type role;
+    private Set<UserRole.Type> roles;
 }

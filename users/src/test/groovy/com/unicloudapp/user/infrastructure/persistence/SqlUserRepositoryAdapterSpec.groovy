@@ -148,14 +148,14 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         result.is(expected)
     }
 
-    def "findAllUsersByRoleAndFirstNameOrLastName without filter calls findAllProjectedByRole"() {
+    def "findAllUsersByRoleAndFirstNameOrLastName without filter calls findAllProjectedByRolesContaining"() {
         given:
         def pageNumber = 1
         def size = 20
         def role = UserRole.Type.LECTURER
         Page<UserRowProjection> expected = Mock(Page)
 
-        1 * userRepositoryJpa.findAllProjectedByRole(role, PageRequest.of(pageNumber, size)) >> expected
+        1 * userRepositoryJpa.findAllProjectedByRolesContaining(role, PageRequest.of(pageNumber, size)) >> expected
 
         when:
         def result = adapter.findAllUsersByRoleAndFirstNameOrLastName(pageNumber, size, role, null)
@@ -164,11 +164,11 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         result.is(expected)
 
         when:
-        // blank should also route to findAllProjectedByRole
+        // blank should also route to findAllProjectedByRolesContaining
         def result2 = adapter.findAllUsersByRoleAndFirstNameOrLastName(pageNumber, size, role, "   ")
 
         then:
-        1 * userRepositoryJpa.findAllProjectedByRole(role, PageRequest.of(pageNumber, size)) >> expected
+        1 * userRepositoryJpa.findAllProjectedByRolesContaining(role, PageRequest.of(pageNumber, size)) >> expected
         result2.is(expected)
     }
 
@@ -180,7 +180,7 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         def query = "john"
         Page<UserRowProjection> expected = Mock(Page)
 
-        1 * userRepositoryJpa.findAllByRoleAndFirstNameOrLastNameLike(role, query, PageRequest.of(pageNumber, size)) >> expected
+        1 * userRepositoryJpa.findAllByRolesContainingAndFirstNameOrLastNameLike(role, query, PageRequest.of(pageNumber, size)) >> expected
 
         when:
         def result = adapter.findAllUsersByRoleAndFirstNameOrLastName(pageNumber, size, role, query)
@@ -278,7 +278,7 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         def u1 = Mock(User)
         def u2 = Mock(User)
 
-        1 * userRepositoryJpa.findAllByRole(UserRole.Type.ADMIN) >> [e1, e2]
+        1 * userRepositoryJpa.findAllByRolesIn(role.getRoles()) >> [e1, e2]
         1 * userMapper.entityToUser(e1, userFactory) >> u1
         1 * userMapper.entityToUser(e2, userFactory) >> u2
 
@@ -293,7 +293,7 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         given:
         def role = UserRole.of(UserRole.Type.STUDENT)
 
-        1 * userRepositoryJpa.findAllByRole(UserRole.Type.STUDENT) >> []
+        1 * userRepositoryJpa.findAllByRolesIn(role.getRoles()) >> []
 
         when:
         def result = adapter.findAllByRole(role)

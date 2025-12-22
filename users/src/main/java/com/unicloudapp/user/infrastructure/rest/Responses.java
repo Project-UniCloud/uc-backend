@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Builder
@@ -27,7 +28,7 @@ record UserFoundResponse(
         @NotBlank String lastName,
         @Nullable String email,
         @Nullable LocalDateTime lastLoginAt,
-        @NotNull UserRole.Type userRole
+        @NotNull Set<UserRole.Type> userRoles
 ) {
 
 }

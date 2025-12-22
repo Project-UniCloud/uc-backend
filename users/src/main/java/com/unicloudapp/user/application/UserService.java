@@ -1,5 +1,6 @@
 package com.unicloudapp.user.application;
 
+import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
@@ -35,19 +36,25 @@ implements UserValidationService,
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
+    private final AdminProperties adminProperties;
 
     @Override
     public User createLecturer(@Valid CreateLecturerCommand command) {
         if (userRepository.existsByLogin(command.login())) {
             throw new UserAlreadyExistsException(command.login());
         }
+        Set<UserRole.Type> roleTypes = new HashSet<>(){{add(UserRole.Type.LECTURER);}};
+        if (adminProperties.getAdmins().contains(UserLogin.of(command.login()))) {
+            roleTypes.add(UserRole.Type.ADMIN);
+        }
+        UserRole role = UserRole.of(roleTypes);
         User user = userFactory.create(
                 UserId.of(UUID.randomUUID()),
                 UserLogin.of(command.login()),
                 FirstName.of(command.firstName()),
                 LastName.of(command.lastName()),
                 Email.of(command.email()),
-                UserRole.of(UserRole.Type.LECTURER)
+                role
         );
         return userRepository.save(user);
     }
@@ -71,7 +78,7 @@ implements UserValidationService,
     @Override
     public boolean isUserStudent(UserId userId) {
         return userRepository.findById(userId)
-                .map(user -> user.getUserRole().getValue() == UserRole.Type.STUDENT)
+                .map(user -> user.getUserRole().hasRole(UserRole.Type.STUDENT))
                 .orElse(false);
     }
 
@@ -103,12 +110,12 @@ implements UserValidationService,
     public Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize) {
         return userRepository.findUserRowByIds(userIds, pageNumber, pageSize)
                 .map(userRowProjection -> UserDetails.builder()
-                        .userId(UserId.of(userRowProjection.uuid()))
-                        .login(UserLogin.of(userRowProjection.login()))
-                        .firstName(FirstName.of(userRowProjection.firstName()))
-                        .lastName(LastName.of(userRowProjection.lastName()))
-                        .email(Email.of(userRowProjection.email()))
-                        .role(UserRole.of(userRowProjection.role()))
+                        .userId(UserId.of(userRowProjection.getUuid()))
+                        .login(UserLogin.of(userRowProjection.getLogin()))
+                        .firstName(FirstName.of(userRowProjection.getFirstName()))
+                        .lastName(LastName.of(userRowProjection.getLastName()))
+                        .email(Email.of(userRowProjection.getEmail()))
+                        .roles(UserRole.of(userRowProjection.getRoles()))
                         .build());
     }
 
@@ -131,7 +138,7 @@ implements UserValidationService,
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
                         .email(user.getEmail())
-                        .role(user.getUserRole())
+                        .roles(user.getUserRole())
                         .build());
     }
 
@@ -145,7 +152,7 @@ implements UserValidationService,
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
                         .email(user.getEmail())
-                        .role(user.getUserRole())
+                        .roles(user.getUserRole())
                         .build())
                 .toList();
     }

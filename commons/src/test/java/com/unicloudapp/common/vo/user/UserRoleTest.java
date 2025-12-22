@@ -10,7 +10,7 @@ class UserRoleTest {
     @Test
     @DisplayName("of(null) throws IllegalArgumentException")
     void ofNullThrows() {
-        assertThrows(IllegalArgumentException.class, () -> UserRole.of(null));
+        assertThrows(IllegalArgumentException.class, () -> UserRole.of((UserRole.Type[]) null));
     }
 
     @Test
