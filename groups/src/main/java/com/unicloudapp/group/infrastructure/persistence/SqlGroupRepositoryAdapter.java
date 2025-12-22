@@ -18,6 +18,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -166,7 +167,7 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
     @Override
     public GroupDto findByCloudResourceAccessId(CloudResourceAccessId cloudResourceAccessId) {
         return new GroupDto(
-                groupJpaRepository.findByCloudResourceAccessesContaining(Set.of(cloudResourceAccessId.getValue()))
+                groupJpaRepository.findByCloudResourceAccessesContaining(cloudResourceAccessId.getValue())
                         .getLecturers()
                         .stream()
                         .map(UserId::of)
@@ -194,7 +195,8 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
 
     List<GroupCloudDtoProjection> findAllProjectedByGroupStatus(GroupStatus.Type groupStatus);
 
-    GroupEntity findByCloudResourceAccessesContaining(Set<UUID> cloudResourceAccesses);
+    @EntityGraph(attributePaths = "lecturers")
+    GroupEntity findByCloudResourceAccessesContaining(UUID cloudResourceAccessId);
 }
 
 interface GroupCloudDtoProjection {
