@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({Exception.class, RuntimeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseEntity<@NotNull ProblemDetail> handleGenericException(Exception ex) {
+    public ResponseEntity<@NotNull ProblemDetail> handle(Exception ex) {
         return defaultHandleMethod(ex.getMessage(), "Unknown error", HttpStatus.BAD_REQUEST);
     }
 
