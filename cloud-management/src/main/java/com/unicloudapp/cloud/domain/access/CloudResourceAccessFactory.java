@@ -3,7 +3,7 @@ package com.unicloudapp.cloud.domain.access;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
-import com.unicloudapp.cloud.domain.vo.NotificationLevel;
+import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import org.springframework.scheduling.support.CronExpression;
 
 public class CloudResourceAccessFactory {

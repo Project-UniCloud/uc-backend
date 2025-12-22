@@ -269,4 +269,37 @@ class SqlUserRepositoryAdapterSpec extends Specification {
         result.isPresent()
         result.get().is(user)
     }
+
+    def "findAllByRole should map entities to domain users"() {
+        given:
+        def role = UserRole.of(UserRole.Type.ADMIN)
+        def e1 = Mock(UserEntity)
+        def e2 = Mock(UserEntity)
+        def u1 = Mock(User)
+        def u2 = Mock(User)
+
+        1 * userRepositoryJpa.findAllByRole(UserRole.Type.ADMIN) >> [e1, e2]
+        1 * userMapper.entityToUser(e1, userFactory) >> u1
+        1 * userMapper.entityToUser(e2, userFactory) >> u2
+
+        when:
+        def result = adapter.findAllByRole(role)
+
+        then:
+        result == [u1, u2]
+    }
+
+    def "findAllByRole should return empty list when no users found"() {
+        given:
+        def role = UserRole.of(UserRole.Type.STUDENT)
+
+        1 * userRepositoryJpa.findAllByRole(UserRole.Type.STUDENT) >> []
+
+        when:
+        def result = adapter.findAllByRole(role)
+
+        then:
+        result.isEmpty()
+        0 * userMapper.entityToUser(*_)
+    }
 }

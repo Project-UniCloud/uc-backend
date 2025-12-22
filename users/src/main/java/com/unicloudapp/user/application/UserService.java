@@ -136,6 +136,21 @@ implements UserValidationService,
     }
 
     @Override
+    public List<UserDetails> getAdmins() {
+        return userRepository.findAllByRole(UserRole.of(UserRole.Type.ADMIN))
+                .stream()
+                .map(user -> UserDetails.builder()
+                        .userId(user.getUserId())
+                        .login(user.getUserLogin())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .role(user.getUserRole())
+                        .build())
+                .toList();
+    }
+
+    @Override
     public List<UserFullNameAndLoginProjection> searchLecturers(String containsQuery) {
         return userRepository.searchUserByNameOrLogin(containsQuery, UserRole.Type.LECTURER);
     }

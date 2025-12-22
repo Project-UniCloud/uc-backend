@@ -1,8 +1,8 @@
 package com.unicloudapp.user.application;
 
 import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.common.vo.user.UserId;
-import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,54 @@ class UserServiceTest {
     @BeforeEach
     void setUp() {
         userService = new UserService(userRepository, userFactory);
+    }
+
+    @Test
+    @DisplayName("getUserDetailsByUsername should return user details when user exists")
+    void getUserDetailsByUsername_returnsDetails_whenUserExists() {
+        // given
+        UserLogin login = UserLogin.of("jdoe");
+        User user = mock(User.class);
+        UserId userId = UserId.of(UUID.randomUUID());
+        FirstName firstName = FirstName.of("John");
+        LastName lastName = LastName.of("Doe");
+        Email email = Email.of("john@doe.com");
+        UserRole role = UserRole.of(UserRole.Type.STUDENT);
+
+        when(user.getUserId()).thenReturn(userId);
+        when(user.getUserLogin()).thenReturn(login);
+        when(user.getFirstName()).thenReturn(firstName);
+        when(user.getLastName()).thenReturn(lastName);
+        when(user.getEmail()).thenReturn(email);
+        when(user.getUserRole()).thenReturn(role);
+
+        when(userRepository.findByLogin(login)).thenReturn(Optional.of(user));
+
+        // when
+        Optional<com.unicloudapp.common.user.UserDetails> result = userService.getUserDetailsByUsername(login);
+
+        // then
+        assertThat(result).isPresent();
+        assertThat(result.get().userId()).isEqualTo(userId);
+        assertThat(result.get().login()).isEqualTo(login);
+        assertThat(result.get().firstName()).isEqualTo(firstName);
+        assertThat(result.get().lastName()).isEqualTo(lastName);
+        assertThat(result.get().email()).isEqualTo(email);
+        assertThat(result.get().role()).isEqualTo(role);
+    }
+
+    @Test
+    @DisplayName("getUserDetailsByUsername should return empty when user does not exist")
+    void getUserDetailsByUsername_returnsEmpty_whenUserDoesNotExist() {
+        // given
+        UserLogin login = UserLogin.of("nonexistent");
+        when(userRepository.findByLogin(login)).thenReturn(Optional.empty());
+
+        // when
+        Optional<com.unicloudapp.common.user.UserDetails> result = userService.getUserDetailsByUsername(login);
+
+        // then
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -189,5 +238,66 @@ class UserServiceTest {
         List<User> saved = toSaveCaptor.getValue();
         assertThat(saved).isEmpty();
         assertThat(ids).containsExactlyInAnyOrder(UserId.of(id1), UserId.of(id2));
+    }
+
+    @Test
+    @DisplayName("getAdmins should return list of admins when they exist")
+    void getAdmins_returnsAdmins_whenTheyExist() {
+        // given
+        User admin1 = mock(User.class);
+        User admin2 = mock(User.class);
+        
+        UserId id1 = UserId.of(UUID.randomUUID());
+        UserLogin login1 = UserLogin.of("admin1");
+        FirstName fn1 = FirstName.of("Admin");
+        LastName ln1 = LastName.of("One");
+        Email email1 = Email.of("admin1@example.com");
+        UserRole role = UserRole.of(UserRole.Type.ADMIN);
+
+        when(admin1.getUserId()).thenReturn(id1);
+        when(admin1.getUserLogin()).thenReturn(login1);
+        when(admin1.getFirstName()).thenReturn(fn1);
+        when(admin1.getLastName()).thenReturn(ln1);
+        when(admin1.getEmail()).thenReturn(email1);
+        when(admin1.getUserRole()).thenReturn(role);
+
+        UserId id2 = UserId.of(UUID.randomUUID());
+        UserLogin login2 = UserLogin.of("admin2");
+        FirstName fn2 = FirstName.of("Admin");
+        LastName ln2 = LastName.of("Two");
+        Email email2 = Email.of("admin2@example.com");
+
+        when(admin2.getUserId()).thenReturn(id2);
+        when(admin2.getUserLogin()).thenReturn(login2);
+        when(admin2.getFirstName()).thenReturn(fn2);
+        when(admin2.getLastName()).thenReturn(ln2);
+        when(admin2.getEmail()).thenReturn(email2);
+        when(admin2.getUserRole()).thenReturn(role);
+
+        when(userRepository.findAllByRole(role)).thenReturn(List.of(admin1, admin2));
+
+        // when
+        List<com.unicloudapp.common.user.UserDetails> result = userService.getAdmins();
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).userId()).isEqualTo(id1);
+        assertThat(result.get(1).userId()).isEqualTo(id2);
+        verify(userRepository).findAllByRole(role);
+    }
+
+    @Test
+    @DisplayName("getAdmins should return empty list when no admins exist")
+    void getAdmins_returnsEmptyList_whenNoAdminsExist() {
+        // given
+        UserRole role = UserRole.of(UserRole.Type.ADMIN);
+        when(userRepository.findAllByRole(role)).thenReturn(List.of());
+
+        // when
+        List<com.unicloudapp.common.user.UserDetails> result = userService.getAdmins();
+
+        // then
+        assertThat(result).isEmpty();
+        verify(userRepository).findAllByRole(role);
     }
 }

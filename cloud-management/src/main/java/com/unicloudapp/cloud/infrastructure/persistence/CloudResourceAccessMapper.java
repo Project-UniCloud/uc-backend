@@ -1,7 +1,7 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
-import com.unicloudapp.cloud.domain.vo.NotificationLevel;
+import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;

@@ -1,11 +1,11 @@
 package com.unicloudapp.user.infrastructure.persistence;
 
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
-import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -17,7 +17,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -130,6 +135,14 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
                 )
                 .toList();
     }
+
+    @Override
+    public List<User> findAllByRole(UserRole userRole) {
+        return userRepositoryJpa.findAllByRole(userRole.getValue())
+                .stream()
+                .map(user -> userMapper.entityToUser(user, userFactory))
+                .toList();
+    }
 }
 
 @Repository
@@ -179,4 +192,6 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
     );
 
     Optional<UserEntity> findByLogin(String login);
+
+    List<UserEntity> findAllByRole(UserRole.Type role);
 }

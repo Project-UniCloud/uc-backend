@@ -1,10 +1,12 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
 import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupDto;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.application.GroupDetailsProjection;
 import com.unicloudapp.group.application.GroupFilterCriteria;
 import com.unicloudapp.group.application.GroupRowProjection;
@@ -16,11 +18,14 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -160,6 +165,19 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
                     );
                 }).toList();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GroupDto findByCloudResourceAccessId(CloudResourceAccessId cloudResourceAccessId) {
+        return Optional.ofNullable(groupJpaRepository.findByCloudResourceAccessesContaining(cloudResourceAccessId.getValue()))
+                .map(entity -> new GroupDto(
+                        entity.getLecturers()
+                                .stream()
+                                .map(UserId::of)
+                                .collect(Collectors.toSet())
+                ))
+                .orElse(new GroupDto(Collections.emptySet()));
+    }
 }
 
 @Repository
@@ -180,6 +198,9 @@ interface GroupJpaRepository extends JpaRepository<GroupEntity, UUID> {
     );
 
     List<GroupCloudDtoProjection> findAllProjectedByGroupStatus(GroupStatus.Type groupStatus);
+
+    @EntityGraph(attributePaths = "lecturers")
+    GroupEntity findByCloudResourceAccessesContaining(UUID cloudResourceAccessId);
 }
 
 interface GroupCloudDtoProjection {

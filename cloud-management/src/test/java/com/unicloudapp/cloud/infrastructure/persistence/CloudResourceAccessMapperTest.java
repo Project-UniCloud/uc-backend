@@ -7,7 +7,7 @@ import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
-import com.unicloudapp.cloud.domain.vo.NotificationLevel;
+import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.scheduling.support.CronExpression;

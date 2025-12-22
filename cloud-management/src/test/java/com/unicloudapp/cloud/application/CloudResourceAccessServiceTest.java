@@ -9,7 +9,7 @@ import com.unicloudapp.cloud.domain.access.CloudResourceAccessFactory;
 import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
-import com.unicloudapp.cloud.domain.vo.NotificationLevel;
+import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.cloud.event.CloudUserCreatedEvent;
@@ -453,11 +453,14 @@ class CloudResourceAccessServiceTest {
                 .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
                 .cloudConnectorId(CloudConnectorId.of("a-client"))
                 .cloudResourceType(cloudConnectorA.getResourceTypes().getFirst())
-                .costLimit(CostLimit.zero())
+                .costLimit(CostLimit.of(new BigDecimal("100")))
                 .usedLimit(UsedLimit.empty())
                 .cronExpression(cloudConnectorA.getCronExpression())
                 .expiresAt(ExpiresDate.of(LocalDate.now().plusDays(1)))
                 .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .notificationLevel1(NotificationLevel.of(50))
+                .notificationLevel2(NotificationLevel.of(80))
+                .notificationLevel3(NotificationLevel.of(100))
                 .build();
 
         GroupCloudDto groupCloudDto = new GroupCloudDto(group, List.of(cra.getCloudResourceAccessId()));
