@@ -71,11 +71,11 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
             }
 
             UserRecord user = found.getFirst();
-            if (adminProperties.getAdmins().contains(UserLogin.of(username))) {
-                return UserRole.of(UserRole.Type.ADMIN);
-            }
             Set<UserRole.Type> roleTypes = new HashSet<>();
             roleTypes.add(mapOuToRoleType(user.dn()));
+            if (adminProperties.getAdmins().contains(UserLogin.of(username))) {
+                roleTypes.add(UserRole.Type.ADMIN);
+            }
             UserRole role = UserRole.of(roleTypes);
 
             if (!userQueryService.existsByLogin(username)) {
