@@ -1,5 +1,6 @@
 package com.unicloudapp.user.application
 
+import com.unicloudapp.common.auth.AdminProperties
 import com.unicloudapp.common.vo.Email
 import com.unicloudapp.common.vo.user.FirstName
 import com.unicloudapp.common.vo.user.LastName
@@ -26,6 +27,7 @@ class UserServiceSpec extends Specification {
 
     def userFactory = Mock(UserFactory.class)
     def userRepository = Mock(UserRepositoryPort.class)
+    def adminProperties = Mock(AdminProperties)
     def userId = UUID.randomUUID()
     def login = "jane.doe"
     def firstName = "Jane"
@@ -33,7 +35,11 @@ class UserServiceSpec extends Specification {
     def email = "test@email.com"
 
     @Subject
-    UserService userService = new UserService(userRepository, userFactory)
+    UserService userService = new UserService(userRepository, userFactory, adminProperties)
+
+    def setup() {
+        adminProperties.getAdmins() >> []
+    }
 
     def "createLecturer should create Lecturer"() {
         given:
@@ -184,12 +190,12 @@ class UserServiceSpec extends Specification {
         def userIds = [userId1, userId2] as Set
 
         def userRowProjection = Mock(UserRowProjection.class)
-        userRowProjection.uuid() >> userId1.getValue()
-        userRowProjection.login() >> "login1"
-        userRowProjection.firstName() >> "John"
-        userRowProjection.lastName() >> "Doe"
-        userRowProjection.email() >> "john.doe@example.com"
-        userRowProjection.role() >> "STUDENT"
+        userRowProjection.getUuid() >> userId1.getValue()
+        userRowProjection.getLogin() >> "login1"
+        userRowProjection.getFirstName() >> "John"
+        userRowProjection.getLastName() >> "Doe"
+        userRowProjection.getEmail() >> "john.doe@example.com"
+        userRowProjection.getRoles() >> Set.of(UserRole.Type.STUDENT)
 
         userRepository.findUserRowByIds(userIds, 0, 10) >> new PageImpl([userRowProjection])
 
@@ -203,7 +209,7 @@ class UserServiceSpec extends Specification {
         userDetails[0].firstName == FirstName.of("John")
         userDetails[0].lastName == LastName.of("Doe")
         userDetails[0].email == Email.of("john.doe@example.com")
-        userDetails[0].role == UserRole.of(UserRole.Type.STUDENT)
+        userDetails[0].roles == UserRole.of(UserRole.Type.STUDENT)
     }
 
     def "createStudent should create and save a student user and return their ID"() {

@@ -108,11 +108,11 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
             String firstOrLastName
     ) {
         if (firstOrLastName == null || firstOrLastName.isBlank()) {
-            return userRepositoryJpa.findAllProjectedByRole(
+            return userRepositoryJpa.findAllProjectedByRolesContaining(
                     role, PageRequest.of(pageNumber, size)
             );
         }
-        return userRepositoryJpa.findAllByRoleAndFirstNameOrLastNameLike(
+        return userRepositoryJpa.findAllByRolesContainingAndFirstNameOrLastNameLike(
                 role,
                 firstOrLastName,
                 PageRequest.of(pageNumber, size)
@@ -138,7 +138,7 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findAllByRole(UserRole userRole) {
-        return userRepositoryJpa.findAllByRole(userRole.getValue())
+        return userRepositoryJpa.findAllByRolesIn(userRole.getRoles())
                 .stream()
                 .map(user -> userMapper.entityToUser(user, userFactory))
                 .toList();
@@ -154,38 +154,46 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
 
     @Query("""
        SELECT u.uuid AS uuid, u.firstName AS firstName, u.lastName AS lastName, u.login as login
-       FROM UserEntity u
+       FROM UserEntity u JOIN u.roles r
        WHERE (LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
           OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%'))
           OR LOWER(u.login) LIKE LOWER(CONCAT('%', :query, '%'))
-       ) AND u.role = :role
+       ) AND r = :role
     """)
     List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role, Pageable pageable);
 
     Page<UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
 
-    Page<UserRowProjection> findAllProjectedByRole(
+    @Query("""
+        SELECT u.uuid AS uuid,
+               u.email AS email,
+               u.firstName AS firstName,
+               u.lastName AS lastName,
+               u.login AS login,
+               u.roles AS roles
+        FROM UserEntity u JOIN u.roles r
+        WHERE r = :role
+    """)
+    Page<UserRowProjection> findAllProjectedByRolesContaining(
             UserRole.Type role,
             Pageable pageable
     );
 
     @Query("""
-        SELECT new com.unicloudapp.user.application.projection.UserRowProjection(
-           u.uuid,
-           u.email,
-           u.firstName,
-           u.lastName,
-           u.login,
-           u.role
-       )
-       FROM UserEntity u
-       WHERE u.role = :role
-       AND (
-          LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
-          OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
-       )
+        SELECT u.uuid AS uuid,
+               u.email AS email,
+               u.firstName AS firstName,
+               u.lastName AS lastName,
+               u.login AS login,
+               u.roles AS roles
+        FROM UserEntity u JOIN u.roles r
+        WHERE r = :role
+        AND (
+           LOWER(u.firstName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
+           OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
+        )
     """)
-    Page<UserRowProjection> findAllByRoleAndFirstNameOrLastNameLike(
+    Page<UserRowProjection> findAllByRolesContainingAndFirstNameOrLastNameLike(
             UserRole.Type role,
             String firstOrLastName,
             Pageable pageable
@@ -193,5 +201,6 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
 
     Optional<UserEntity> findByLogin(String login);
 
-    List<UserEntity> findAllByRole(UserRole.Type role);
+    @Query("SELECT u FROM UserEntity u JOIN u.roles r WHERE r IN :roles")
+    List<UserEntity> findAllByRolesIn(Collection<UserRole.Type> roles);
 }

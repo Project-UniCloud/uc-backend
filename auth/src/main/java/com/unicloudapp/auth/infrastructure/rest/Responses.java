@@ -1,6 +1,8 @@
 package com.unicloudapp.auth.infrastructure.rest;
 
+import java.util.List;
+
 record AuthenticateResponse(
-        String role
+        List<String> roles
 ) {
 }

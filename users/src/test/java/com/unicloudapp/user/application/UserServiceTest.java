@@ -1,5 +1,6 @@
 package com.unicloudapp.user.application;
 
+import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.*;
@@ -30,13 +31,14 @@ class UserServiceTest {
     @Mock
     private UserFactory userFactory;
 
-    // We cannot use @InjectMocks because UserService has package-private visibility,
-    // but tests are in the same package so we can construct it directly in @BeforeEach.
+    @Mock
+    private AdminProperties adminProperties;
+
     private UserService userService;
 
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, userFactory);
+        userService = new UserService(userRepository, userFactory, adminProperties);
     }
 
     @Test
@@ -70,7 +72,7 @@ class UserServiceTest {
         assertThat(result.get().firstName()).isEqualTo(firstName);
         assertThat(result.get().lastName()).isEqualTo(lastName);
         assertThat(result.get().email()).isEqualTo(email);
-        assertThat(result.get().role()).isEqualTo(role);
+        assertThat(result.get().roles()).isEqualTo(role);
     }
 
     @Test

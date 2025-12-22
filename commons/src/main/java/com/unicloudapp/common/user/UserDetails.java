@@ -11,5 +11,5 @@ public record UserDetails(
         LastName lastName,
         Email email,
         UserLogin login,
-        UserRole role
+        UserRole roles
 ) { }

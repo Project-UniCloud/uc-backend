@@ -40,7 +40,9 @@ class AuthorizationController {
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         return ResponseEntity.ok()
-                .body(new AuthenticateResponse(authenticatedResult.role().getValue().toString()));
+                .body(new AuthenticateResponse(authenticatedResult.roles().getRoles().stream()
+                        .map(Enum::name)
+                        .toList()));
     }
 
     @PostMapping("/auth/logout")

@@ -64,6 +64,12 @@ subprojects {
             classDirectories.from(
                 project.files(mainSourceSet.output.classesDirs).asFileTree.matching {
                     include("com/unicloudapp/**/*.class")
+                    exclude(
+                        "**/*Config.class",
+                        "**/*Configuration.class",
+                        "**/*Properties.class",
+                        "**/*Exception.class"
+                    )
                 }
             )
         }
@@ -101,11 +107,12 @@ tasks.register<JacocoReport>("jacocoRootReport") {
             ?.filter { it.exists() }
             ?: emptyList()
     }.distinct()
-    classDirectories.from(files(classDirectoriesFromSubprojects).asFileTree.matching {
+        classDirectories.from(files(classDirectoriesFromSubprojects).asFileTree.matching {
         include("com/unicloudapp/**/*.class")
         exclude(
             "**/*Config.class",
             "**/*Configuration.class",
+            "**/*Properties.class",
             "**/*Exception.class"
         )
     })

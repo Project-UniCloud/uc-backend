@@ -11,7 +11,7 @@ interface UserToUserFoundResponseMapper {
     @Mapping(source = "userLogin.value", target = "login")
     @Mapping(source = "firstName.value", target = "firstName")
     @Mapping(source = "lastName.value", target = "lastName")
-    @Mapping(source = "userRole.value", target = "userRole")
+    @Mapping(source = "userRole.roles", target = "userRoles")
     @Mapping(source = "email.value", target = "email")
     @Mapping(source = "lastLoginAt.value", target = "lastLoginAt")
     UserFoundResponse toUserFoundResponse(User user);
