@@ -147,7 +147,7 @@ class LdapAuthenticationProviderAdapterTest {
 
         // Then
         assertNotNull(role);
-        assertEquals(UserRole.of(UserRole.Type.ADMIN), role);
+        assertEquals(UserRole.of(UserRole.Type.ADMIN, UserRole.Type.STUDENT), role);
         verify(userCommandService, never()).createUser(any());
     }
 
