@@ -1,38 +1,38 @@
 package com.unicloudapp.user.application;
 
 import com.unicloudapp.common.auth.AdminProperties;
-import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
 import com.unicloudapp.common.user.*;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.*;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.*;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
-import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import jakarta.validation.Valid;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 @RequiredArgsConstructor
 @Validated
-class UserService 
-implements UserValidationService, 
-        CreateStudentUseCase, 
-        CreateLecturerUseCase,
-        FindUserUseCase,
-        UserQueryService,
-        SearchLecturerUserCase,
-        UserCommandService,
-        FindAllLecturersUseCase {
+class UserService
+        implements UserValidationService,
+                CreateStudentUseCase,
+                CreateLecturerUseCase,
+                FindUserUseCase,
+                UserQueryService,
+                SearchLecturerUserCase,
+                UserCommandService,
+                FindAllLecturersUseCase {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
@@ -54,8 +54,7 @@ implements UserValidationService,
                 FirstName.of(command.firstName()),
                 LastName.of(command.lastName()),
                 Email.of(command.email()),
-                role
-        );
+                role);
         return userRepository.save(user);
     }
 
@@ -70,22 +69,21 @@ implements UserValidationService,
                 FirstName.of(command.firstName()),
                 LastName.of(command.lastName()),
                 Email.of(command.email()),
-                UserRole.of(UserRole.Type.STUDENT)
-        );
+                UserRole.of(UserRole.Type.STUDENT));
         return userRepository.save(user);
     }
 
     @Override
     public boolean isUserStudent(UserId userId) {
-        return userRepository.findById(userId)
+        return userRepository
+                .findById(userId)
                 .map(user -> user.getUserRole().hasRole(UserRole.Type.STUDENT))
                 .orElse(false);
     }
 
     @Override
     public User findUserById(UserId userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     @Override
@@ -95,20 +93,19 @@ implements UserValidationService,
 
     @Override
     public Map<UserId, UserFullName> getFullNameForUserIds(List<UserId> userIds) {
-        return userRepository.findFullNamesByIds(userIds)
-                .stream()
+        return userRepository.findFullNamesByIds(userIds).stream()
                 .collect(Collectors.toMap(
                         projection -> UserId.of(projection.getUuid()),
                         projection -> UserFullName.of(
                                 UserId.of(projection.getUuid()),
                                 FirstName.of(projection.getFirstName()),
-                                LastName.of(projection.getLastName())
-                        )));
+                                LastName.of(projection.getLastName()))));
     }
 
     @Override
-    public Page<UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize) {
-        return userRepository.findUserRowByIds(userIds, pageNumber, pageSize)
+    public Page<@NotNull UserDetails> getUserDetailsByIds(Set<UserId> userIds, int pageNumber, int pageSize) {
+        return userRepository
+                .findUserRowByIds(userIds, pageNumber, pageSize)
                 .map(userRowProjection -> UserDetails.builder()
                         .userId(UserId.of(userRowProjection.getUuid()))
                         .login(UserLogin.of(userRowProjection.getLogin()))
@@ -131,21 +128,19 @@ implements UserValidationService,
 
     @Override
     public Optional<UserDetails> getUserDetailsByUsername(UserLogin userLogin) {
-        return userRepository.findByLogin(userLogin)
-                .map(user -> UserDetails.builder()
-                        .userId(user.getUserId())
-                        .login(user.getUserLogin())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .email(user.getEmail())
-                        .roles(user.getUserRole())
-                        .build());
+        return userRepository.findByLogin(userLogin).map(user -> UserDetails.builder()
+                .userId(user.getUserId())
+                .login(user.getUserLogin())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .roles(user.getUserRole())
+                .build());
     }
 
     @Override
     public List<UserDetails> getAdmins() {
-        return userRepository.findAllByRole(UserRole.of(UserRole.Type.ADMIN))
-                .stream()
+        return userRepository.findAllByRole(UserRole.of(UserRole.Type.ADMIN)).stream()
                 .map(user -> UserDetails.builder()
                         .userId(user.getUserId())
                         .login(user.getUserLogin())
@@ -165,22 +160,19 @@ implements UserValidationService,
     @Override
     public List<UserId> importStudents(List<StudentBasicData> studentBasicData) {
         List<User> students = studentBasicData.stream()
-                .map(data -> userRepository.findByLogin(UserLogin.of(data.getLogin()))
+                .map(data -> userRepository
+                        .findByLogin(UserLogin.of(data.getLogin()))
                         .orElseGet(() -> userFactory.create(
                                 UserId.of(UUID.randomUUID()),
                                 UserLogin.of(data.getLogin()),
                                 FirstName.of(data.getFirstName()),
                                 LastName.of(data.getLastName()),
                                 Email.of(data.getEmail()),
-                                UserRole.of(UserRole.Type.STUDENT)
-                        ))
-                )
+                                UserRole.of(UserRole.Type.STUDENT))))
                 .toList();
-        userRepository.saveAll(
-                students.stream()
-                        .filter(user -> !existsByLogin(user.getUserLogin().getValue()))
-                        .collect(Collectors.toList())
-        );
+        userRepository.saveAll(students.stream()
+                .filter(user -> !existsByLogin(user.getUserLogin().getValue()))
+                .collect(Collectors.toList()));
         return students.stream().map(User::getUserId).collect(Collectors.toList());
     }
 
@@ -192,8 +184,7 @@ implements UserValidationService,
                 FirstName.of(studentBasicData.getFirstName()),
                 LastName.of(studentBasicData.getLastName()),
                 Email.of(studentBasicData.getEmail()),
-                UserRole.of(UserRole.Type.STUDENT)
-        );
+                UserRole.of(UserRole.Type.STUDENT));
         return userRepository.save(user).getUserId();
     }
 
@@ -205,22 +196,14 @@ implements UserValidationService,
                 userCreateCommand.firstName(),
                 userCreateCommand.lastName(),
                 userCreateCommand.email(),
-                userCreateCommand.userRole()
-        );
+                userCreateCommand.userRole());
         userRepository.save(user);
     }
 
     @Override
-    public Page<UserRowProjection> findAllLecturers(
-            int pageNumber,
-            int pageSize,
-            String lecturerFirstOrLastName
-    ) {
+    public Page<@NotNull UserRowProjection> findAllLecturers(
+            int pageNumber, int pageSize, String lecturerFirstOrLastName) {
         return userRepository.findAllUsersByRoleAndFirstNameOrLastName(
-                pageNumber,
-                pageSize,
-                UserRole.Type.LECTURER,
-                lecturerFirstOrLastName
-        );
+                pageNumber, pageSize, UserRole.Type.LECTURER, lecturerFirstOrLastName);
     }
 }

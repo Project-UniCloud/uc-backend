@@ -5,50 +5,35 @@ import com.unicloudapp.common.vo.user.*;
 
 public class UserFactory {
 
-    public User create(UserId userId,
-                       UserLogin userLogin,
-                       FirstName firstName,
-                       LastName lastName,
-                       Email email,
-                       UserRole userRole
-    ) {
-        return buildUser(
-                userId,
-                userLogin,
-                firstName,
-                lastName,
-                userRole,
-                email,
-                LastLoginAt.empty()
-        );
+    public User create(
+            UserId userId,
+            UserLogin userLogin,
+            FirstName firstName,
+            LastName lastName,
+            Email email,
+            UserRole userRole) {
+        return buildUser(userId, userLogin, firstName, lastName, userRole, email, LastLoginAt.empty());
     }
 
-    public User restore(UserId userId,
-                        UserLogin userIndexNumber,
-                        FirstName firstName,
-                        LastName lastName,
-                        UserRole userRoleType,
-                        Email email,
-                        LastLoginAt lastLogin
-    ) {
-        return buildUser(
-                userId,
-                userIndexNumber,
-                firstName,
-                lastName,
-                userRoleType,
-                email,
-                lastLogin
-        );
+    public User restore(
+            UserId userId,
+            UserLogin userIndexNumber,
+            FirstName firstName,
+            LastName lastName,
+            UserRole userRoleType,
+            Email email,
+            LastLoginAt lastLogin) {
+        return buildUser(userId, userIndexNumber, firstName, lastName, userRoleType, email, lastLogin);
     }
 
-    private User buildUser(UserId userId,
-                           UserLogin userIndexNumber,
-                           FirstName firstName,
-                           LastName lastName,
-                           UserRole userRoleType,
-                           Email email,
-                           LastLoginAt lastLogin) {
+    private User buildUser(
+            UserId userId,
+            UserLogin userIndexNumber,
+            FirstName firstName,
+            LastName lastName,
+            UserRole userRoleType,
+            Email email,
+            LastLoginAt lastLogin) {
         return User.builder()
                 .userId(userId)
                 .userLogin(userIndexNumber)

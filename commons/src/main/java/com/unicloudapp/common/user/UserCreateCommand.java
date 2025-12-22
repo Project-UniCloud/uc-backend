@@ -9,9 +9,4 @@ import lombok.Builder;
 
 @Builder
 public record UserCreateCommand(
-        UserLogin userLogin,
-        FirstName firstName,
-        LastName lastName,
-        UserRole userRole,
-        Email email
-) { }
+        UserLogin userLogin, FirstName firstName, LastName lastName, UserRole userRole, Email email) {}

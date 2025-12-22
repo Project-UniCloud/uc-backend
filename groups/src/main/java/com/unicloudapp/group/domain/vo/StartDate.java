@@ -1,9 +1,8 @@
 package com.unicloudapp.group.domain.vo;
 
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-
-import java.time.LocalDate;
 
 @Value
 @AllArgsConstructor

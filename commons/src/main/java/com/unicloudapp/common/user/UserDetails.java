@@ -6,10 +6,4 @@ import lombok.Builder;
 
 @Builder
 public record UserDetails(
-        UserId userId,
-        FirstName firstName,
-        LastName lastName,
-        Email email,
-        UserLogin login,
-        UserRole roles
-) { }
+        UserId userId, FirstName firstName, LastName lastName, Email email, UserLogin login, UserRole roles) {}

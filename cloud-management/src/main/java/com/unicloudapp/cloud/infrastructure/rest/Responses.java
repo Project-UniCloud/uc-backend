@@ -1,20 +1,11 @@
 package com.unicloudapp.cloud.infrastructure.rest;
 
-import lombok.Builder;
-
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Map;
+import lombok.Builder;
 
 @Builder
 record CloudConnectorRowView(
-        String cloudConnectorId,
-        String cloudConnectorName,
-        BigDecimal costLimit,
-        String defaultCronExpression
-) {
-
-}
+        String cloudConnectorId, String cloudConnectorName, BigDecimal costLimit, String defaultCronExpression) {}
 
 @Builder
 record CloudConnectorDetailsDto(
@@ -22,5 +13,4 @@ record CloudConnectorDetailsDto(
         String cloudConnectorName,
         BigDecimal costLimit,
         String defaultCronExpression,
-        boolean isActive
-) {}
+        boolean isActive) {}

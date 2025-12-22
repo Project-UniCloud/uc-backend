@@ -1,10 +1,9 @@
 package com.unicloudapp.common.cloud;
 
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import com.unicloudapp.common.group.GroupUniqueName;
-
 import java.util.List;
 import java.util.Set;
 
@@ -19,10 +18,7 @@ public interface CloudResourceAccessQueryService {
     CloudResourceRowView getCloudResourceDetails(CloudResourceAccessId cloudResourceAccess);
 
     Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientIdAndResourceType(
-            CloudConnectorId cloudConnectorId, CloudResourceType resourceType
-    );
+            CloudConnectorId cloudConnectorId, CloudResourceType resourceType);
 
-    Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(
-            CloudConnectorId cloudConnectorId
-    );
+    Set<CloudResourceAccessId> getCloudResourceAccessesByCloudClientId(CloudConnectorId cloudConnectorId);
 }

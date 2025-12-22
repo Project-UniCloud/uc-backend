@@ -1,8 +1,8 @@
 package com.unicloudapp.cloud.domain.access;
 
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
-import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import org.springframework.scheduling.support.CronExpression;
 
@@ -14,8 +14,7 @@ public class CloudResourceAccessFactory {
             CloudResourceType cloudResourceType,
             CostLimit costLimit,
             CronExpression cronExpression,
-            ExpiresDate expiresAt
-    ) {
+            ExpiresDate expiresAt) {
         if (!isValid(cloudResourceAccessId, cloudConnectorId, cloudResourceType, costLimit)) {
             throw new IllegalArgumentException("Invalid parameters for creating CloudResourceAccess");
         }
@@ -38,11 +37,10 @@ public class CloudResourceAccessFactory {
             CloudResourceAccessId cloudResourceAccessId,
             CloudConnectorId cloudConnectorId,
             CloudResourceType cloudResourceType,
-            CostLimit costLimit
-    ) {
-        return cloudResourceAccessId != null &&
-                cloudConnectorId != null &&
-                cloudResourceType != null &&
-                costLimit != null;
+            CostLimit costLimit) {
+        return cloudResourceAccessId != null
+                && cloudConnectorId != null
+                && cloudResourceType != null
+                && costLimit != null;
     }
 }

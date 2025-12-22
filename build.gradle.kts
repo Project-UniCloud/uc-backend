@@ -1,9 +1,11 @@
+import com.diffplug.gradle.spotless.SpotlessExtension
+
 plugins {
     id("org.springframework.boot") version "4.0.1" apply false
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.dependency.graph.generator") version "0.8.0"
     id("jacoco")
-    id("com.diffplug.spotless") version "8.1.0"
+    id("com.diffplug.spotless") version "8.1.0" apply false
     id("org.sonarqube") version "7.2.2.6593"
 }
 
@@ -29,6 +31,22 @@ subprojects {
     apply(plugin = "io.spring.dependency-management")
     apply(plugin = "java")
     apply(plugin = "jacoco")
+    apply(plugin = "com.diffplug.spotless")
+
+    extensions.configure<SpotlessExtension> {
+        java {
+            palantirJavaFormat()
+            targetExclude(
+                "**/generated/**",
+            )
+        }
+    }
+
+    plugins.withId("java") {
+        dependencies {
+            add("implementation", "org.jetbrains:annotations:26.0.2")
+        }
+    }
 
     extensions.configure<JavaPluginExtension> {
         toolchain {

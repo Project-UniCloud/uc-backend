@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 public class StudentLoginValidator implements ConstraintValidator<StudentLogin, String> {
 
     @Override
-    public boolean isValid(
-            String s,
-            ConstraintValidatorContext constraintValidatorContext
-    ) {
+    public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
         if (s == null) {
             return false;
         }

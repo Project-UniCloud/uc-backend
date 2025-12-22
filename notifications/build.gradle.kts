@@ -32,6 +32,7 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.springframework.data:spring-data-commons")
 }
 
 tasks.test {

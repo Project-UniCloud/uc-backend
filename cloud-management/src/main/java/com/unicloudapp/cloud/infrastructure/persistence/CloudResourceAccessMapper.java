@@ -1,10 +1,10 @@
 package com.unicloudapp.cloud.infrastructure.persistence;
 
-import com.unicloudapp.cloud.domain.vo.ExpiresDate;
-import com.unicloudapp.common.vo.cloud.NotificationLevel;
-import com.unicloudapp.common.vo.cloud.*;
 import com.unicloudapp.cloud.domain.access.CloudResourceAccess;
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
+import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 
@@ -42,5 +42,4 @@ class CloudResourceAccessMapper {
                 .notificationLevel3(domain.getNotificationLevel3().level())
                 .build();
     }
-
 }

@@ -1,10 +1,9 @@
 package com.unicloudapp.common.vo.user;
 
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-
-import java.util.Set;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -31,6 +30,8 @@ public class UserRole {
     }
 
     public enum Type {
-        ADMIN, STUDENT, LECTURER
+        ADMIN,
+        STUDENT,
+        LECTURER
     }
 }

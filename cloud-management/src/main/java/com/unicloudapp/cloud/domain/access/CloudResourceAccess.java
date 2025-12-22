@@ -1,9 +1,9 @@
 package com.unicloudapp.cloud.domain.access;
 
 import com.unicloudapp.cloud.domain.vo.CloudResourcesAccessStatus;
+import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.vo.cloud.*;
-import com.unicloudapp.cloud.domain.vo.ExpiresDate;
 import com.unicloudapp.common.vo.cloud.NotificationLevel;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -29,7 +29,8 @@ public class CloudResourceAccess {
     private NotificationLevel notificationLevel3;
 
     public void updateUsedLimit(UsedLimit newUsedCost) {
-        if (newUsedCost == null || newUsedCost.getValue().intValue() < usedLimit.getValue().intValue()) {
+        if (newUsedCost == null
+                || newUsedCost.getValue().intValue() < usedLimit.getValue().intValue()) {
             throw new IllegalArgumentException("New used limit cannot be null");
         }
         this.usedLimit = newUsedCost;

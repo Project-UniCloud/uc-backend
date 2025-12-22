@@ -6,10 +6,7 @@ import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
 @Builder
-public record GroupUniqueName(
-        GroupName groupName,
-        Semester semester
-) {
+public record GroupUniqueName(GroupName groupName, Semester semester) {
 
     public static GroupUniqueName fromString(String groupName) {
         if (groupName == null || !groupName.matches(".* \\d{4}[ZL]")) {
@@ -17,7 +14,8 @@ public record GroupUniqueName(
         }
         int lastSpaceIndex = groupName.lastIndexOf(' ');
         if (lastSpaceIndex == -1 || lastSpaceIndex >= groupName.length() - 5) {
-            throw new IllegalArgumentException("Nie znaleziono poprawnej spacji oddzielającej nazwę od sufiksu: " + groupName);
+            throw new IllegalArgumentException(
+                    "Nie znaleziono poprawnej spacji oddzielającej nazwę od sufiksu: " + groupName);
         }
         String name = groupName.substring(0, lastSpaceIndex);
         String suffix = groupName.substring(groupName.length() - 5);

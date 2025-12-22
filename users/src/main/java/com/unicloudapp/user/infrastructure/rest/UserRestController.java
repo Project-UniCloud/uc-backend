@@ -1,21 +1,21 @@
 package com.unicloudapp.user.infrastructure.rest;
 
-import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.user.UserExternalQueryService;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
 import com.unicloudapp.user.application.port.in.*;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import jakarta.validation.Valid;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -33,11 +33,7 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lecturers")
     @ResponseStatus(HttpStatus.CREATED)
-    LecturerCreatedResponse createLecturer(
-            @Valid
-            @RequestBody
-            CreateLecturerRequest createLecturerRequest
-    ) {
+    LecturerCreatedResponse createLecturer(@Valid @RequestBody CreateLecturerRequest createLecturerRequest) {
         CreateLecturerCommand createLecturerCommand = CreateLecturerCommand.builder()
                 .login(createLecturerRequest.userIndexNumber())
                 .firstName(createLecturerRequest.firstName())
@@ -53,24 +49,17 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/lecturers")
     @ResponseStatus(HttpStatus.OK)
-    Page<UserRowProjection> getAllLecturers(
+    Page<@NotNull UserRowProjection> getAllLecturers(
             @RequestParam(defaultValue = "0") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(required = false) String lecturerFirstOrLastName
-    ) {
-        return findAllLecturersUseCase.findAllLecturers(
-                pageNumber, pageSize, lecturerFirstOrLastName
-        );
+            @RequestParam(required = false) String lecturerFirstOrLastName) {
+        return findAllLecturersUseCase.findAllLecturers(pageNumber, pageSize, lecturerFirstOrLastName);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/students")
     @ResponseStatus(HttpStatus.CREATED)
-    StudentCreatedResponse createStudent(
-            @Valid
-            @RequestBody
-            CreateStudentRequest request
-    ) {
+    StudentCreatedResponse createStudent(@Valid @RequestBody CreateStudentRequest request) {
         CreateStudentCommand createStudentCommand = CreateStudentCommand.builder()
                 .login(request.userIndexNumber())
                 .firstName(request.firstName())
@@ -94,27 +83,20 @@ class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/lecturers/search")
     @ResponseStatus(HttpStatus.OK)
-    List<LecturerFullNameResponse> getLecturersByIds(
-            @RequestParam String containsQuery
-    ) {
-        return searchLecturerUserCase.searchLecturers(containsQuery)
-                .stream()
+    List<LecturerFullNameResponse> getLecturersByIds(@RequestParam String containsQuery) {
+        return searchLecturerUserCase.searchLecturers(containsQuery).stream()
                 .map(user -> new LecturerFullNameResponse(
-                        user.getUuid(), user.getFirstName(), user.getLastName(), user.getLogin(), user.getEmail())
-                ).toList();
+                        user.getUuid(), user.getFirstName(), user.getLastName(), user.getLogin(), user.getEmail()))
+                .toList();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/lecturers/external/search")
     @ResponseStatus(HttpStatus.OK)
-    List<LecturerFullNameResponse> getExternalLecturersByIds(
-            @RequestParam String containsQuery
-    ) {
-        return userExternalQueryService.searchLecturers(containsQuery)
-                .stream()
+    List<LecturerFullNameResponse> getExternalLecturersByIds(@RequestParam String containsQuery) {
+        return userExternalQueryService.searchLecturers(containsQuery).stream()
                 .map(user -> new LecturerFullNameResponse(
-                        user.getUuid(), user.getFirstName(), user.getLastName(), user.getLogin(), user.getEmail())
-                ).toList();
+                        user.getUuid(), user.getFirstName(), user.getLastName(), user.getLogin(), user.getEmail()))
+                .toList();
     }
 }
-

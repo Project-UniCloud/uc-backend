@@ -7,13 +7,13 @@ import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
-import org.springframework.data.domain.Page;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
 
 public interface UserRepositoryPort {
 
@@ -27,7 +27,7 @@ public interface UserRepositoryPort {
 
     List<UserFullNameAndLoginProjection> findFullNamesByIds(List<UserId> userIds);
 
-    Page<UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int pageNumber, int pageSize);
+    Page<@NotNull UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int pageNumber, int pageSize);
 
     List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role);
 
@@ -35,12 +35,8 @@ public interface UserRepositoryPort {
 
     List<UserLogin> findAllLoginsByIds(Set<UserId> userIds);
 
-    Page<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
-            int pageNumber,
-            int size,
-            UserRole.Type role,
-            String firstOrLastName
-    );
+    Page<@NotNull UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
+            int pageNumber, int size, UserRole.Type role, String firstOrLastName);
 
     Optional<User> findByLogin(UserLogin userLogin);
 

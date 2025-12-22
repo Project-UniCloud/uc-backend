@@ -11,10 +11,8 @@ class GrpcCloudConnectorFactoryAdapter implements CloudConnectorClientFactoryPor
 
     @Override
     public CloudConnectorClientPort create(String host, int port) {
-        var channel = ManagedChannelBuilder
-                .forAddress(host, port)
-                .usePlaintext()
-                .build();
+        var channel =
+                ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         var stub = CloudAdapterGrpc.newBlockingStub(channel);
         return new GrpcCloudConnectorClientAdapter(stub);
     }

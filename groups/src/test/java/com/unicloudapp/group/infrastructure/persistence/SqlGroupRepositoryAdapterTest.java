@@ -1,25 +1,24 @@
 package com.unicloudapp.group.infrastructure.persistence;
 
-import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.vo.group.GroupName;
-import com.unicloudapp.common.vo.group.Semester;
-import com.unicloudapp.common.group.GroupCloudDto;
-import com.unicloudapp.common.group.GroupDto;
-import com.unicloudapp.common.group.GroupUniqueName;
-import com.unicloudapp.common.vo.user.UserId;
-import com.unicloudapp.group.domain.vo.GroupStatus;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.unicloudapp.common.group.GroupCloudDto;
+import com.unicloudapp.common.group.GroupDto;
+import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.group.GroupName;
+import com.unicloudapp.common.vo.group.Semester;
+import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.group.domain.vo.GroupStatus;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class SqlGroupRepositoryAdapterTest {
 
@@ -32,9 +31,20 @@ class SqlGroupRepositoryAdapterTest {
 
         UUID id = UUID.randomUUID();
         GroupCloudDtoProjection projection = new GroupCloudDtoProjection() {
-            @Override public String getName() { return "AI"; }
-            @Override public List<UUID> getCloudResourceAccesses() { return List.of(id); }
-            @Override public String getSemester() { return "2024L"; }
+            @Override
+            public String getName() {
+                return "AI";
+            }
+
+            @Override
+            public List<UUID> getCloudResourceAccesses() {
+                return List.of(id);
+            }
+
+            @Override
+            public String getSemester() {
+                return "2024L";
+            }
         };
         when(repo.findAllProjectedByGroupStatus(GroupStatus.Type.ACTIVE)).thenReturn(List.of(projection));
         List<GroupCloudDto> groupCloudDtoList = adapter.findActiveGroups();
@@ -45,11 +55,9 @@ class SqlGroupRepositoryAdapterTest {
                 .build();
         GroupCloudDto groupCloudDto = new GroupCloudDto(
                 groupUniqueName,
-                projection.getCloudResourceAccesses()
-                        .stream()
+                projection.getCloudResourceAccesses().stream()
                         .map(CloudResourceAccessId::of)
-                        .toList()
-        );
+                        .toList());
         assertTrue(groupCloudDtoList.contains(groupCloudDto));
     }
 
@@ -62,9 +70,20 @@ class SqlGroupRepositoryAdapterTest {
 
         UUID id1 = UUID.randomUUID();
         GroupCloudDtoProjection projection = new GroupCloudDtoProjection() {
-            @Override public String getName() { return "AI"; }
-            @Override public List<UUID> getCloudResourceAccesses() { return List.of(id1); }
-            @Override public String getSemester() { return "2024L"; }
+            @Override
+            public String getName() {
+                return "AI";
+            }
+
+            @Override
+            public List<UUID> getCloudResourceAccesses() {
+                return List.of(id1);
+            }
+
+            @Override
+            public String getSemester() {
+                return "2024L";
+            }
         };
         when(repo.findAllProjectedByGroupStatus(GroupStatus.Type.ACTIVE)).thenReturn(List.of(projection));
 
@@ -74,6 +93,7 @@ class SqlGroupRepositoryAdapterTest {
         assertEquals("AI 2024L", dto.groupUniqueName().toString());
         assertEquals(List.of(CloudResourceAccessId.of(id1)), dto.cloudResourceAccesses());
     }
+
     @Test
     @DisplayName("findByCloudResourceAccessId returns GroupDto with lecturers when group exists")
     void findByCloudResourceAccessId_returnsGroupDtoWithLecturers_whenGroupExists() {
@@ -84,9 +104,7 @@ class SqlGroupRepositoryAdapterTest {
 
         UUID accessId = UUID.randomUUID();
         UUID lecturerId = UUID.randomUUID();
-        GroupEntity entity = GroupEntity.builder()
-                .lecturers(Set.of(lecturerId))
-                .build();
+        GroupEntity entity = GroupEntity.builder().lecturers(Set.of(lecturerId)).build();
 
         when(repo.findByCloudResourceAccessesContaining(accessId)).thenReturn(entity);
 
@@ -107,9 +125,8 @@ class SqlGroupRepositoryAdapterTest {
         SqlGroupRepositoryAdapter adapter = new SqlGroupRepositoryAdapter(repo, mapper);
 
         UUID accessId = UUID.randomUUID();
-        GroupEntity entity = GroupEntity.builder()
-                .lecturers(Collections.emptySet())
-                .build();
+        GroupEntity entity =
+                GroupEntity.builder().lecturers(Collections.emptySet()).build();
 
         when(repo.findByCloudResourceAccessesContaining(accessId)).thenReturn(entity);
 
@@ -120,6 +137,7 @@ class SqlGroupRepositoryAdapterTest {
         assertThat(result).isNotNull();
         assertThat(result.lecturers()).isEmpty();
     }
+
     @Test
     @DisplayName("findByCloudResourceAccessId returns GroupDto with empty lecturers when group not found")
     void findByCloudResourceAccessId_returnsGroupDtoWithEmptyLecturers_whenGroupNotFound() {

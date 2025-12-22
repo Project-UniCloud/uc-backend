@@ -1,6 +1,15 @@
 package com.unicloudapp.auth.application;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.unicloudapp.common.vo.user.UserRole;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,16 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class AuthorizationServiceTest {
 
@@ -32,7 +31,6 @@ class AuthorizationServiceTest {
     @Mock
     private JwtConfigurationProperties properties;
 
-    private Clock clock;
     private AuthorizationService authorizationService;
 
     private static final String SECRET = "verysecretkeyverysecretkeyverysecretkeyverysecretkey";
@@ -40,7 +38,7 @@ class AuthorizationServiceTest {
 
     @BeforeEach
     void setUp() {
-        clock = Clock.fixed(Instant.parse("2025-12-22T20:00:00Z"), ZoneId.of("UTC"));
+        Clock clock = Clock.fixed(Instant.parse("2025-12-22T20:00:00Z"), ZoneId.of("UTC"));
         authorizationService = new AuthorizationService(authenticationManager, clock, properties);
     }
 
@@ -50,7 +48,8 @@ class AuthorizationServiceTest {
         String username = "testuser";
         String password = "password";
         User principal = new User(username, password, List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
-        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
@@ -87,11 +86,12 @@ class AuthorizationServiceTest {
         // given
         String username = "adminuser";
         String password = "password";
-        User principal = new User(username, password, List.of(
-                new SimpleGrantedAuthority("ROLE_ADMIN"),
-                new SimpleGrantedAuthority("ROLE_LECTURER")
-        ));
-        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
+        User principal = new User(
+                username,
+                password,
+                List.of(new SimpleGrantedAuthority("ROLE_ADMIN"), new SimpleGrantedAuthority("ROLE_LECTURER")));
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(principal, password, principal.getAuthorities());
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);

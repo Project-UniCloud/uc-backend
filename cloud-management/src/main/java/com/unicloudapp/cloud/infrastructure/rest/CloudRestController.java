@@ -6,7 +6,9 @@ import com.unicloudapp.cloud.domain.connector.CloudConnector;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -22,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
-
 @RestController
 @RequestMapping("/cloud")
 @RequiredArgsConstructor
@@ -35,37 +35,36 @@ class CloudRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/connector/{cloudConnectorId}/resource-types")
     @ResponseStatus(HttpStatus.OK)
-    Page<CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
+    Page<@NotNull CloudResourceType> getCloudResourceTypesForCloudResourceAccessClient(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @PathVariable CloudConnectorId cloudConnectorId
-    ) {
-        return cloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(PageRequest.of(page, pageSize), cloudConnectorId);
+            @PathVariable CloudConnectorId cloudConnectorId) {
+        return cloudResourceAccessService.getCloudResourceTypesForCloudResourceAccessClient(
+                PageRequest.of(page, pageSize), cloudConnectorId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/connector")
     @ResponseStatus(HttpStatus.OK)
-    Page<CloudConnectorRowView> getCloudConnectors(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize
-    ) {
-        return cloudResourceAccessService.getCloudResourceAccessClients(PageRequest.of(page, pageSize))
+    Page<@NotNull CloudConnectorRowView> getCloudConnectors(
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int pageSize) {
+        return cloudResourceAccessService
+                .getCloudResourceAccessClients(PageRequest.of(page, pageSize))
                 .map(cloudConnector -> CloudConnectorRowView.builder()
                         .cloudConnectorId(cloudConnector.getCloudConnectorId().id())
                         .cloudConnectorName(cloudConnector.getName())
                         .costLimit(cloudConnector.getDefaultCostLimit().getCost())
-                        .defaultCronExpression(cloudConnector.getCronExpression().toString())
+                        .defaultCronExpression(
+                                cloudConnector.getCronExpression().toString())
                         .build());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/connector/{cloudConnectorId}")
     @ResponseStatus(HttpStatus.OK)
-    CloudConnectorDetailsDto getCloudConnectorDetails(
-            @PathVariable String cloudConnectorId
-    ) {
-        CloudConnector details = cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of(cloudConnectorId));
+    CloudConnectorDetailsDto getCloudConnectorDetails(@PathVariable String cloudConnectorId) {
+        CloudConnector details =
+                cloudResourceAccessService.getCloudResourceAccessClientDetails(CloudConnectorId.of(cloudConnectorId));
         return CloudConnectorDetailsDto.builder()
                 .cloudConnectorId(details.getCloudConnectorId().id())
                 .cloudConnectorName(details.getName())
@@ -79,36 +78,27 @@ class CloudRestController {
     @PutMapping("/connector/{cloudConnectorId}")
     @ResponseStatus(HttpStatus.OK)
     void putCloudConnectorDetails(
-            @RequestBody CloudConnectorUpdateRequestDto request,
-            @PathVariable String cloudConnectorId
-    ) {
+            @RequestBody CloudConnectorUpdateRequestDto request, @PathVariable String cloudConnectorId) {
         cloudResourceAccessService.updateCloudResourceAccessClientDetails(
                 CloudConnectorId.of(cloudConnectorId),
                 CostLimit.of(request.costLimit),
                 CronExpression.parse(request.defaultCronExpression),
-                request.cloudConnectorName
-        );
+                request.cloudConnectorName);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/connector")
     @ResponseStatus(HttpStatus.CREATED)
-    void postCloudConnector(
-            @RequestBody CloudConnectorSaveRequestDto request
-    ) {
+    void postCloudConnector(@RequestBody CloudConnectorSaveRequestDto request) {
         cloudConnectorService.createConnector(
                 CloudConnectorId.of(request.cloudConnectorId()),
                 request.host(),
                 request.port(),
                 CostLimit.of(request.defaultCostLimit()),
                 CronExpression.parse(request.cronExpression()),
-                request.name()
-        );
+                request.name());
     }
 
     private record CloudConnectorUpdateRequestDto(
-            BigDecimal costLimit,
-            String defaultCronExpression,
-            String cloudConnectorName
-    ) { }
+            BigDecimal costLimit, String defaultCronExpression, String cloudConnectorName) {}
 }

@@ -11,6 +11,10 @@ import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.UserLogin;
 import jakarta.mail.internet.MimeMessage;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -20,33 +24,32 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-class NotificationService {
+public class NotificationService {
 
     private final UserQueryService userQueryService;
     private final JavaMailSender mailSender;
+    private final GroupQueryService groupQueryService;
 
     private static final String mail;
     private static final String budgetMail;
 
     static {
         try {
-            mail = new String(new ClassPathResource("mail.html").getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            budgetMail = new String(new ClassPathResource("budget_threshold_exceeded.html").getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            mail = new String(
+                    new ClassPathResource("mail.html").getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            budgetMail = new String(
+                    new ClassPathResource("budget_threshold_exceeded.html")
+                            .getInputStream()
+                            .readAllBytes(),
+                    StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("Failed to load email template", e);
             throw new RuntimeException(e);
         }
     }
-
-    private final GroupQueryService groupQueryService;
 
     @Async
     @EventListener(CloudUserCreatedEvent.class)
@@ -57,10 +60,8 @@ class NotificationService {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(userDetails.email().getValue())
                     .subject("Your access to cloud resources has been granted")
-                    .text(
-                            mail.replace("{username}", userLogin.getValue())
-                                    .replace("{password}", userLogin.getValue() + "_password123$")
-                    )
+                    .text(mail.replace("{username}", userLogin.getValue())
+                            .replace("{password}", userLogin.getValue() + "_password123$"))
                     .type(NotificationType.EMAIL)
                     .build();
             sendNotification(sendNotificationCommand);
@@ -71,20 +72,23 @@ class NotificationService {
     @EventListener(CloudBudgetThresholdExceededEvent.class)
     protected void handle(CloudBudgetThresholdExceededEvent event) {
         List<UserDetails> admins = userQueryService.getAdmins();
-        GroupDto groupOfCloudResourceAccess = groupQueryService.getGroupByCloudResourceAccess(event.cloudResourceAccessId());
-        List<Map.Entry<UserLogin, Email>> lecturers = userQueryService.getUserLoginsAndEmailsByIds(groupOfCloudResourceAccess.lecturers());
+        GroupDto groupOfCloudResourceAccess =
+                groupQueryService.getGroupByCloudResourceAccess(event.cloudResourceAccessId());
+        List<Map.Entry<UserLogin, Email>> lecturers =
+                userQueryService.getUserLoginsAndEmailsByIds(groupOfCloudResourceAccess.lecturers());
         admins.forEach(admin -> {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(admin.email().getValue())
                     .subject("Cloud Budget Threshold Exceeded")
-                    .text(
-                            budgetMail.replace("{notificationLevel}", String.valueOf(event.notificationLevel()))
-                                    .replace("{cloudResourceAccessId}", event.cloudResourceAccessId().getValue().toString())
-                                    .replace("{currentCost}", event.limit().getValue().toString())
-                                    .replace("{costLimit}", event.costLimit().getCost().toString())
-                                    .replace("{currency}", "USD")
-                                    .replace("{occurredAt}", event.occurredAt().toString())
-                    )
+                    .text(budgetMail
+                            .replace("{notificationLevel}", String.valueOf(event.notificationLevel()))
+                            .replace(
+                                    "{cloudResourceAccessId}",
+                                    event.cloudResourceAccessId().getValue().toString())
+                            .replace("{currentCost}", event.limit().getValue().toString())
+                            .replace("{costLimit}", event.costLimit().getCost().toString())
+                            .replace("{currency}", "USD")
+                            .replace("{occurredAt}", event.occurredAt().toString()))
                     .type(NotificationType.EMAIL)
                     .build();
             sendNotification(sendNotificationCommand);
@@ -93,14 +97,15 @@ class NotificationService {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(lecturer.getValue().getValue())
                     .subject("Cloud Budget Threshold Exceeded")
-                    .text(
-                            budgetMail.replace("{notificationLevel}", String.valueOf(event.notificationLevel()))
-                                    .replace("{cloudResourceAccessId}", event.cloudResourceAccessId().getValue().toString())
-                                    .replace("{currentCost}", event.limit().getValue().toString())
-                                    .replace("{costLimit}", event.costLimit().getCost().toString())
-                                    .replace("{currency}", "USD")
-                                    .replace("{occurredAt}", event.occurredAt().toString())
-                    )
+                    .text(budgetMail
+                            .replace("{notificationLevel}", String.valueOf(event.notificationLevel()))
+                            .replace(
+                                    "{cloudResourceAccessId}",
+                                    event.cloudResourceAccessId().getValue().toString())
+                            .replace("{currentCost}", event.limit().getValue().toString())
+                            .replace("{costLimit}", event.costLimit().getCost().toString())
+                            .replace("{currency}", "USD")
+                            .replace("{occurredAt}", event.occurredAt().toString()))
                     .type(NotificationType.EMAIL)
                     .build();
             sendNotification(sendNotificationCommand);

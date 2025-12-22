@@ -1,6 +1,10 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import tools.jackson.databind.ObjectMapper;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
@@ -10,6 +14,12 @@ import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupRowView;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.application.port.StudentImporterPort;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,17 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringJUnitConfig(classes = GroupRestController.class)
 class GroupRestControllerAdditionalWebMvcTest {
@@ -67,8 +67,8 @@ class GroupRestControllerAdditionalWebMvcTest {
                 .groupId(gid)
                 .name("AI")
                 .semester("2024L")
-                .startDate(LocalDate.of(2024,1,1))
-                .endDate(LocalDate.of(2024,6,30))
+                .startDate(LocalDate.of(2024, 1, 1))
+                .endDate(LocalDate.of(2024, 6, 30))
                 .status("ACTIVE")
                 .description("d")
                 .lecturerFullNames(Set.of())
@@ -85,7 +85,10 @@ class GroupRestControllerAdditionalWebMvcTest {
     @Test
     @DisplayName("GET /groups lists groups with filters")
     void getGroups_filters() throws Exception {
-        Page<GroupRowView> page = new PageImpl<>(List.of(new GroupRowView(UUID.randomUUID(), "AI", "2024L", LocalDate.now(), "Prof X", "S3")), PageRequest.of(0,10), 1);
+        Page<@NotNull GroupRowView> page = new PageImpl<>(
+                List.of(new GroupRowView(UUID.randomUUID(), "AI", "2024L", LocalDate.now(), "Prof X", "S3")),
+                PageRequest.of(0, 10),
+                1);
         when(groupService.getGroupsByFilter(any(), any())).thenReturn(page);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/groups")
@@ -107,7 +110,8 @@ class GroupRestControllerAdditionalWebMvcTest {
                 .limit(new BigDecimal("10"))
                 .expiresAt(LocalDate.of(2025, 12, 31))
                 .build();
-        when(groupService.getCloudResourceAccess(GroupId.of(gid), CloudResourceAccessId.of(aid))).thenReturn(dto);
+        when(groupService.getCloudResourceAccess(GroupId.of(gid), CloudResourceAccessId.of(aid)))
+                .thenReturn(dto);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/groups/{groupId}/cloud-access/{accessId}", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -136,11 +140,10 @@ class GroupRestControllerAdditionalWebMvcTest {
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
         // Wrong date format string
-        String wrongDateJson = "{" +
-                "\"id\":\""+aid+"\"," +
-                "\"cron\":\"0 0 * * * *\"," +
-                "\"limit\":5," +
-                "\"expiresAt\":\"2025/01/15\"}"; // not dd-MM-yyyy
+        String wrongDateJson = "{" + "\"id\":\""
+                + aid + "\"," + "\"cron\":\"0 0 * * * *\","
+                + "\"limit\":5,"
+                + "\"expiresAt\":\"2025/01/15\"}"; // not dd-MM-yyyy
 
         mockMvc.perform(MockMvcRequestBuilders.put("/groups/{groupId}/cloud-access", gid)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,9 +156,11 @@ class GroupRestControllerAdditionalWebMvcTest {
     void grantCloudResourceAccess_success() throws Exception {
         UUID gid = UUID.randomUUID();
         UUID created = UUID.randomUUID();
-        when(groupService.grantCloudResourceAccess(eq(GroupId.of(gid)), any(), any(), any())).thenReturn(CloudResourceAccessId.of(created));
+        when(groupService.grantCloudResourceAccess(eq(GroupId.of(gid)), any(), any(), any()))
+                .thenReturn(CloudResourceAccessId.of(created));
 
-        GiveCloudResourceAccessRequest req = new GiveCloudResourceAccessRequest("clientA", CloudResourceType.of("S3").toString(), BigDecimal.TEN);
+        GiveCloudResourceAccessRequest req = new GiveCloudResourceAccessRequest(
+                "clientA", CloudResourceType.of("S3").toString(), BigDecimal.TEN);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/cloud-access", gid)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -202,7 +207,8 @@ class GroupRestControllerAdditionalWebMvcTest {
         UUID gid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/cloud-access/{CloudResourceAccessId}/deactivate", gid, aid))
+        mockMvc.perform(MockMvcRequestBuilders.post(
+                        "/groups/{groupId}/cloud-access/{CloudResourceAccessId}/deactivate", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

@@ -1,8 +1,17 @@
 package com.unicloudapp.group.application;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserCommandService;
+import com.unicloudapp.common.user.UserDetails;
+import com.unicloudapp.common.user.UserFullName;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
@@ -13,12 +22,6 @@ import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.group.Semester;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.common.group.GroupUniqueName;
-import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.common.user.UserCommandService;
-import com.unicloudapp.common.user.UserDetails;
-import com.unicloudapp.common.user.UserFullName;
-import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
@@ -26,6 +29,11 @@ import com.unicloudapp.group.domain.vo.Description;
 import com.unicloudapp.group.domain.vo.EndDate;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import com.unicloudapp.group.domain.vo.StartDate;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,14 +41,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 class GroupServiceTest {
 
@@ -75,15 +75,16 @@ class GroupServiceTest {
                 .name("AI")
                 .semester("2024L")
                 .lecturers(lecturers)
-                .startDate(LocalDate.of(2024,1,1))
-                .endDate(LocalDate.of(2024,6,30))
+                .startDate(LocalDate.of(2024, 1, 1))
+                .endDate(LocalDate.of(2024, 6, 30))
                 .description("desc")
                 .build();
 
         Group group = mock(Group.class);
         when(groupFactory.create("AI", "2024L", lecturers, dto.startDate(), dto.endDate(), "desc"))
                 .thenReturn(group);
-        when(groupRepository.existsByNameAndSemester(GroupName.of("AI"), Semester.of("2024L"))).thenReturn(false);
+        when(groupRepository.existsByNameAndSemester(GroupName.of("AI"), Semester.of("2024L")))
+                .thenReturn(false);
         when(groupRepository.save(group)).thenReturn(group);
 
         Group created = service.createGroup(dto);
@@ -94,14 +95,15 @@ class GroupServiceTest {
                 .name("AI")
                 .semester("2024L")
                 .lecturers(Set.of())
-                .startDate(LocalDate.of(2024,6,30))
-                .endDate(LocalDate.of(2024,6,30))
+                .startDate(LocalDate.of(2024, 6, 30))
+                .endDate(LocalDate.of(2024, 6, 30))
                 .description("d")
                 .build();
         assertThrows(RuntimeException.class, () -> service.createGroup(badDates));
 
         // duplicate
-        when(groupRepository.existsByNameAndSemester(GroupName.of("AI"), Semester.of("2024L"))).thenReturn(true);
+        when(groupRepository.existsByNameAndSemester(GroupName.of("AI"), Semester.of("2024L")))
+                .thenReturn(true);
         assertThrows(RuntimeException.class, () -> service.createGroup(dto));
     }
 
@@ -110,7 +112,12 @@ class GroupServiceTest {
     @DisplayName("addStudent: existing user path; ACTIVE group triggers cloud createUsers and saves")
     void addStudent_existingUser_activeGroup_triggersCloud() {
         GroupId groupId = GroupId.of(UUID.randomUUID());
-        StudentBasicData s = StudentBasicData.builder().login("jsmith").firstName("J").lastName("S").email("e@e").build();
+        StudentBasicData s = StudentBasicData.builder()
+                .login("jsmith")
+                .firstName("J")
+                .lastName("S")
+                .email("e@e")
+                .build();
 
         when(userQueryService.existsByLogin("jsmith")).thenReturn(true);
         var details = Optional.of(mock(com.unicloudapp.common.user.UserDetails.class));
@@ -139,11 +146,11 @@ class GroupServiceTest {
         service.addStudent(groupId, s);
 
         verify(group).addStudent(any(UserId.class));
-        verify(cloudCmd).createUsers(
-                eq(CloudConnectorId.of("clientA")),
-                eq(List.of(Map.entry(UserLogin.of("jsmith"), Email.empty()))),
-                eq(GroupUniqueName.fromString("AI 2024L"))
-        );
+        verify(cloudCmd)
+                .createUsers(
+                        eq(CloudConnectorId.of("clientA")),
+                        eq(List.of(Map.entry(UserLogin.of("jsmith"), Email.empty()))),
+                        eq(GroupUniqueName.fromString("AI 2024L")));
         verify(groupRepository).save(group);
     }
 
@@ -151,7 +158,12 @@ class GroupServiceTest {
     @DisplayName("addStudent: new user path; INACTIVE group does not call cloud; saves")
     void addStudent_newUser_inactive_noCloud() {
         GroupId groupId = GroupId.of(UUID.randomUUID());
-        StudentBasicData s = StudentBasicData.builder().login("anna").firstName("A").lastName("B").email("a@b").build();
+        StudentBasicData s = StudentBasicData.builder()
+                .login("anna")
+                .firstName("A")
+                .lastName("B")
+                .email("a@b")
+                .build();
 
         when(userQueryService.existsByLogin("anna")).thenReturn(false);
         UserId created = UserId.of(UUID.randomUUID());
@@ -175,21 +187,55 @@ class GroupServiceTest {
     void findById_maps() {
         UUID gid = UUID.randomUUID();
         GroupDetailsProjection proj = new GroupDetailsProjection() {
-            @Override public UUID getUuid() { return gid; }
-            @Override public String getName() { return "AI"; }
-            @Override public String getSemester() { return "2024L"; }
-            @Override public LocalDate getStartDate() { return LocalDate.of(2024,1,1); }
-            @Override public LocalDate getEndDate() { return LocalDate.of(2024,6,30); }
-            @Override public GroupStatus.Type getGroupStatus() { return GroupStatus.Type.ACTIVE; }
-            @Override public String getDescription() { return "desc"; }
-            @Override public Set<UUID> getLecturers() { return Set.of(UUID.randomUUID(), UUID.randomUUID()); }
+            @Override
+            public UUID getUuid() {
+                return gid;
+            }
+
+            @Override
+            public String getName() {
+                return "AI";
+            }
+
+            @Override
+            public String getSemester() {
+                return "2024L";
+            }
+
+            @Override
+            public LocalDate getStartDate() {
+                return LocalDate.of(2024, 1, 1);
+            }
+
+            @Override
+            public LocalDate getEndDate() {
+                return LocalDate.of(2024, 6, 30);
+            }
+
+            @Override
+            public GroupStatus.Type getGroupStatus() {
+                return GroupStatus.Type.ACTIVE;
+            }
+
+            @Override
+            public String getDescription() {
+                return "desc";
+            }
+
+            @Override
+            public Set<UUID> getLecturers() {
+                return Set.of(UUID.randomUUID(), UUID.randomUUID());
+            }
         };
         when(groupRepository.findGroupDetailsByUuid(gid)).thenReturn(proj);
 
         Map<UserId, UserFullName> map = proj.getLecturers().stream()
-                .collect(Collectors.toMap(UserId::of, id -> UserFullName.of(UserId.of(id),
-                        com.unicloudapp.common.vo.user.FirstName.of("FN"),
-                        com.unicloudapp.common.vo.user.LastName.of("LN"))));
+                .collect(Collectors.toMap(
+                        UserId::of,
+                        id -> UserFullName.of(
+                                UserId.of(id),
+                                com.unicloudapp.common.vo.user.FirstName.of("FN"),
+                                com.unicloudapp.common.vo.user.LastName.of("LN"))));
         when(userQueryService.getFullNameForUserIds(anyList())).thenReturn(map);
 
         GroupDetailsView view = service.findById(gid);
@@ -210,10 +256,10 @@ class GroupServiceTest {
         when(group.getStudents()).thenReturn(Set.of(UserId.of(UUID.randomUUID()), UserId.of(UUID.randomUUID())));
 
         Pageable pageable = PageRequest.of(1, 10);
-        Page<UserDetails> expected = new PageImpl<>(List.of(mock(UserDetails.class)), pageable, 1);
+        Page<@NotNull UserDetails> expected = new PageImpl<>(List.of(mock(UserDetails.class)), pageable, 1);
         when(userQueryService.getUserDetailsByIds(anySet(), eq(1), eq(10))).thenReturn(expected);
 
-        Page<UserDetails> page = service.getStudentsDetailsByGroupId(gid, pageable);
+        Page<@NotNull UserDetails> page = service.getStudentsDetailsByGroupId(gid, pageable);
         assertSame(expected, page);
     }
 
@@ -252,7 +298,8 @@ class GroupServiceTest {
 
         verify(group, times(1)).addStudent(id1);
         verify(group, times(1)).addStudent(id2);
-        verify(cloudCmd).createUsers(eq(CloudConnectorId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
+        verify(cloudCmd)
+                .createUsers(eq(CloudConnectorId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
         verify(groupRepository).save(group);
     }
 
@@ -275,9 +322,11 @@ class GroupServiceTest {
         // no existing access types
         when(cloudQuery.getCloudResourceDetails(anySet())).thenReturn(List.of());
         when(userQueryService.getUserLoginsByIds(anySet())).thenReturn(List.of(UserLogin.of("lect")));
-        when(cloudQuery.isCloudGroupExists(GroupUniqueName.fromString("AI 2024L"), clientId)).thenReturn(false);
+        when(cloudQuery.isCloudGroupExists(GroupUniqueName.fromString("AI 2024L"), clientId))
+                .thenReturn(false);
         CloudResourceAccessId newId = CloudResourceAccessId.of(UUID.randomUUID());
-        when(cloudCmd.giveGroupCloudResourceAccess(clientId, type, GroupUniqueName.fromString("AI 2024L"), limit)).thenReturn(newId);
+        when(cloudCmd.giveGroupCloudResourceAccess(clientId, type, GroupUniqueName.fromString("AI 2024L"), limit))
+                .thenReturn(newId);
 
         CloudResourceAccessId result = service.grantCloudResourceAccess(gid, clientId, type, limit);
         assertEquals(newId, result);
@@ -330,8 +379,8 @@ class GroupServiceTest {
         GroupDTO dto = GroupDTO.builder()
                 .name("AI2")
                 .lecturers(Set.of(UUID.randomUUID()))
-                .startDate(LocalDate.of(2024,2,1))
-                .endDate(LocalDate.of(2024,6,1))
+                .startDate(LocalDate.of(2024, 2, 1))
+                .endDate(LocalDate.of(2024, 6, 1))
                 .description("d")
                 .build();
 
@@ -339,10 +388,22 @@ class GroupServiceTest {
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.of(group));
 
         service.updateGroup(gid, dto);
-        verify(group).update(eq(GroupName.of("AI2")), anySet(), eq(StartDate.of(dto.startDate())), eq(EndDate.of(dto.endDate())), eq(Description.of("d")));
+        verify(group)
+                .update(
+                        eq(GroupName.of("AI2")),
+                        anySet(),
+                        eq(StartDate.of(dto.startDate())),
+                        eq(EndDate.of(dto.endDate())),
+                        eq(Description.of("d")));
         verify(groupRepository).save(group);
 
-        GroupDTO bad = GroupDTO.builder().name("n").lecturers(Set.of()).startDate(LocalDate.of(2024,6,1)).endDate(LocalDate.of(2024,6,1)).description("d").build();
+        GroupDTO bad = GroupDTO.builder()
+                .name("n")
+                .lecturers(Set.of())
+                .startDate(LocalDate.of(2024, 6, 1))
+                .endDate(LocalDate.of(2024, 6, 1))
+                .description("d")
+                .build();
         assertThrows(RuntimeException.class, () -> service.updateGroup(gid, bad));
     }
 
@@ -354,45 +415,80 @@ class GroupServiceTest {
         Set<UUID> lecturers = Set.of(UUID.randomUUID());
         Set<UUID> accessUuids = Set.of(UUID.randomUUID());
         GroupRowProjection proj = new GroupRowProjection() {
-            @Override public UUID getUuid() { return g1; }
-            @Override public String getName() { return "AI"; }
-            @Override public String getSemester() { return "2024L"; }
-            @Override public LocalDate getEndDate() { return LocalDate.of(2024,6,30); }
-            @Override public Set<UUID> getLecturers() { return lecturers; }
-            @Override public Set<UUID> getCloudResourceAccesses() { return accessUuids; }
-        };
-        Page<GroupRowProjection> page = new PageImpl<>(List.of(proj), pageable, 1);
+            @Override
+            public UUID getUuid() {
+                return g1;
+            }
 
-        GroupFilterCriteria criteria = GroupFilterCriteria.builder().groupName(GroupName.of("AI")).build();
+            @Override
+            public String getName() {
+                return "AI";
+            }
+
+            @Override
+            public String getSemester() {
+                return "2024L";
+            }
+
+            @Override
+            public LocalDate getEndDate() {
+                return LocalDate.of(2024, 6, 30);
+            }
+
+            @Override
+            public Set<UUID> getLecturers() {
+                return lecturers;
+            }
+
+            @Override
+            public Set<UUID> getCloudResourceAccesses() {
+                return accessUuids;
+            }
+        };
+        Page<@NotNull GroupRowProjection> page = new PageImpl<>(List.of(proj), pageable, 1);
+
+        GroupFilterCriteria criteria =
+                GroupFilterCriteria.builder().groupName(GroupName.of("AI")).build();
         when(groupRepository.findAllByCriteria(criteria, pageable)).thenReturn(page);
 
         Map<UserId, UserFullName> names = Map.of(UserId.of(lecturers.iterator().next()), mock(UserFullName.class));
         names.values().forEach(ufn -> when(ufn.getFullName()).thenReturn("Prof X"));
         when(userQueryService.getFullNameForUserIds(anyList())).thenReturn(names);
 
-        when(cloudQuery.getCloudResourceTypes(accessUuids.stream().map(CloudResourceAccessId::of).collect(Collectors.toSet())))
+        when(cloudQuery.getCloudResourceTypes(
+                        accessUuids.stream().map(CloudResourceAccessId::of).collect(Collectors.toSet())))
                 .thenReturn(Set.of(CloudResourceType.of("S3"), CloudResourceType.of("EC2")));
 
-        Page<GroupRowView> result = service.getGroupsByFilter(criteria, pageable);
+        Page<@NotNull GroupRowView> result = service.getGroupsByFilter(criteria, pageable);
         assertEquals(1, result.getContent().size());
         GroupRowView row = result.getContent().getFirst();
         assertEquals("AI", row.name());
         assertTrue(row.cloudResourceAccesses().contains("S3"));
         assertTrue(row.lecturers().contains("Prof X"));
 
-        // With clientId only -> uses getCloudResourceAccessesByCloudClientId then repository.findAllByCriteriaAndContainsCloudResourceAccess
-        GroupFilterCriteria withClient = GroupFilterCriteria.builder().cloudClientId(CloudConnectorId.of("client1")).build();
+        // With clientId only -> uses getCloudResourceAccessesByCloudClientId then
+        // repository.findAllByCriteriaAndContainsCloudResourceAccess
+        GroupFilterCriteria withClient = GroupFilterCriteria.builder()
+                .cloudClientId(CloudConnectorId.of("client1"))
+                .build();
         Set<CloudResourceAccessId> foundIds = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
-        when(cloudQuery.getCloudResourceAccessesByCloudClientId(CloudConnectorId.of("client1"))).thenReturn(foundIds);
-        when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds)).thenReturn(page);
+        when(cloudQuery.getCloudResourceAccessesByCloudClientId(CloudConnectorId.of("client1")))
+                .thenReturn(foundIds);
+        when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds))
+                .thenReturn(page);
         service.getGroupsByFilter(withClient, pageable);
         verify(groupRepository).findAllByCriteriaAndContainsCloudResourceAccess(withClient, pageable, foundIds);
 
         // With clientId + resourceType -> other branch
-        GroupFilterCriteria withType = GroupFilterCriteria.builder().cloudClientId(CloudConnectorId.of("client1")).resourceType(CloudResourceType.of("S3")).build();
-        when(cloudQuery.getCloudResourceAccessesByCloudClientIdAndResourceType(CloudConnectorId.of("client1"), CloudResourceType.of("S3")))
+        GroupFilterCriteria withType = GroupFilterCriteria.builder()
+                .cloudClientId(CloudConnectorId.of("client1"))
+                .resourceType(CloudResourceType.of("S3"))
+                .build();
+        when(cloudQuery.getCloudResourceAccessesByCloudClientIdAndResourceType(
+                        CloudConnectorId.of("client1"), CloudResourceType.of("S3")))
                 .thenReturn(foundIds);
-        when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withType, pageable, foundIds)).thenReturn(page);
+        when(groupRepository.findAllByCriteriaAndContainsCloudResourceAccess(withType, pageable, foundIds))
+                .thenReturn(page);
         service.getGroupsByFilter(withType, pageable);
         verify(groupRepository).findAllByCriteriaAndContainsCloudResourceAccess(withType, pageable, foundIds);
     }
@@ -408,8 +504,7 @@ class GroupServiceTest {
         when(group.getCloudResourceAccesses()).thenReturn(Set.of(CloudResourceAccessId.of(UUID.randomUUID())));
         List<Map.Entry<UserLogin, Email>> studentLogins = List.of(
                 Map.entry(UserLogin.of("s1"), Email.of("test@example.com")),
-                Map.entry(UserLogin.of("s2"), Email.of("test@example.com"))
-        );
+                Map.entry(UserLogin.of("s2"), Email.of("test@example.com")));
         when(userQueryService.getUserLoginsAndEmailsByIds(anySet())).thenReturn(studentLogins);
         CloudResourceRowView rowA = CloudResourceRowView.builder()
                 .clientId("clientA")
@@ -436,8 +531,10 @@ class GroupServiceTest {
         service.activate(gid);
 
         verify(group).activate();
-        verify(cloudCmd).createUsers(CloudConnectorId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
-        verify(cloudCmd).createUsers(CloudConnectorId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd)
+                .createUsers(CloudConnectorId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+        verify(cloudCmd)
+                .createUsers(CloudConnectorId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 

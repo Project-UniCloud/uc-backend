@@ -2,11 +2,10 @@ package com.unicloudapp.user.infrastructure.persistence;
 
 import com.unicloudapp.common.vo.user.UserRole;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
+import lombok.*;
 
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)

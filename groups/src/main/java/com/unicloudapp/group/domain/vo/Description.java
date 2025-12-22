@@ -17,5 +17,4 @@ public class Description {
     public boolean isEmpty() {
         return value == null || value.isBlank();
     }
-
 }

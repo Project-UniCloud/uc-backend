@@ -2,29 +2,44 @@ package com.unicloudapp.group.infrastructure.rest;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.cloud.*;
+import com.unicloudapp.common.vo.cloud.CloudConnectorId;
+import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
-import com.unicloudapp.common.user.StudentBasicData;
-import com.unicloudapp.group.application.*;
+import com.unicloudapp.group.application.GroupDTO;
+import com.unicloudapp.group.application.GroupDetailsView;
+import com.unicloudapp.group.application.GroupFilterCriteria;
+import com.unicloudapp.group.application.GroupRowView;
+import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.application.port.StudentImporterPort;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,9 +61,7 @@ class GroupRestController {
                 .lecturers(request.lecturers())
                 .description(request.description())
                 .build();
-        return groupService.createGroup(groupDto)
-                .getGroupId()
-                .getUuid();
+        return groupService.createGroup(groupDto).getGroupId().getUuid();
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -69,14 +82,13 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
-    Page<GroupRowView> getAllGroupsByStatus(
+    Page<@org.jetbrains.annotations.NotNull GroupRowView> getAllGroupsByStatus(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(required = false) GroupStatus.Type status,
             @RequestParam(required = false) String groupName,
             @RequestParam(required = false) String cloudClientId,
-            @RequestParam(required = false) String resourceType
-    ) {
+            @RequestParam(required = false) String resourceType) {
         if (resourceType != null && cloudClientId == null) {
             throw new IllegalArgumentException("Cloud client id is required when resourceType is given");
         }
@@ -95,53 +107,45 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{groupId}")
     @ResponseStatus(HttpStatus.OK)
-    GroupDetailsView getGroupById(
-            @PathVariable UUID groupId
-    ) {
+    GroupDetailsView getGroupById(@PathVariable UUID groupId) {
         return groupService.findById(groupId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{groupId}/students")
-    Page<UserRowViewResponse> getStudentsDetails(
+    Page<@org.jetbrains.annotations.NotNull UserRowViewResponse> getStudentsDetails(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @PathVariable @NotNull UUID groupId
-    ) {
+            @PathVariable @NotNull UUID groupId) {
         Pageable pageable = PageRequest.of(page, pageSize);
-        return groupService.getStudentsDetailsByGroupId(GroupId.of(groupId), pageable)
+        return groupService
+                .getStudentsDetailsByGroupId(GroupId.of(groupId), pageable)
                 .map(userDetails -> UserRowViewResponse.builder()
                         .uuid(userDetails.userId().getValue())
                         .login(userDetails.login().getValue())
                         .firstName(userDetails.firstName().getValue())
                         .lastName(userDetails.lastName().getValue())
-                        .email(Objects.requireNonNullElse(userDetails.email(), Email.empty()).getValue())
-                        .build()
-                );
+                        .email(Objects.requireNonNullElse(userDetails.email(), Email.empty())
+                                .getValue())
+                        .build());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/{groupId}/cloud-access")
     @ResponseStatus(HttpStatus.CREATED)
     CloudResourceAccessId giveCloudResourceAccess(
-            @PathVariable UUID groupId,
-            @RequestBody @Valid GiveCloudResourceAccessRequest request
-    ) {
+            @PathVariable UUID groupId, @RequestBody @Valid GiveCloudResourceAccessRequest request) {
         return groupService.grantCloudResourceAccess(
                 GroupId.of(groupId),
                 CloudConnectorId.of(request.cloudConnectorId()),
                 CloudResourceType.of(request.cloudResourceType()),
-                request.costLimit() == null ? CostLimit.zero() : CostLimit.of(request.costLimit())
-        );
+                request.costLimit() == null ? CostLimit.zero() : CostLimit.of(request.costLimit()));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping(value = "/{groupId}")
     @ResponseStatus(HttpStatus.OK)
-    void updateGroup(
-            @PathVariable UUID groupId,
-            @RequestBody @Valid UpdateGroupDetailsRequest request
-    ) {
+    void updateGroup(@PathVariable UUID groupId, @RequestBody @Valid UpdateGroupDetailsRequest request) {
         groupService.updateGroup(
                 GroupId.of(groupId),
                 GroupDTO.builder()
@@ -151,8 +155,7 @@ class GroupRestController {
                         .startDate(request.startDate())
                         .endDate(request.endDate())
                         .description(request.description())
-                        .build()
-        );
+                        .build());
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -166,19 +169,14 @@ class GroupRestController {
     @GetMapping(value = "/{groupId}/cloud-access/{cloudAccessId}")
     @ResponseStatus(HttpStatus.OK)
     CloudResourceAccessDetailsDto getCloudResourceAccesses(
-            @PathVariable UUID groupId,
-            @PathVariable UUID cloudAccessId
-    ) {
+            @PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
         return groupService.getCloudResourceAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(value = "/{groupId}/cloud-access")
     @ResponseStatus(HttpStatus.OK)
-    void updateCloudResourceAccesses(
-            @PathVariable UUID groupId,
-            @RequestBody CloudResourceAccessDetailsDto request
-    ) {
+    void updateCloudResourceAccesses(@PathVariable UUID groupId, @RequestBody CloudResourceAccessDetailsDto request) {
         groupService.saveCloudResourceAccess(GroupId.of(groupId), request);
     }
 
@@ -199,10 +197,7 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/deactivate")
     @ResponseStatus(HttpStatus.OK)
-    void deactivateCloudResourcesAccess(
-            @PathVariable UUID groupId,
-            @PathVariable UUID cloudAccessId
-    ) {
+    void deactivateCloudResourcesAccess(@PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
         groupService.deactivateCloudResourcesAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
     }
 }

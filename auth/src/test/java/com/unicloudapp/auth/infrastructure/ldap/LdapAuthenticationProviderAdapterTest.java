@@ -1,27 +1,5 @@
 package com.unicloudapp.auth.infrastructure.ldap;
 
-import com.unicloudapp.auth.application.LdapProperties;
-import com.unicloudapp.common.auth.AdminProperties;
-import com.unicloudapp.common.user.UserCommandService;
-import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
-import com.unicloudapp.common.user.UserQueryService;
-import com.unicloudapp.common.vo.user.UserLogin;
-import com.unicloudapp.common.vo.user.UserRole;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.ldap.core.ContextMapper;
-import org.springframework.ldap.core.ContextSource;
-import org.springframework.ldap.core.DirContextAdapter;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-
-import javax.naming.directory.DirContext;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -34,6 +12,28 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+
+import com.unicloudapp.auth.application.LdapProperties;
+import com.unicloudapp.common.auth.AdminProperties;
+import com.unicloudapp.common.user.UserCommandService;
+import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
+import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
+import java.util.Collections;
+import java.util.List;
+import javax.naming.directory.DirContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.ldap.core.ContextMapper;
+import org.springframework.ldap.core.ContextSource;
+import org.springframework.ldap.core.DirContextAdapter;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class LdapAuthenticationProviderAdapterTest {
 
@@ -53,8 +53,7 @@ class LdapAuthenticationProviderAdapterTest {
                 "labs.wmi.amu.edu.pl",
                 "DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
                 "OU=Faculty,OU=People",
-                "ldaps://dc1-2016.labs.wmi.amu.edu.pl:636"
-        );
+                "ldaps://dc1-2016.labs.wmi.amu.edu.pl:636");
         // defaults in LdapProperties already match previous constants
     }
 
@@ -69,12 +68,7 @@ class LdapAuthenticationProviderAdapterTest {
         when(ldapTemplate.getContextSource()).thenThrow(new RuntimeException("down"));
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         var result = adapter.authenticate("someUser", "somePass");
@@ -99,12 +93,7 @@ class LdapAuthenticationProviderAdapterTest {
         when(ldapTemplate.getContextSource()).thenThrow(new RuntimeException("down"));
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         List<?> result = adapter.searchLecturers("smith");
@@ -117,30 +106,30 @@ class LdapAuthenticationProviderAdapterTest {
     }
 
     @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void authenticate_asAdmin_returnsAdmin_andDoesNotCreateWhenExists() {
         // Given
         ContextSource cs = mock(ContextSource.class);
         when(ldapTemplate.getContextSource()).thenReturn(cs);
         when(cs.getContext(anyString(), anyString())).thenReturn(mock(DirContext.class));
         // LDAP search returns one user
-        when(ldapTemplate.search(anyString(), anyString(), (ContextMapper) any())).thenAnswer(inv -> {
-            ContextMapper<?> mapper = inv.getArgument(2);
-            DirContextAdapter entry = ldapEntry(
-                    "CN=Admin User,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
-                    "admin1", "Admin", "User", "admin1@labs.wmi.amu.edu.pl");
-            Object mapped = mapper.mapFromContext(entry);
-            return List.of(mapped);
-        });
+        when(ldapTemplate.search(anyString(), anyString(), (ContextMapper) any()))
+                .thenAnswer(inv -> {
+                    ContextMapper<?> mapper = inv.getArgument(2);
+                    DirContextAdapter entry = ldapEntry(
+                            "CN=Admin User,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
+                            "admin1",
+                            "Admin",
+                            "User",
+                            "admin1@labs.wmi.amu.edu.pl");
+                    Object mapped = mapper.mapFromContext(entry);
+                    return List.of(mapped);
+                });
         when(userQueryService.existsByLogin("admin1")).thenReturn(true);
         when(adminConfigurationProperties.getAdmins()).thenReturn(List.of(UserLogin.of("admin1")));
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         UserRole role = adapter.authenticate("admin1", "pass");
@@ -152,29 +141,28 @@ class LdapAuthenticationProviderAdapterTest {
     }
 
     @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void authenticate_facultyUser_createsUser_andReturnsLecturer() {
         // Given
         ContextSource cs = mock(ContextSource.class);
         when(ldapTemplate.getContextSource()).thenReturn(cs);
         when(cs.getContext(anyString(), anyString())).thenReturn(mock(DirContext.class));
-        when(ldapTemplate.search(anyString(), anyString(), (org.springframework.ldap.core.ContextMapper) any())).thenAnswer(inv -> {
-            org.springframework.ldap.core.ContextMapper<?> mapper = inv.getArgument(2);
-            // No email attribute to test null-safe extraction
-            DirContextAdapter entry = ldapEntry(
-                    "CN=John Doe,OU=Faculty,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
-                    "jdoe", "John", "Doe", null);
-            Object mapped = mapper.mapFromContext(entry);
-            return java.util.List.of(mapped);
-        });
+        when(ldapTemplate.search(anyString(), anyString(), (ContextMapper) any()))
+                .thenAnswer(inv -> {
+                    ContextMapper<?> mapper = inv.getArgument(2);
+                    DirContextAdapter entry = ldapEntry(
+                            "CN=John Doe,OU=Faculty,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
+                            "jdoe",
+                            "John",
+                            "Doe",
+                            null);
+                    Object mapped = mapper.mapFromContext(entry);
+                    return java.util.List.of(mapped);
+                });
         when(userQueryService.existsByLogin("jdoe")).thenReturn(false);
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         UserRole role = adapter.authenticate("jdoe", "secret");
@@ -186,20 +174,17 @@ class LdapAuthenticationProviderAdapterTest {
     }
 
     @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void authenticate_userNotFound_afterSuccessfulBind_returnsNull() {
         // Given
         ContextSource cs = mock(ContextSource.class);
         when(ldapTemplate.getContextSource()).thenReturn(cs);
         when(cs.getContext(anyString(), anyString())).thenReturn(mock(DirContext.class));
-        when(ldapTemplate.search(anyString(), anyString(), (org.springframework.ldap.core.ContextMapper) any())).thenAnswer(inv -> java.util.Collections.emptyList());
+        when(ldapTemplate.search(anyString(), anyString(), (ContextMapper) any()))
+                .thenAnswer(_ -> Collections.emptyList());
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         UserRole role = adapter.authenticate("nouser", "pass");
@@ -210,6 +195,7 @@ class LdapAuthenticationProviderAdapterTest {
     }
 
     @Test
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void searchLecturers_success_returnsMappedProjections_withNullUuidWhenUserNotLocal() {
         // Given security context
         Authentication authentication = mock(Authentication.class);
@@ -222,23 +208,22 @@ class LdapAuthenticationProviderAdapterTest {
         ContextSource cs = mock(ContextSource.class);
         when(ldapTemplate.getContextSource()).thenReturn(cs);
         when(cs.getContext(anyString(), anyString())).thenReturn(mock(DirContext.class));
-        when(ldapTemplate.search(anyString(), anyString(), (org.springframework.ldap.core.ContextMapper) any())).thenAnswer(inv -> {
-            org.springframework.ldap.core.ContextMapper<?> mapper = inv.getArgument(2);
-            DirContextAdapter entry = ldapEntry(
-                    "CN=John Doe,OU=Faculty,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
-                    "jdoe", "John", "Doe", "john@example.com");
-            Object mapped = mapper.mapFromContext(entry);
-            return java.util.List.of(mapped);
-        });
+        when(ldapTemplate.search(anyString(), anyString(), (ContextMapper) any()))
+                .thenAnswer(inv -> {
+                    org.springframework.ldap.core.ContextMapper<?> mapper = inv.getArgument(2);
+                    DirContextAdapter entry = ldapEntry(
+                            "CN=John Doe,OU=Faculty,OU=People,DC=labs,DC=wmi,DC=amu,DC=edu,DC=pl",
+                            "jdoe",
+                            "John",
+                            "Doe",
+                            "john@example.com");
+                    Object mapped = mapper.mapFromContext(entry);
+                    return java.util.List.of(mapped);
+                });
         when(userQueryService.existsByLogin("jdoe")).thenReturn(false);
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         List<UserFullNameAndLoginProjection> list = adapter.searchLecturers("john");
@@ -259,12 +244,7 @@ class LdapAuthenticationProviderAdapterTest {
         SecurityContextHolder.clearContext();
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         List<UserFullNameAndLoginProjection> list = adapter.searchLecturers("x");
@@ -285,12 +265,7 @@ class LdapAuthenticationProviderAdapterTest {
         SecurityContextHolder.setContext(securityContext);
 
         LdapAuthenticationProviderAdapter adapter = new LdapAuthenticationProviderAdapter(
-                userQueryService,
-                userCommandService,
-                adminConfigurationProperties,
-                ldapTemplate,
-                ldapProperties
-        );
+                userQueryService, userCommandService, adminConfigurationProperties, ldapTemplate, ldapProperties);
 
         // When
         List<UserFullNameAndLoginProjection> list = adapter.searchLecturers("x");

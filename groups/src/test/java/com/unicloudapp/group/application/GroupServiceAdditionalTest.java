@@ -1,5 +1,13 @@
 package com.unicloudapp.group.application;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
@@ -11,24 +19,15 @@ import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.Group;
 import com.unicloudapp.group.domain.GroupFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class GroupServiceAdditionalTest {
 
@@ -89,7 +88,9 @@ class GroupServiceAdditionalTest {
     void getCloudResourceAccess_groupNotFound() {
         GroupId gid = GroupId.of(UUID.randomUUID());
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> service.getCloudResourceAccess(gid, CloudResourceAccessId.of(UUID.randomUUID())));
+        assertThrows(
+                RuntimeException.class,
+                () -> service.getCloudResourceAccess(gid, CloudResourceAccessId.of(UUID.randomUUID())));
     }
 
     @Test
@@ -115,7 +116,8 @@ class GroupServiceAdditionalTest {
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
                 .build();
-        when(cloudQuery.getCloudResourceDetails(any(CloudResourceAccessId.class))).thenReturn(row);
+        when(cloudQuery.getCloudResourceDetails(any(CloudResourceAccessId.class)))
+                .thenReturn(row);
 
         assertThrows(RuntimeException.class, () -> service.getCloudResourceAccess(groupId, requestedId));
     }
@@ -146,7 +148,13 @@ class GroupServiceAdditionalTest {
     void saveCloudResourceAccess_groupNotFound() {
         GroupId groupId = GroupId.of(UUID.randomUUID());
         when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> service.saveCloudResourceAccess(groupId, com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto.builder().id(UUID.randomUUID()).build()));
+        assertThrows(
+                RuntimeException.class,
+                () -> service.saveCloudResourceAccess(
+                        groupId,
+                        com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto.builder()
+                                .id(UUID.randomUUID())
+                                .build()));
     }
 
     @Test
@@ -156,7 +164,9 @@ class GroupServiceAdditionalTest {
         GroupId groupId = GroupId.of(gid);
         when(groupRepository.findById(gid)).thenReturn(Optional.of(mock(Group.class)));
         CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
-        when(cloudQuery.getCloudResourceDetails(Set.of(accessId))).thenReturn(List.of(CloudResourceRowView.builder().clientId("testClientId").build()));
+        when(cloudQuery.getCloudResourceDetails(Set.of(accessId)))
+                .thenReturn(List.of(
+                        CloudResourceRowView.builder().clientId("testClientId").build()));
 
         service.deactivateCloudResourcesAccess(groupId, accessId);
         verify(cloudCmd).deactivateCloudResourceAccess(accessId);
@@ -167,7 +177,9 @@ class GroupServiceAdditionalTest {
     void deactivateCloudResourcesAccess_groupNotFound() {
         GroupId groupId = GroupId.of(UUID.randomUUID());
         when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> service.deactivateCloudResourcesAccess(groupId, CloudResourceAccessId.of(UUID.randomUUID())));
+        assertThrows(
+                RuntimeException.class,
+                () -> service.deactivateCloudResourcesAccess(groupId, CloudResourceAccessId.of(UUID.randomUUID())));
     }
 
     @Test

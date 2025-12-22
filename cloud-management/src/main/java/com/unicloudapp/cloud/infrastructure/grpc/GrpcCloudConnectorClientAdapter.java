@@ -7,11 +7,8 @@ import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @RequiredArgsConstructor
@@ -28,23 +27,22 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
 
     @Override
     public void createGroup(
-            GroupUniqueName groupUniqueName,
-            List<UserLogin> lecturerLogins,
-            CloudResourceType resourceType
-    ) {
-        AdapterInterface.CreateGroupWithLeadersRequest request = AdapterInterface.CreateGroupWithLeadersRequest
-                .newBuilder()
-                .addAllResourceTypes(List.of(resourceType.getName()))
-                .setGroupName(groupUniqueName.toString())
-                .addAllLeaders(lecturerLogins.stream().map(UserLogin::toString).toList())
-                .build();
+            GroupUniqueName groupUniqueName, List<UserLogin> lecturerLogins, CloudResourceType resourceType) {
+        AdapterInterface.CreateGroupWithLeadersRequest request =
+                AdapterInterface.CreateGroupWithLeadersRequest.newBuilder()
+                        .addAllResourceTypes(List.of(resourceType.getName()))
+                        .setGroupName(groupUniqueName.toString())
+                        .addAllLeaders(
+                                lecturerLogins.stream().map(UserLogin::toString).toList())
+                        .build();
         AdapterInterface.GroupCreatedResponse response = stub.createGroupWithLeaders(request);
         GroupUniqueName.fromString(response.getGroupName());
     }
 
     @Override
     public boolean isRunning() {
-        AdapterInterface.StatusRequest request = AdapterInterface.StatusRequest.newBuilder().build();
+        AdapterInterface.StatusRequest request =
+                AdapterInterface.StatusRequest.newBuilder().build();
         AdapterInterface.StatusResponse response = stub.getStatus(request);
         return response.getIsHealthy();
     }
@@ -88,10 +86,10 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
         if (!response.getSuccess()) {
             throw new RuntimeException("Cleanup group resources failed. Message: " + response.getMessage());
         }
-        log.info("Cleanup group resources successful for group: {}. Deleted resources: {}",
+        log.info(
+                "Cleanup group resources successful for group: {}. Deleted resources: {}",
                 groupUniqueName,
-                String.join(", ", response.getDeletedResourcesList())
-        );
+                String.join(", ", response.getDeletedResourcesList()));
     }
 
     @Override
@@ -103,10 +101,10 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
         if (!response.getSuccess()) {
             throw new RuntimeException("Remove group failed. Message: " + response.getMessage());
         }
-        log.info("Remove group successful for group: {}. Removed users: {}",
+        log.info(
+                "Remove group successful for group: {}. Removed users: {}",
                 groupUniqueName,
-                String.join(", ", response.getRemovedUsersList())
-        );
+                String.join(", ", response.getRemovedUsersList()));
     }
 
     @Override
@@ -126,7 +124,9 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                 .setGroupName(groupUniqueName.toString())
                 .build();
         AdapterInterface.GroupCostMapResponse response = stub.getGroupCostsLast6MonthsByService(request);
-        response.getCostsMap().forEach((key, value) -> costsPerResourceType.put(CloudResourceType.of(key), BigDecimal.valueOf(value)));
+        response.getCostsMap()
+                .forEach(
+                        (key, value) -> costsPerResourceType.put(CloudResourceType.of(key), BigDecimal.valueOf(value)));
         return costsPerResourceType;
     }
 
@@ -137,23 +137,25 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                 .setGroupName(groupUniqueName.toString())
                 .build();
         AdapterInterface.GroupMonthlyCostsResponse response = stub.getGroupMonthlyCostsLast6Months(request);
-        response.getMonthCostsMap().forEach((key, value) -> costsInTime.put(LocalDate.parse(key, DateTimeFormatter.ofPattern("dd-MM-yyyy")), BigDecimal.valueOf(value)));
+        response.getMonthCostsMap()
+                .forEach((key, value) -> costsInTime.put(
+                        LocalDate.parse(key, DateTimeFormatter.ofPattern("dd-MM-yyyy")), BigDecimal.valueOf(value)));
         return costsInTime;
     }
 
     @Override
     public List<CloudResourceType> getSupportedResourceTypes() {
-        AdapterInterface.GetAvailableServicesRequest request = AdapterInterface.GetAvailableServicesRequest.newBuilder()
-                .build();
+        AdapterInterface.GetAvailableServicesRequest request =
+                AdapterInterface.GetAvailableServicesRequest.newBuilder().build();
         try {
             AdapterInterface.GetAvailableServicesResponse response = stub.getAvailableServices(request);
-            return response.getServicesList()
-                    .stream()
+            return response.getServicesList().stream()
                     .map(CloudResourceType::of)
                     .toList();
         } catch (StatusRuntimeException e) {
             if (e.getStatus().getCode() == Status.Code.UNIMPLEMENTED) {
-                log.warn("Cloud adapter does not implement GetAvailableServices yet. Falling back to empty supported types list.");
+                log.warn(
+                        "Cloud adapter does not implement GetAvailableServices yet. Falling back to empty supported types list.");
                 return List.of();
             }
             throw e;
@@ -161,7 +163,8 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
     }
 
     @Override
-    public void assignCloudResourceAccess(CloudResourceType resourceType, GroupUniqueName groupUniqueName, UserLogin lecturer) {
+    public void assignCloudResourceAccess(
+            CloudResourceType resourceType, GroupUniqueName groupUniqueName, UserLogin lecturer) {
         AdapterInterface.AssignPoliciesRequest.Builder builder = AdapterInterface.AssignPoliciesRequest.newBuilder()
                 .addAllResourceTypes(List.of(resourceType.getName()));
         if (groupUniqueName != null) {
@@ -175,7 +178,11 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
             if (!response.getSuccess()) {
                 throw new RuntimeException("Assign policies failed. Message: " + response.getMessage());
             }
-            log.info("Policies assigned successfully for group: {}. Lecturer: {}. {}", groupUniqueName, lecturer, response.getMessage());
+            log.info(
+                    "Policies assigned successfully for group: {}. Lecturer: {}. {}",
+                    groupUniqueName,
+                    lecturer,
+                    response.getMessage());
         } catch (StatusRuntimeException e) {
             log.warn(e.getMessage(), e);
             throw e;

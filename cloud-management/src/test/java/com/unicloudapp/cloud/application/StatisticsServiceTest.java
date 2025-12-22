@@ -1,22 +1,21 @@
 package com.unicloudapp.cloud.application;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupCloudDto;
 import com.unicloudapp.common.group.GroupQueryService;
 import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class StatisticsServiceTest {
 
@@ -45,7 +44,8 @@ class StatisticsServiceTest {
     }
 
     @Test
-    @DisplayName("getTotalCosts aggregates overall cost, counts resources using countResources, and computes average per group")
+    @DisplayName(
+            "getTotalCosts aggregates overall cost, counts resources using countResources, and computes average per group")
     void getTotalCosts_nonEmpty_calculatesSumsAndAverage() {
         GroupUniqueName g1 = GroupUniqueName.fromString("AI 2024L");
         GroupUniqueName g2 = GroupUniqueName.fromString("ML 2024L");
@@ -56,8 +56,11 @@ class StatisticsServiceTest {
         when(groupQueryService.getActiveGroups()).thenReturn(List.of(group1, group2));
 
         // Details per group
-        CloudResourceRowView r1 = CloudResourceRowView.builder().limitUsed(new BigDecimal("10.50")).build();
-        CloudResourceRowView r2 = CloudResourceRowView.builder().limitUsed(new BigDecimal("4.25")).build();
+        CloudResourceRowView r1 = CloudResourceRowView.builder()
+                .limitUsed(new BigDecimal("10.50"))
+                .build();
+        CloudResourceRowView r2 =
+                CloudResourceRowView.builder().limitUsed(new BigDecimal("4.25")).build();
         when(cloudResourceAccessService.getCloudResourceDetails(new HashSet<>(group1.cloudResourceAccesses())))
                 .thenReturn(List.of(r1));
         when(cloudResourceAccessService.getCloudResourceDetails(new HashSet<>(group2.cloudResourceAccesses())))
@@ -76,8 +79,10 @@ class StatisticsServiceTest {
     @Test
     @DisplayName("getOverallCostsPerResourceType merges maps from all active groups")
     void getOverallCostsPerResourceType_mergesMaps() {
-        GroupCloudDto group1 = new GroupCloudDto(GroupUniqueName.fromString("AI 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
-        GroupCloudDto group2 = new GroupCloudDto(GroupUniqueName.fromString("ML 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        GroupCloudDto group1 = new GroupCloudDto(
+                GroupUniqueName.fromString("AI 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        GroupCloudDto group2 = new GroupCloudDto(
+                GroupUniqueName.fromString("ML 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
         when(groupQueryService.getActiveGroups()).thenReturn(List.of(group1, group2));
 
         CloudResourceType s3 = CloudResourceType.of("S3");
@@ -94,7 +99,9 @@ class StatisticsServiceTest {
         List<StatisticsService.CostPerResourceTypeDto> result = statisticsService.getOverallCostsPerResourceType();
 
         Map<String, BigDecimal> asMap = result.stream()
-                .collect(Collectors.toMap(StatisticsService.CostPerResourceTypeDto::resourceType, StatisticsService.CostPerResourceTypeDto::cost));
+                .collect(Collectors.toMap(
+                        StatisticsService.CostPerResourceTypeDto::resourceType,
+                        StatisticsService.CostPerResourceTypeDto::cost));
 
         assertEquals(2, asMap.size());
         assertEquals(new BigDecimal("5.00"), asMap.get(s3.toString()));
@@ -110,9 +117,12 @@ class StatisticsServiceTest {
         GroupCloudDto group2 = new GroupCloudDto(g2, List.of(CloudResourceAccessId.of(UUID.randomUUID())));
         when(groupQueryService.getActiveGroups()).thenReturn(List.of(group1, group2));
 
-        CloudResourceRowView r1a = CloudResourceRowView.builder().limitUsed(new BigDecimal("2.00")).build();
-        CloudResourceRowView r1b = CloudResourceRowView.builder().limitUsed(new BigDecimal("3.10")).build();
-        CloudResourceRowView r2a = CloudResourceRowView.builder().limitUsed(new BigDecimal("1.25")).build();
+        CloudResourceRowView r1a =
+                CloudResourceRowView.builder().limitUsed(new BigDecimal("2.00")).build();
+        CloudResourceRowView r1b =
+                CloudResourceRowView.builder().limitUsed(new BigDecimal("3.10")).build();
+        CloudResourceRowView r2a =
+                CloudResourceRowView.builder().limitUsed(new BigDecimal("1.25")).build();
 
         when(cloudResourceAccessService.getCloudResourceDetails(new HashSet<>(group1.cloudResourceAccesses())))
                 .thenReturn(List.of(r1a, r1b));
@@ -122,7 +132,8 @@ class StatisticsServiceTest {
         List<StatisticsService.CostPerGroupDto> result = statisticsService.getTotalCostPerGroup();
 
         Map<String, BigDecimal> asMap = result.stream()
-                .collect(Collectors.toMap(StatisticsService.CostPerGroupDto::groupUniqueName, StatisticsService.CostPerGroupDto::cost));
+                .collect(Collectors.toMap(
+                        StatisticsService.CostPerGroupDto::groupUniqueName, StatisticsService.CostPerGroupDto::cost));
 
         assertEquals(new BigDecimal("5.10"), asMap.get(g1.toString()));
         assertEquals(new BigDecimal("1.25"), asMap.get(g2.toString()));
@@ -131,8 +142,10 @@ class StatisticsServiceTest {
     @Test
     @DisplayName("getTotalCostInTime sums values for the same date across groups")
     void getTotalCostInTime_sumsByDateAcrossGroups() {
-        GroupCloudDto group1 = new GroupCloudDto(GroupUniqueName.fromString("AI 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
-        GroupCloudDto group2 = new GroupCloudDto(GroupUniqueName.fromString("ML 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        GroupCloudDto group1 = new GroupCloudDto(
+                GroupUniqueName.fromString("AI 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
+        GroupCloudDto group2 = new GroupCloudDto(
+                GroupUniqueName.fromString("ML 2024L"), List.of(CloudResourceAccessId.of(UUID.randomUUID())));
         when(groupQueryService.getActiveGroups()).thenReturn(List.of(group1, group2));
 
         LocalDate d1 = LocalDate.of(2024, 1, 1);
@@ -152,11 +165,14 @@ class StatisticsServiceTest {
         assertEquals(2, result.size());
 
         Map<LocalDate, BigDecimal> asMap = result.stream()
-                .collect(Collectors.toMap(StatisticsService.CostPerMonthDto::date, StatisticsService.CostPerMonthDto::cost));
+                .collect(Collectors.toMap(
+                        StatisticsService.CostPerMonthDto::date, StatisticsService.CostPerMonthDto::cost));
 
         assertEquals(new BigDecimal("4.00"), asMap.get(d1));
         assertEquals(new BigDecimal("2.00"), asMap.get(d2));
         // TreeMap ordering by date
-        assertEquals(List.of(d1, d2), result.stream().map(StatisticsService.CostPerMonthDto::date).toList());
+        assertEquals(
+                List.of(d1, d2),
+                result.stream().map(StatisticsService.CostPerMonthDto::date).toList());
     }
 }

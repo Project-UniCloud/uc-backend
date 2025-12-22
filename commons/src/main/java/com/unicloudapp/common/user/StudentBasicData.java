@@ -10,10 +10,15 @@ import lombok.*;
 @AllArgsConstructor
 public class StudentBasicData {
 
-    @FirstName private String firstName;
-    @LastName private String lastName;
+    @FirstName
+    private String firstName;
+
+    @LastName
+    private String lastName;
+
     @StudentLogin
     private String login;
+
     @UserEmail
     private String email;
 }

@@ -9,6 +9,4 @@ public record CreateLecturerCommand(
         @NotBlank String login,
         @NotBlank String firstName,
         @NotBlank String lastName,
-        @Email String email
-) {
-}
+        @Email String email) {}

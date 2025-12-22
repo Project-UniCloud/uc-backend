@@ -2,7 +2,11 @@ package com.unicloudapp.auth.application;
 
 import com.unicloudapp.auth.application.port.out.AuthenticationProviderPort;
 import com.unicloudapp.common.vo.user.UserRole;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,9 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -24,13 +25,12 @@ class LdapAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
-        String password = authentication.getCredentials().toString();
+        String password =
+                Objects.requireNonNull(authentication.getCredentials()).toString();
 
         UserRole userRole = ldapProvider.authenticate(username, password);
         if (userRole != null) {
-            List<String> roles = userRole.getRoles().stream()
-                    .map(Enum::name)
-                    .collect(Collectors.toList());
+            List<String> roles = userRole.getRoles().stream().map(Enum::name).collect(Collectors.toList());
             if (adminConfigurationProperties.admins().contains(username)) {
                 roles.add("ADMIN");
             }
@@ -46,7 +46,7 @@ class LdapAuthenticationProvider implements AuthenticationProvider {
     }
 
     @Override
-    public boolean supports(Class<?> authentication) {
+    public boolean supports(@NotNull Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
     }
 }

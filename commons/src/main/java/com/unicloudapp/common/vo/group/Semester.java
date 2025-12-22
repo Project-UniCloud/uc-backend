@@ -1,8 +1,7 @@
 package com.unicloudapp.common.vo.group;
 
-import lombok.*;
-
 import java.time.Year;
+import lombok.*;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -23,7 +22,8 @@ public class Semester {
     @RequiredArgsConstructor
     @Getter(value = AccessLevel.PRIVATE)
     public enum Type {
-        SUMMER('L'), WINTER('Z');
+        SUMMER('L'),
+        WINTER('Z');
 
         private final char symbol;
 

@@ -9,14 +9,6 @@ import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +16,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
 class SqlUserRepositoryAdapter implements UserRepositoryPort {
@@ -41,7 +41,8 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Optional<User> findById(UserId userId) {
-        return userRepositoryJpa.findById(userId.getValue())
+        return userRepositoryJpa
+                .findById(userId.getValue())
                 .map(foundUser -> userMapper.entityToUser(foundUser, userFactory));
     }
 
@@ -58,21 +59,12 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public List<UserFullNameAndLoginProjection> findFullNamesByIds(List<UserId> userIds) {
         return userRepositoryJpa.findAllByUuidIn(
-                userIds.stream()
-                        .map(UserId::getValue)
-                        .toList()
-        );
+                userIds.stream().map(UserId::getValue).toList());
     }
 
     @Override
-    public Page<UserRowProjection> findUserRowByIds(
-            Collection<UserId> userIds,
-            int pageNumber,
-            int pageSize
-    ) {
-        Set<UUID> userUUIDs = userIds.stream()
-                .map(UserId::getValue)
-                .collect(Collectors.toSet());
+    public Page<@NotNull UserRowProjection> findUserRowByIds(Collection<UserId> userIds, int pageNumber, int pageSize) {
+        Set<UUID> userUUIDs = userIds.stream().map(UserId::getValue).collect(Collectors.toSet());
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         return userRepositoryJpa.getUserEntitiesByUuidIn(userUUIDs, pageable);
     }
@@ -84,7 +76,8 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<UserId> saveAll(List<User> students) {
-        return userRepositoryJpa.saveAll(students.stream().map(userMapper::userToEntity).toList())
+        return userRepositoryJpa
+                .saveAll(students.stream().map(userMapper::userToEntity).toList())
                 .stream()
                 .map(userEntity -> UserId.of(userEntity.getUuid()))
                 .toList();
@@ -92,61 +85,49 @@ class SqlUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<UserLogin> findAllLoginsByIds(Set<UserId> userIds) {
-        return userRepositoryJpa.findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
+        return userRepositoryJpa
+                .findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
                 .stream()
-                .map(entity ->
-                        UserLogin.of(entity.getLogin())
-                )
+                .map(entity -> UserLogin.of(entity.getLogin()))
                 .toList();
     }
 
     @Override
-    public Page<UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
-            int pageNumber,
-            int size,
-            UserRole.Type role,
-            String firstOrLastName
-    ) {
+    public Page<@NotNull UserRowProjection> findAllUsersByRoleAndFirstNameOrLastName(
+            int pageNumber, int size, UserRole.Type role, String firstOrLastName) {
         if (firstOrLastName == null || firstOrLastName.isBlank()) {
-            return userRepositoryJpa.findAllProjectedByRolesContaining(
-                    role, PageRequest.of(pageNumber, size)
-            );
+            return userRepositoryJpa.findAllProjectedByRolesContaining(role, PageRequest.of(pageNumber, size));
         }
         return userRepositoryJpa.findAllByRolesContainingAndFirstNameOrLastNameLike(
-                role,
-                firstOrLastName,
-                PageRequest.of(pageNumber, size)
-        );
+                role, firstOrLastName, PageRequest.of(pageNumber, size));
     }
 
     @Override
     public Optional<User> findByLogin(UserLogin userLogin) {
-        return userRepositoryJpa.findByLogin(userLogin.getValue())
+        return userRepositoryJpa
+                .findByLogin(userLogin.getValue())
                 .map(entity -> userMapper.entityToUser(entity, userFactory));
     }
 
     @Override
     public List<Map.Entry<UserLogin, Email>> findAllLoginsAndEmailsByIds(Set<UserId> userIds) {
-        return userRepositoryJpa.findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
+        return userRepositoryJpa
+                .findAllById(userIds.stream().map(UserId::getValue).collect(Collectors.toSet()))
                 .stream()
-                .map(entity ->
-                        Map.entry(UserLogin.of(entity.getLogin()),
-                                Email.of(entity.getEmail()))
-                )
+                .map(entity -> Map.entry(UserLogin.of(entity.getLogin()), Email.of(entity.getEmail())))
                 .toList();
     }
 
     @Override
     public List<User> findAllByRole(UserRole userRole) {
-        return userRepositoryJpa.findAllByRolesIn(userRole.getRoles())
-                .stream()
+        return userRepositoryJpa.findAllByRolesIn(userRole.getRoles()).stream()
                 .map(user -> userMapper.entityToUser(user, userFactory))
                 .toList();
     }
 }
 
 @Repository
-interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
+interface UserRepositoryJpa extends JpaRepository<@NotNull UserEntity, @NotNull UUID> {
 
     boolean existsByLogin(String login);
 
@@ -162,7 +143,7 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
     """)
     List<UserFullNameAndLoginProjection> searchUserByNameOrLogin(String query, UserRole.Type role, Pageable pageable);
 
-    Page<UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
+    Page<@NotNull UserRowProjection> getUserEntitiesByUuidIn(Collection<UUID> uuids, Pageable pageable);
 
     @Query("""
         SELECT u.uuid AS uuid,
@@ -174,10 +155,7 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
         FROM UserEntity u JOIN u.roles r
         WHERE r = :role
     """)
-    Page<UserRowProjection> findAllProjectedByRolesContaining(
-            UserRole.Type role,
-            Pageable pageable
-    );
+    Page<@NotNull UserRowProjection> findAllProjectedByRolesContaining(UserRole.Type role, Pageable pageable);
 
     @Query("""
         SELECT u.uuid AS uuid,
@@ -193,11 +171,8 @@ interface UserRepositoryJpa extends JpaRepository<UserEntity, UUID> {
            OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :firstOrLastName, '%'))
         )
     """)
-    Page<UserRowProjection> findAllByRolesContainingAndFirstNameOrLastNameLike(
-            UserRole.Type role,
-            String firstOrLastName,
-            Pageable pageable
-    );
+    Page<@NotNull UserRowProjection> findAllByRolesContainingAndFirstNameOrLastNameLike(
+            UserRole.Type role, String firstOrLastName, Pageable pageable);
 
     Optional<UserEntity> findByLogin(String login);
 
