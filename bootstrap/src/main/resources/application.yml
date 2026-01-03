@@ -7,11 +7,7 @@ spring:
   jpa:
     open-in-view: true
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-    defer-datasource-initialization: true
+      ddl-auto: none
   messages:
     basename: messages/messages
   mail:
@@ -44,7 +40,7 @@ auth:
     facultyPeopleOu: OU=Faculty,OU=People
 
 adapters:
-  costSyncCron: ${COST_SYNC_CRON:0 */10 * * * *}
+  costSyncCron: ${COST_SYNC_CRON:0 59 23 * * *}
 server:
   servlet:
     context-path: /api
