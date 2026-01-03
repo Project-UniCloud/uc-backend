@@ -44,7 +44,7 @@ subprojects {
 
     plugins.withId("java") {
         dependencies {
-            add("implementation", "org.jetbrains:annotations:26.0.2")
+            add("implementation", "org.jetbrains:annotations:26.0.2-1")
         }
     }
 
