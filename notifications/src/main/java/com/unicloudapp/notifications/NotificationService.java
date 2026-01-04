@@ -71,6 +71,9 @@ public class NotificationService {
     @Async
     @EventListener(CloudBudgetThresholdExceededEvent.class)
     protected void handle(CloudBudgetThresholdExceededEvent event) {
+        if (event.notificationLevel() == null) {
+            return;
+        }
         List<UserDetails> admins = userQueryService.getAdmins();
         GroupDto groupOfCloudResourceAccess =
                 groupQueryService.getGroupByCloudResourceAccess(event.cloudResourceAccessId());

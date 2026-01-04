@@ -9,7 +9,7 @@ import lombok.Builder;
 @Builder
 public record CloudBudgetThresholdExceededEvent(
         CloudResourceAccessId cloudResourceAccessId,
-        int notificationLevel,
+        Integer notificationLevel,
         UsedLimit limit,
         CostLimit costLimit,
         Instant occurredAt) {}
