@@ -450,8 +450,8 @@ class CloudResourceAccessServiceTest {
     @Test
     @DisplayName("createUsers delegates to client and publishes events")
     void createUsers_delegate() {
-        List<Map.Entry<UserLogin, Email>> users = List.of(Map.entry(UserLogin.of("u1"), Email.empty()));
-        List<UserLogin> logins = users.stream().map(Map.Entry::getKey).toList();
+        Set<UserLogin> users = Set.of(UserLogin.of("u1"));
+        List<UserLogin> logins = users.stream().toList();
         when(cloudConnectorClientB.createUsers(logins, GroupUniqueName.fromString("AI 2024L")))
                 .thenReturn("ok");
         String res =
