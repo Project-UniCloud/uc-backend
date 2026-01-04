@@ -148,9 +148,9 @@ class GroupServiceTest {
         verify(group).addStudent(any(UserId.class));
         verify(cloudCmd)
                 .createUsers(
-                        eq(CloudConnectorId.of("clientA")),
-                        eq(List.of(Map.entry(UserLogin.of("jsmith"), Email.empty()))),
-                        eq(GroupUniqueName.fromString("AI 2024L")));
+                        CloudConnectorId.of("clientA"),
+                        List.of(Map.entry(UserLogin.of("jsmith"), Email.empty())),
+                        GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 
@@ -327,12 +327,20 @@ class GroupServiceTest {
         CloudResourceAccessId newId = CloudResourceAccessId.of(UUID.randomUUID());
         when(cloudCmd.giveGroupCloudResourceAccess(clientId, type, GroupUniqueName.fromString("AI 2024L"), limit))
                 .thenReturn(newId);
+        when(group.getGroupStatus()).thenReturn(GroupStatus.of(GroupStatus.Type.ACTIVE));
 
         CloudResourceAccessId result = service.grantCloudResourceAccess(gid, clientId, type, limit);
         assertEquals(newId, result);
         verify(cloudCmd).createGroup(eq(GroupUniqueName.fromString("AI 2024L")), eq(clientId), anyList(), eq(type));
         verify(group).grantCloudResourceAccess(newId);
         verify(groupRepository).save(group);
+        verify(cloudCmd).activateCloudResource(newId);
+
+        // case: when group is NOT active, activateCloudResource should NOT be called
+        reset(cloudCmd);
+        when(group.getGroupStatus()).thenReturn(GroupStatus.of(GroupStatus.Type.INACTIVE));
+        service.grantCloudResourceAccess(gid, clientId, type, limit);
+        verify(cloudCmd, never()).activateCloudResource(any());
 
         // duplicate path: when details say already has this type/client
         CloudResourceRowView row = CloudResourceRowView.builder()

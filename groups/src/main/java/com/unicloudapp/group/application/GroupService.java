@@ -199,6 +199,9 @@ public class GroupService {
                 cloudConnectorId, cloudResourceType, groupUniqueName, costLimit);
         group.grantCloudResourceAccess(cloudResourceAccessId);
         groupRepository.save(group);
+        if (group.getGroupStatus().isActive()) {
+            cloudResourceAccessCommandService.activateCloudResource(cloudResourceAccessId);
+        }
         return cloudResourceAccessId;
     }
 

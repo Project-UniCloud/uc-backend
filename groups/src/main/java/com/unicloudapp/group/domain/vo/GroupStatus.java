@@ -12,6 +12,10 @@ public class GroupStatus {
         return new GroupStatus(status);
     }
 
+    public boolean isActive() {
+        return status == Type.ACTIVE;
+    }
+
     @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Getter
     public enum Type {

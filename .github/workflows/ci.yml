@@ -13,41 +13,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  set-pr-title:
-    if: ${{ github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set safe environment variables
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          # Ensure variables contain only safe characters
-          SAFE_PR_NUMBER=$(printf '%s' "$PR_NUMBER" | tr -dc '0-9')
-          SAFE_BRANCH_NAME=$(printf '%s' "$HEAD_REF" | tr -dc '[:alnum:]-_/')
-
-          echo "SAFE_PR_NUMBER=$SAFE_PR_NUMBER" >> "$GITHUB_ENV"
-          echo "SAFE_BRANCH_NAME=$SAFE_BRANCH_NAME" >> "$GITHUB_ENV"
-
-      - name: Update PR title
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: ${{ env.SAFE_BRANCH_NAME }}
-          PR_NUMBER: ${{ env.SAFE_PR_NUMBER }}
-        run: |
-          TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
-          if [ -z "$TICKET" ]; then
-            echo "No UC ticket found. Skipping."
-            exit 0
-          fi
-
-          git fetch origin "$BRANCH_NAME"
-          LAST_COMMIT=$(git log "origin/${BRANCH_NAME}" --no-merges -1 --pretty=%B)
-          NEW_TITLE="${TICKET} ${LAST_COMMIT}"
-
   ci:
     name: CI (Build & Test)
     runs-on: ubuntu-latest
