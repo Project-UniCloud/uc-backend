@@ -327,6 +327,7 @@ class GroupServiceTest {
         CloudResourceAccessId newId = CloudResourceAccessId.of(UUID.randomUUID());
         when(cloudCmd.giveGroupCloudResourceAccess(clientId, type, GroupUniqueName.fromString("AI 2024L"), limit))
                 .thenReturn(newId);
+        when(group.getGroupStatus()).thenReturn(GroupStatus.of(GroupStatus.Type.ACTIVE));
 
         CloudResourceAccessId result = service.grantCloudResourceAccess(gid, clientId, type, limit);
         assertEquals(newId, result);

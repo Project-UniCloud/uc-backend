@@ -283,6 +283,7 @@ class GroupServiceSpec extends Specification {
         def lecturerLogins = [new UserLogin("john.doe@example.com")]
         1 * cloudResourceAccessQueryService.getCloudResourceDetails(_) >> []
         def costLimit = CostLimit.zero()
+        group.getGroupStatus() >> GroupStatus.of(GroupStatus.Type.ACTIVE)
 
         when:
         def result = groupService.grantCloudResourceAccess(groupId, CloudVendorConnectorId, cloudResourceType, costLimit)
