@@ -82,26 +82,13 @@ public class GroupService {
             Set<String> collect = cloudResourceTypesDetails.stream()
                     .map(CloudResourceRowView::clientId)
                     .collect(Collectors.toSet());
-            collect.forEach(s -> {
-                Email email;
-                if (studentBasicData.getEmail() == null
-                        || studentBasicData.getEmail().isBlank()) {
-                    email = Email.empty();
-                } else {
-                    try {
-                        email = Email.of(studentBasicData.getEmail());
-                    } catch (IllegalArgumentException ex) {
-                        email = Email.empty();
-                    }
-                }
-                cloudResourceAccessCommandService.createUsers(
-                        CloudConnectorId.of(s),
-                        List.of(Map.entry(UserLogin.of(studentBasicData.getLogin()), email)),
-                        GroupUniqueName.builder()
-                                .semester(group.getSemester())
-                                .groupName(group.getName())
-                                .build());
-            });
+            collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
+                    CloudConnectorId.of(s),
+                    Set.of(UserLogin.of(studentBasicData.getLogin())),
+                    GroupUniqueName.builder()
+                            .semester(group.getSemester())
+                            .groupName(group.getName())
+                            .build()));
         }
         groupRepository.save(group);
     }
@@ -152,10 +139,9 @@ public class GroupService {
             collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
                     CloudConnectorId.of(s),
                     studentBasicData.stream()
-                            .map(studentBasic -> Map.entry(
-                                    UserLogin.of(studentBasic.getLogin()),
-                                    Email.of(studentBasicData.getFirst().getEmail())))
-                            .toList(),
+                            .map(studentBasic ->
+                                    UserLogin.of(studentBasic.getLogin()))
+                            .collect(Collectors.toSet()),
                     GroupUniqueName.builder()
                             .semester(group.getSemester())
                             .groupName(group.getName())
@@ -220,6 +206,27 @@ public class GroupService {
         Group group = groupRepository
                 .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .groupName(group.getName())
+                .semester(group.getSemester())
+                .build();
+        var deletedLecturersLogins = group.getLecturers()
+                .stream()
+                .filter(lecturerId -> !groupDTO.lecturers().contains(lecturerId.getValue()))
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), userQueryService::getUserLoginsByIds));
+        var addedLecturersLogins = groupDTO.lecturers().stream()
+                .map(UserId::of)
+                .filter(userId -> !group.getLecturers().contains(userId))
+                .collect(Collectors.collectingAndThen(Collectors.toSet(), userQueryService::getUserLoginsByIds));
+        var cloudConnectorIds = group.getCloudResourceAccesses()
+                .stream()
+                .map(cloudResourceAccessQueryService::getCloudResourceDetails)
+                .map(cloudResourceRowView -> CloudConnectorId.of(cloudResourceRowView.clientId()))
+                .collect(Collectors.toSet());
+        cloudConnectorIds.forEach(cloudConnectorId -> {
+            cloudResourceAccessCommandService.createUsers(cloudConnectorId, new HashSet<>(addedLecturersLogins), groupUniqueName);
+            cloudResourceAccessCommandService.removeUsers(cloudConnectorId, new HashSet<>(deletedLecturersLogins), groupUniqueName);
+        });
         group.update(
                 GroupName.of(groupDTO.name()),
                 groupDTO.lecturers().stream().map(UserId::of).collect(Collectors.toSet()),
@@ -300,13 +307,12 @@ public class GroupService {
             resourceTypesDetails.stream()
                     .map(CloudResourceRowView::clientId)
                     .forEach(s -> cloudResourceAccessCommandService.createUsers(
-                            CloudConnectorId.of(s), studentLogins, groupUniqueName));
+                            CloudConnectorId.of(s), studentLogins.stream().map(Map.Entry::getKey).collect(Collectors.toSet()), groupUniqueName));
         }
         group.getCloudResourceAccesses().forEach(cloudResourceAccessCommandService::activateCloudResource);
         groupRepository.save(group);
     }
 
-    // TODO implement taking away cloud resource access to students
     public void archive(GroupId groupId) {
         Group group = groupRepository
                 .findById(groupId.getUuid())

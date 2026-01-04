@@ -66,6 +66,15 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
     }
 
     @Override
+    public String removeUser(UserLogin user, GroupUniqueName groupUniqueName) {
+        AdapterInterface.DeleteUserRequest request = AdapterInterface.DeleteUserRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .setUserName(user.getValue())
+                .build();
+        return stub.deleteUser(request).getMessage();
+    }
+
+    @Override
     public UsedLimit updateUsedCost(LocalDate startDate, LocalDate endDate, GroupUniqueName groupUniqueName) {
         AdapterInterface.CostRequest request = AdapterInterface.CostRequest.newBuilder()
                 .setStartDate(startDate.toString())
