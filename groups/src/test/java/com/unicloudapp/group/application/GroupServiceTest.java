@@ -149,7 +149,7 @@ class GroupServiceTest {
         verify(cloudCmd)
                 .createUsers(
                         CloudConnectorId.of("clientA"),
-                        List.of(Map.entry(UserLogin.of("jsmith"), Email.empty())),
+                        Set.of(UserLogin.of("jsmith")),
                         GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
@@ -299,7 +299,7 @@ class GroupServiceTest {
         verify(group, times(1)).addStudent(id1);
         verify(group, times(1)).addStudent(id2);
         verify(cloudCmd)
-                .createUsers(eq(CloudConnectorId.of("clientB")), anyList(), eq(GroupUniqueName.fromString("AI 2024L")));
+                .createUsers(eq(CloudConnectorId.of("clientB")), anySet(), eq(GroupUniqueName.fromString("AI 2024L")));
         verify(groupRepository).save(group);
     }
 
@@ -539,10 +539,12 @@ class GroupServiceTest {
         service.activate(gid);
 
         verify(group).activate();
+        Set<UserLogin> userLogins =
+                studentLogins.stream().map(Map.Entry::getKey).collect(Collectors.toSet());
         verify(cloudCmd)
-                .createUsers(CloudConnectorId.of("clientA"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+                .createUsers(CloudConnectorId.of("clientA"), userLogins, GroupUniqueName.fromString("AI 2024L"));
         verify(cloudCmd)
-                .createUsers(CloudConnectorId.of("clientB"), studentLogins, GroupUniqueName.fromString("AI 2024L"));
+                .createUsers(CloudConnectorId.of("clientB"), userLogins, GroupUniqueName.fromString("AI 2024L"));
         verify(groupRepository).save(group);
     }
 

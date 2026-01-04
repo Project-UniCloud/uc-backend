@@ -7,7 +7,9 @@ import static org.mockito.Mockito.when;
 
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
+import com.unicloudapp.common.vo.user.UserLogin;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import java.util.List;
@@ -54,5 +56,19 @@ class GrpcCloudConnectorClientAdapterTest {
         when(stub.getAvailableServices(any())).thenThrow(new StatusRuntimeException(Status.INTERNAL));
 
         assertThrows(StatusRuntimeException.class, () -> adapter.getSupportedResourceTypes());
+    }
+
+    @Test
+    void removeUser_returnsMessage_whenSuccessful() {
+        UserLogin user = UserLogin.of("test-user");
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.DeleteUserResponse response = AdapterInterface.DeleteUserResponse.newBuilder()
+                .setMessage("User removed successfully")
+                .build();
+        when(stub.deleteUser(any())).thenReturn(response);
+
+        String result = adapter.removeUser(user, groupUniqueName);
+
+        assertThat(result).isEqualTo("User removed successfully");
     }
 }

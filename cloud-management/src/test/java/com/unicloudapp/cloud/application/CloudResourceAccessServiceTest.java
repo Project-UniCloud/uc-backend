@@ -450,8 +450,8 @@ class CloudResourceAccessServiceTest {
     @Test
     @DisplayName("createUsers delegates to client and publishes events")
     void createUsers_delegate() {
-        List<Map.Entry<UserLogin, Email>> users = List.of(Map.entry(UserLogin.of("u1"), Email.empty()));
-        List<UserLogin> logins = users.stream().map(Map.Entry::getKey).toList();
+        Set<UserLogin> users = Set.of(UserLogin.of("u1"));
+        List<UserLogin> logins = users.stream().toList();
         when(cloudConnectorClientB.createUsers(logins, GroupUniqueName.fromString("AI 2024L")))
                 .thenReturn("ok");
         String res =
@@ -459,6 +459,21 @@ class CloudResourceAccessServiceTest {
         assertEquals("ok", res);
         verify(cloudConnectorClientB).createUsers(logins, GroupUniqueName.fromString("AI 2024L"));
         verify(applicationEventPublisher, times(users.size())).publishEvent(any(CloudUserCreatedEvent.class));
+    }
+
+    @Test
+    @DisplayName("removeUsers delegates to client for each user")
+    void removeUsers_delegate() {
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        UserLogin u1 = UserLogin.of("u1");
+        UserLogin u2 = UserLogin.of("u2");
+        Set<UserLogin> users = Set.of(u1, u2);
+
+        service.removeUsers(CloudConnectorId.of("a-client"), users, group);
+
+        verify(cloudConnectorClientA).removeUser(u1, group);
+        verify(cloudConnectorClientA).removeUser(u2, group);
+        verify(cloudConnectorClientA, times(2)).removeUser(any(), eq(group));
     }
 
     @Test

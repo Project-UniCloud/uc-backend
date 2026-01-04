@@ -26,10 +26,9 @@ public interface CloudResourceAccessCommandService {
             List<Map.Entry<UserLogin, Email>> lecturerLogins,
             CloudResourceType resourceType);
 
-    String createUsers(
-            CloudConnectorId cloudConnectorId,
-            List<Map.Entry<UserLogin, Email>> users,
-            GroupUniqueName groupUniqueName);
+    String createUsers(CloudConnectorId cloudConnectorId, Set<UserLogin> logins, GroupUniqueName groupUniqueName);
+
+    void removeUsers(CloudConnectorId cloudConnectorId, Set<UserLogin> logins, GroupUniqueName groupUniqueName);
 
     void activateCloudResource(CloudResourceAccessId cloudResourceAccessId);
 

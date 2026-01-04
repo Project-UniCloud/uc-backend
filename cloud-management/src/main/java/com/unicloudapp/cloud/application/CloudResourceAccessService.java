@@ -328,22 +328,31 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
 
     @Override
     public String createUsers(
-            CloudConnectorId cloudConnectorId,
-            List<Map.Entry<UserLogin, Email>> users,
-            GroupUniqueName groupUniqueName) {
-        final var logins = users.stream().map(Map.Entry::getKey).toList();
+            CloudConnectorId cloudConnectorId, Set<UserLogin> logins, GroupUniqueName groupUniqueName) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort
                 .findByClientId(cloudConnectorId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
-        String createdUserLogin =
-                cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).createUsers(logins, groupUniqueName);
-        users.forEach(user -> {
+        String createdUserLogin = cloudConnectorClients
+                .get(cloudConnector.getCloudConnectorId())
+                .createUsers(logins.stream().toList(), groupUniqueName);
+        logins.forEach(user -> {
             CloudUserCreatedEvent event =
-                    CloudUserCreatedEvent.builder().userLogin(user.getKey()).build();
+                    CloudUserCreatedEvent.builder().userLogin(user).build();
             applicationEventPublisher.publishEvent(event);
         });
         return createdUserLogin;
+    }
+
+    @Override
+    public void removeUsers(CloudConnectorId cloudConnectorId, Set<UserLogin> logins, GroupUniqueName groupUniqueName) {
+        CloudConnector cloudConnector = cloudConnectorRepositoryPort
+                .findByClientId(cloudConnectorId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
+        for (UserLogin login : logins) {
+            cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).removeUser(login, groupUniqueName);
+        }
     }
 
     @Override
@@ -381,9 +390,9 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
 
     @Override
     public void cleanUpResources(
-            Set<CloudResourceAccessId> CloudVendorConnectorIds, GroupUniqueName groupUniqueName, boolean force) {
+            Set<CloudResourceAccessId> cloudVendorConnectorIds, GroupUniqueName groupUniqueName, boolean force) {
         cloudResourceAccessRepository
-                .findAllById(CloudVendorConnectorIds)
+                .findAllById(cloudVendorConnectorIds)
                 .forEach(cloudResourceAccess -> cleanUpResources(cloudResourceAccess, groupUniqueName, force));
     }
 
@@ -450,17 +459,17 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
         cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).cleanUpResources(groupUniqueName, force);
     }
 
-    private void scheduleTask(CloudResourceAccess CloudResourceAccess, GroupUniqueName groupUniqueName) {
+    private void scheduleTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
         CronTrigger cronTrigger =
-                new CronTrigger(CloudResourceAccess.getCronExpression().toString());
+                new CronTrigger(cloudResourceAccess.getCronExpression().toString());
         ScheduledFuture<?> future = taskScheduler.schedule(
-                () -> cleanUpResources(CloudResourceAccess, groupUniqueName, false), cronTrigger);
-        scheduledTasks.put(CloudResourceAccess.getCloudResourceAccessId(), future);
+                () -> cleanUpResources(cloudResourceAccess, groupUniqueName, false), cronTrigger);
+        scheduledTasks.put(cloudResourceAccess.getCloudResourceAccessId(), future);
     }
 
-    private void updateScheduledTask(CloudResourceAccess CloudResourceAccess, GroupUniqueName groupUniqueName) {
-        cancelScheduledTask(CloudResourceAccess.getCloudResourceAccessId());
-        scheduleTask(CloudResourceAccess, groupUniqueName);
+    private void updateScheduledTask(CloudResourceAccess cloudResourceAccess, GroupUniqueName groupUniqueName) {
+        cancelScheduledTask(cloudResourceAccess.getCloudResourceAccessId());
+        scheduleTask(cloudResourceAccess, groupUniqueName);
     }
 
     private void cancelScheduledTask(CloudResourceAccessId cloudResourceAccessId) {

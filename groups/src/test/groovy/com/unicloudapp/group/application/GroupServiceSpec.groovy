@@ -307,22 +307,43 @@ class GroupServiceSpec extends Specification {
     def "should update group"() {
         given:
         def groupId = GroupId.of(UUID.randomUUID())
+        def lecturerId = UUID.randomUUID()
         def groupDTO = GroupDTO.builder()
                 .groupId(UUID.randomUUID())
                 .name("Updated Group")
                 .semester("2023Z")
-                .lecturers([UUID.randomUUID()] as Set)
+                .lecturers([lecturerId] as Set)
                 .startDate(LocalDate.now())
                 .endDate(LocalDate.now().plusMonths(6))
                 .description("Updated Description")
                 .build()
         def group = Mock(Group)
+        def cloudResourceAccessId = CloudResourceAccessId.of(UUID.randomUUID())
+        def cloudResourceRowView = CloudResourceRowView.builder()
+                .clientId("test-client")
+                .name("test-resource")
+                .costLimit(BigDecimal.ZERO)
+                .limitUsed(BigDecimal.ZERO)
+                .expiresAt(LocalDate.now())
+                .lastUsedAt(LocalDateTime.now())
+                .cronCleanupSchedule("0 0 0 * * ?")
+                .status("ACTIVE")
+                .build()
 
         when:
         groupService.updateGroup(groupId, groupDTO)
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
+        _ * group.getName() >> GroupName.of("Old Name")
+        _ * group.getSemester() >> Semester.of("2023Z")
+        _ * group.getLecturers() >> ([] as Set)
+        1 * userQueryService.getUserLoginsByIds(_ as Set) >> [] // deleted lecturers
+        1 * userQueryService.getUserLoginsByIds(_ as Set) >> ["new.lecturer"] // added lecturers
+        1 * group.getCloudResourceAccesses() >> ([cloudResourceAccessId] as Set)
+        1 * cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessId) >> cloudResourceRowView
+        1 * cloudResourceAccessCommandService.createUsers(CloudConnectorId.of("test-client"), ["new.lecturer"] as Set, _)
+        1 * cloudResourceAccessCommandService.removeUsers(CloudConnectorId.of("test-client"), [] as Set, _)
         1 * group.update(
                 GroupName.of(groupDTO.name()),
                 _ as Set,
