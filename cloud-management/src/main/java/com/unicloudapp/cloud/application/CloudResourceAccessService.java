@@ -328,15 +328,14 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
 
     @Override
     public String createUsers(
-            CloudConnectorId cloudConnectorId,
-            Set<UserLogin> logins,
-            GroupUniqueName groupUniqueName) {
+            CloudConnectorId cloudConnectorId, Set<UserLogin> logins, GroupUniqueName groupUniqueName) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort
                 .findByClientId(cloudConnectorId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("CloudVendorConnectorId " + cloudConnectorId + " does not exist"));
-        String createdUserLogin =
-                cloudConnectorClients.get(cloudConnector.getCloudConnectorId()).createUsers(logins.stream().toList(), groupUniqueName);
+        String createdUserLogin = cloudConnectorClients
+                .get(cloudConnector.getCloudConnectorId())
+                .createUsers(logins.stream().toList(), groupUniqueName);
         logins.forEach(user -> {
             CloudUserCreatedEvent event =
                     CloudUserCreatedEvent.builder().userLogin(user).build();
@@ -346,10 +345,7 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
     }
 
     @Override
-    public void removeUsers(
-            CloudConnectorId cloudConnectorId,
-            Set<UserLogin> logins,
-            GroupUniqueName groupUniqueName) {
+    public void removeUsers(CloudConnectorId cloudConnectorId, Set<UserLogin> logins, GroupUniqueName groupUniqueName) {
         CloudConnector cloudConnector = cloudConnectorRepositoryPort
                 .findByClientId(cloudConnectorId)
                 .orElseThrow(() ->

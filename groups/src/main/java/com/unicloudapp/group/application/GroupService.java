@@ -139,8 +139,7 @@ public class GroupService {
             collect.forEach(s -> cloudResourceAccessCommandService.createUsers(
                     CloudConnectorId.of(s),
                     studentBasicData.stream()
-                            .map(studentBasic ->
-                                    UserLogin.of(studentBasic.getLogin()))
+                            .map(studentBasic -> UserLogin.of(studentBasic.getLogin()))
                             .collect(Collectors.toSet()),
                     GroupUniqueName.builder()
                             .semester(group.getSemester())
@@ -210,22 +209,22 @@ public class GroupService {
                 .groupName(group.getName())
                 .semester(group.getSemester())
                 .build();
-        var deletedLecturersLogins = group.getLecturers()
-                .stream()
+        var deletedLecturersLogins = group.getLecturers().stream()
                 .filter(lecturerId -> !groupDTO.lecturers().contains(lecturerId.getValue()))
                 .collect(Collectors.collectingAndThen(Collectors.toSet(), userQueryService::getUserLoginsByIds));
         var addedLecturersLogins = groupDTO.lecturers().stream()
                 .map(UserId::of)
                 .filter(userId -> !group.getLecturers().contains(userId))
                 .collect(Collectors.collectingAndThen(Collectors.toSet(), userQueryService::getUserLoginsByIds));
-        var cloudConnectorIds = group.getCloudResourceAccesses()
-                .stream()
+        var cloudConnectorIds = group.getCloudResourceAccesses().stream()
                 .map(cloudResourceAccessQueryService::getCloudResourceDetails)
                 .map(cloudResourceRowView -> CloudConnectorId.of(cloudResourceRowView.clientId()))
                 .collect(Collectors.toSet());
         cloudConnectorIds.forEach(cloudConnectorId -> {
-            cloudResourceAccessCommandService.createUsers(cloudConnectorId, new HashSet<>(addedLecturersLogins), groupUniqueName);
-            cloudResourceAccessCommandService.removeUsers(cloudConnectorId, new HashSet<>(deletedLecturersLogins), groupUniqueName);
+            cloudResourceAccessCommandService.createUsers(
+                    cloudConnectorId, new HashSet<>(addedLecturersLogins), groupUniqueName);
+            cloudResourceAccessCommandService.removeUsers(
+                    cloudConnectorId, new HashSet<>(deletedLecturersLogins), groupUniqueName);
         });
         group.update(
                 GroupName.of(groupDTO.name()),
@@ -307,7 +306,9 @@ public class GroupService {
             resourceTypesDetails.stream()
                     .map(CloudResourceRowView::clientId)
                     .forEach(s -> cloudResourceAccessCommandService.createUsers(
-                            CloudConnectorId.of(s), studentLogins.stream().map(Map.Entry::getKey).collect(Collectors.toSet()), groupUniqueName));
+                            CloudConnectorId.of(s),
+                            studentLogins.stream().map(Map.Entry::getKey).collect(Collectors.toSet()),
+                            groupUniqueName));
         }
         group.getCloudResourceAccesses().forEach(cloudResourceAccessCommandService::activateCloudResource);
         groupRepository.save(group);
