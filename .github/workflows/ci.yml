@@ -25,9 +25,8 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_REF: ${{ github.head_ref }}
         run: |
-          # Ensure variables contain only safe characters
           SAFE_PR_NUMBER=$(printf '%s' "$PR_NUMBER" | tr -dc '0-9')
-          SAFE_BRANCH_NAME=$(printf '%s' "$HEAD_REF" | tr -dc '[:alnum:]-_/')
+          SAFE_BRANCH_NAME=$(printf '%s' "$HEAD_REF" | tr -dc '[:alnum:]._/-')
 
           echo "SAFE_PR_NUMBER=$SAFE_PR_NUMBER" >> "$GITHUB_ENV"
           echo "SAFE_BRANCH_NAME=$SAFE_BRANCH_NAME" >> "$GITHUB_ENV"
@@ -38,15 +37,26 @@ jobs:
           BRANCH_NAME: ${{ env.SAFE_BRANCH_NAME }}
           PR_NUMBER: ${{ env.SAFE_PR_NUMBER }}
         run: |
-          TICKET=$(echo "$BRANCH_NAME" | grep -o 'UC-[0-9]\+')
+          set -e
+
+          TICKET=$(echo "$BRANCH_NAME" | grep -oE 'UC-[0-9]+') || true
           if [ -z "$TICKET" ]; then
-            echo "No UC ticket found. Skipping."
+            echo "No UC ticket found in branch name. Skipping."
             exit 0
           fi
 
-          git fetch origin "$BRANCH_NAME"
-          LAST_COMMIT=$(git log "origin/${BRANCH_NAME}" --no-merges -1 --pretty=%B)
+          # First non-merge commit message (first line only)
+          LAST_COMMIT=$(git log --no-merges --pretty=%s origin/"$BRANCH_NAME" | head -n 1)
+
+          if [ -z "$LAST_COMMIT" ]; then
+            echo "No commit message found. Skipping."
+            exit 0
+          fi
+
           NEW_TITLE="${TICKET} ${LAST_COMMIT}"
+          echo "Setting PR #$PR_NUMBER title to:"
+          echo "$NEW_TITLE"
+          gh pr edit "$PR_NUMBER" --title "$NEW_TITLE"
 
   ci:
     name: CI (Build & Test)
