@@ -462,6 +462,21 @@ class CloudResourceAccessServiceTest {
     }
 
     @Test
+    @DisplayName("removeUsers delegates to client for each user")
+    void removeUsers_delegate() {
+        GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
+        UserLogin u1 = UserLogin.of("u1");
+        UserLogin u2 = UserLogin.of("u2");
+        Set<UserLogin> users = Set.of(u1, u2);
+
+        service.removeUsers(CloudConnectorId.of("a-client"), users, group);
+
+        verify(cloudConnectorClientA).removeUser(u1, group);
+        verify(cloudConnectorClientA).removeUser(u2, group);
+        verify(cloudConnectorClientA, times(2)).removeUser(any(), eq(group));
+    }
+
+    @Test
     @DisplayName("updateCostUsed updates used limit and saves changes")
     void updateCostUsed_updatesAndSaves() {
         GroupUniqueName group = GroupUniqueName.fromString("AI 2024L");
