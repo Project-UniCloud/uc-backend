@@ -1038,4 +1038,55 @@ class CloudResourceAccessServiceTest {
         when(repository.findAllById(anySet())).thenReturn(List.of());
         assertTrue(service.getTotalCostInTime(emptyGroup).isEmpty());
     }
+
+    @Test
+    @DisplayName("addLecturersToGroup successfully adds lecturers")
+    void addLecturersToGroup_success() {
+        // Arrange
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        Set<UserLogin> lecturers = Set.of(UserLogin.of("lecturer1"), UserLogin.of("lecturer2"));
+        when(cloudConnectorClientA.addLecturerForGroup(eq(groupName), any(UserLogin.class)))
+                .thenReturn(Map.entry(true, "Success"));
+
+        // Act
+        service.addLecturersToGroup(cloudConnectorA.getCloudConnectorId(), groupName, lecturers);
+
+        // Assert
+        verify(cloudConnectorClientA, times(1)).addLecturerForGroup(groupName, UserLogin.of("lecturer1"));
+        verify(cloudConnectorClientA, times(1)).addLecturerForGroup(groupName, UserLogin.of("lecturer2"));
+    }
+
+    @Test
+    @DisplayName("addLecturersToGroup logs failure but continues when some additions fail")
+    void addLecturersToGroup_partialFailure() {
+        // Arrange
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        UserLogin successLogin = UserLogin.of("lecturer1");
+        UserLogin failLogin = UserLogin.of("lecturer2");
+        Set<UserLogin> lecturers = Set.of(successLogin, failLogin);
+
+        when(cloudConnectorClientA.addLecturerForGroup(groupName, successLogin)).thenReturn(Map.entry(true, "Success"));
+        when(cloudConnectorClientA.addLecturerForGroup(groupName, failLogin))
+                .thenReturn(Map.entry(false, "Internal Error"));
+
+        // Act
+        service.addLecturersToGroup(cloudConnectorA.getCloudConnectorId(), groupName, lecturers);
+
+        // Assert
+        verify(cloudConnectorClientA, times(1)).addLecturerForGroup(groupName, successLogin);
+        verify(cloudConnectorClientA, times(1)).addLecturerForGroup(groupName, failLogin);
+    }
+
+    @Test
+    @DisplayName("addLecturersToGroup throws NoSuchElementException when connector not found")
+    void addLecturersToGroup_connectorNotFound() {
+        // Arrange
+        CloudConnectorId missingId = CloudConnectorId.of("missing");
+        when(cloudConnectorRepositoryPort.findByClientId(missingId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(
+                java.util.NoSuchElementException.class,
+                () -> service.addLecturersToGroup(missingId, GroupUniqueName.fromString("AI 2024L"), Set.of()));
+    }
 }

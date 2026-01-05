@@ -342,7 +342,7 @@ class GroupServiceSpec extends Specification {
         1 * userQueryService.getUserLoginsByIds(_ as Set) >> ["new.lecturer"] // added lecturers
         1 * group.getCloudResourceAccesses() >> ([cloudResourceAccessId] as Set)
         1 * cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessId) >> cloudResourceRowView
-        1 * cloudResourceAccessCommandService.createUsers(CloudConnectorId.of("test-client"), ["new.lecturer"] as Set, _)
+        1 * cloudResourceAccessCommandService.addLecturersToGroup(CloudConnectorId.of("test-client"), _, ["new.lecturer"] as Set)
         1 * cloudResourceAccessCommandService.removeUsers(CloudConnectorId.of("test-client"), [] as Set, _)
         1 * group.update(
                 GroupName.of(groupDTO.name()),

@@ -1,84 +1,102 @@
 -- liquibase formatted sql
 
 -- changeset michal:0001-init-tables
-CREATE TABLE IF NOT EXISTS cloud_resource_access_entity
+create table if not exists cloud_connectors
 (
-    cloud_resource_access_id uuid           NOT NULL,
-    cloud_access_client_id   VARCHAR(255)   NOT NULL,
-    cost_limit               numeric(38, 2) NOT NULL,
-    cron_expression          VARCHAR(255)   NOT NULL,
+    id                    varchar(255)   not null primary key,
+    default_clean_up_cron varchar(255)   not null,
+    default_cost_limit    numeric(38, 2) not null,
+    host                  varchar(255)   not null,
+    name                  varchar(255)   not null,
+    port                  integer        not null
+);
+
+create table if not exists cloud_connectors_resource_types
+(
+    cloud_connector_id varchar(255) not null
+        constraint fk_ccrt_to_cc_constraint
+            references cloud_connectors,
+    resource_type      varchar(255) not null
+);
+
+create table if not exists cloud_resource_access_entity
+(
+    cloud_resource_access_id uuid           not null primary key,
+    cloud_connector_id       varchar(255)   not null,
+    cost_limit               numeric(38, 2) not null,
+    cron_expression          varchar(255)   not null,
     expires_at               date,
-    resource_type            VARCHAR(255)   NOT NULL,
-    status                   VARCHAR(255)   NOT NULL,
-    used_limit               numeric(38, 2) NOT NULL,
-    CONSTRAINT pk_cloud_resource_access PRIMARY KEY (cloud_resource_access_id)
+    notification_level1      integer,
+    notification_level2      integer,
+    notification_level3      integer,
+    resource_type            varchar(255)   not null,
+    status                   varchar(255)   not null
+        constraint cloud_resource_access_entity_status_check_constraint
+            check ((status)::text = ANY ((ARRAY ['ACTIVE'::character varying, 'INACTIVE'::character varying])::text[])),
+    used_limit               numeric(38, 2) not null
 );
 
-CREATE TABLE IF NOT EXISTS groups
+create table if not exists groups
 (
-    uuid         uuid         NOT NULL,
-    description  VARCHAR(255),
+    uuid         uuid         not null primary key,
+    description  varchar(255),
     end_date     date,
-    group_status VARCHAR(255) NOT NULL,
-    name         VARCHAR(255) NOT NULL,
-    semester     VARCHAR(255) NOT NULL,
+    group_status varchar(255) not null
+        constraint groups_group_status_check_constraint
+            check ((group_status)::text = ANY
+                   ((ARRAY ['ACTIVE'::character varying, 'INACTIVE'::character varying, 'ARCHIVED'::character varying])::text[])),
+    name         varchar(255) not null,
+    semester     varchar(255) not null,
     start_date   date,
-    CONSTRAINT pk_groups PRIMARY KEY (uuid),
-    CONSTRAINT uk_groups_name_semester UNIQUE (name, semester)
+    constraint groups_unique_name_semester_constraint
+        unique (name, semester)
 );
 
-CREATE TABLE IF NOT EXISTS users
+create table if not exists group_cloud_resource_accesses
 (
-    uuid        uuid         NOT NULL,
-    email       VARCHAR(255),
-    first_name  VARCHAR(255) NOT NULL,
-    last_login  TIMESTAMP WITHOUT TIME ZONE,
-    last_name   VARCHAR(255) NOT NULL,
-    login       VARCHAR(255) NOT NULL,
-    CONSTRAINT  pk_users PRIMARY KEY (uuid),
-    CONSTRAINT  uk_users_login UNIQUE (login)
+    group_id                  uuid not null
+        constraint fk_group_cloud_resource_accesses_to_groups_constraint
+            references groups,
+    cloud_resource_access_id uuid
 );
 
-CREATE TABLE IF NOT EXISTS user_roles
+create table if not exists group_lecturers
 (
-    user_uuid   uuid         NOT NULL,
-    role        VARCHAR(255) NOT NULL,
-    PRIMARY KEY (user_uuid, role),
-    CONSTRAINT fk_ur_users
-        FOREIGN KEY (user_uuid)
-            REFERENCES users (uuid)
+    group_id uuid not null
+        constraint fk_group_lecturers_to_groups_constraint
+            references groups,
+    user_id  uuid
 );
 
-CREATE TABLE IF NOT EXISTS group_cloud_resource_accesses
+create table if not exists group_students
 (
-    group_id                 uuid NOT NULL,
-    cloud_resource_access_id uuid NOT NULL,
-    CONSTRAINT pk_group_cloud_resource_accesses PRIMARY KEY (group_id, cloud_resource_access_id),
-    CONSTRAINT fk_gcra_group
-        FOREIGN KEY (group_id) REFERENCES groups (uuid),
-    CONSTRAINT fk_gcra_cloud_resource_access
-        FOREIGN KEY (cloud_resource_access_id)
-            REFERENCES cloud_resource_access_entity (cloud_resource_access_id)
+    group_id uuid not null
+        constraint fk_group_students_to_groups_constraint
+            references groups,
+    user_id  uuid
 );
 
-CREATE TABLE IF NOT EXISTS group_lecturers
+create table if not exists users
 (
-    group_id uuid NOT NULL,
-    user_id  uuid NOT NULL,
-    CONSTRAINT pk_group_lecturers PRIMARY KEY (group_id, user_id),
-    CONSTRAINT fk_group_lecturers_group
-        FOREIGN KEY (group_id) REFERENCES groups (uuid),
-    CONSTRAINT fk_group_lecturers_user
-        FOREIGN KEY (user_id) REFERENCES users (uuid)
+    uuid       uuid         not null
+        primary key,
+    email      varchar(255),
+    first_name varchar(255) not null,
+    last_login timestamp(6),
+    last_name  varchar(255) not null,
+    login      varchar(255) not null
+        constraint users_login_unique_constraint
+            unique
 );
 
-CREATE TABLE IF NOT EXISTS group_students
+create table if not exists user_roles
 (
-    group_id uuid NOT NULL,
-    user_id  uuid NOT NULL,
-    CONSTRAINT pk_group_students PRIMARY KEY (group_id, user_id),
-    CONSTRAINT fk_group_students_group
-        FOREIGN KEY (group_id) REFERENCES groups (uuid),
-    CONSTRAINT fk_group_students_user
-        FOREIGN KEY (user_id) REFERENCES users (uuid)
+    user_uuid uuid         not null
+        constraint fk_user_roles_to_users_constraint
+            references users,
+    role      varchar(255) not null
+        constraint user_roles_role_check
+            check ((role)::text = ANY
+                   ((ARRAY ['ADMIN'::character varying, 'STUDENT'::character varying, 'LECTURER'::character varying])::text[])),
+    primary key (user_uuid, role)
 );

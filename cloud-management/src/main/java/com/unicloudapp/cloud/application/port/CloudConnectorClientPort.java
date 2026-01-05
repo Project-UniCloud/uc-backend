@@ -36,4 +36,6 @@ public interface CloudConnectorClientPort {
     List<CloudResourceType> getSupportedResourceTypes();
 
     void assignCloudResourceAccess(CloudResourceType resourceType, GroupUniqueName groupUniqueName, UserLogin lecturer);
+
+    Map.Entry<Boolean, String> addLecturerForGroup(GroupUniqueName groupUniqueName, UserLogin lecturerLogin);
 }

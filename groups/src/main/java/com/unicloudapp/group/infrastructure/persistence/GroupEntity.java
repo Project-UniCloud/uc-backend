@@ -47,7 +47,7 @@ class GroupEntity {
 
     @ElementCollection
     @CollectionTable(name = "group_cloud_resource_accesses", joinColumns = @JoinColumn(name = "group_id"))
-    @Column(name = "cloud_resource_accesse_id")
+    @Column(name = "cloud_resource_access_id")
     private Set<UUID> cloudResourceAccesses;
 
     private String description;

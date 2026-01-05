@@ -13,6 +13,7 @@ import com.unicloudapp.common.vo.user.UserLogin;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -70,5 +71,37 @@ class GrpcCloudConnectorClientAdapterTest {
         String result = adapter.removeUser(user, groupUniqueName);
 
         assertThat(result).isEqualTo("User removed successfully");
+    }
+
+    @Test
+    void addLecturerForGroup_returnsSuccess_whenGrcpReturnsSuccess() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        UserLogin lecturerLogin = UserLogin.of("lecturer1");
+        AdapterInterface.AddLeaderToGroupResponse response = AdapterInterface.AddLeaderToGroupResponse.newBuilder()
+                .setSuccess(true)
+                .setMessage("Lecturer added successfully")
+                .build();
+        when(stub.addLeaderToGroup(any())).thenReturn(response);
+
+        Map.Entry<Boolean, String> result = adapter.addLecturerForGroup(groupUniqueName, lecturerLogin);
+
+        assertThat(result.getKey()).isTrue();
+        assertThat(result.getValue()).isEqualTo("Lecturer added successfully");
+    }
+
+    @Test
+    void addLecturerForGroup_returnsFailure_whenGrcpReturnsFailure() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        UserLogin lecturerLogin = UserLogin.of("lecturer1");
+        AdapterInterface.AddLeaderToGroupResponse response = AdapterInterface.AddLeaderToGroupResponse.newBuilder()
+                .setSuccess(false)
+                .setMessage("Failed to add lecturer")
+                .build();
+        when(stub.addLeaderToGroup(any())).thenReturn(response);
+
+        Map.Entry<Boolean, String> result = adapter.addLecturerForGroup(groupUniqueName, lecturerLogin);
+
+        assertThat(result.getKey()).isFalse();
+        assertThat(result.getValue()).isEqualTo("Failed to add lecturer");
     }
 }

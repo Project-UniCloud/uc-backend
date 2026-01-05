@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
@@ -60,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+@Log4j2
 @RequiredArgsConstructor
 public class CloudResourceAccessService implements CloudResourceAccessQueryService, CloudResourceAccessCommandService {
 
@@ -509,5 +511,21 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
         }
 
         applicationEventPublisher.publishEvent(event.build());
+    }
+
+    @Override
+    public void addLecturersToGroup(
+            CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, Set<UserLogin> lecturerLogins) {
+        CloudConnector cloudConnector =
+                cloudConnectorRepositoryPort.findByClientId(cloudConnectorId).orElseThrow();
+        CloudConnectorClientPort cloudConnectorClient = cloudConnectorClients.get(cloudConnector.getCloudConnectorId());
+        for (UserLogin lecturerLogin : lecturerLogins) {
+            Map.Entry<Boolean, String> result =
+                    cloudConnectorClient.addLecturerForGroup(groupUniqueName, lecturerLogin);
+            if (Boolean.FALSE.equals(result.getKey())) {
+                log.warn(
+                        "Failed to add lecturer {} to group {}: {}", lecturerLogin, groupUniqueName, result.getValue());
+            }
+        }
     }
 }

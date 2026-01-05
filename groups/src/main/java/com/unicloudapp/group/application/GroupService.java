@@ -221,8 +221,8 @@ public class GroupService {
                 .map(cloudResourceRowView -> CloudConnectorId.of(cloudResourceRowView.clientId()))
                 .collect(Collectors.toSet());
         cloudConnectorIds.forEach(cloudConnectorId -> {
-            cloudResourceAccessCommandService.createUsers(
-                    cloudConnectorId, new HashSet<>(addedLecturersLogins), groupUniqueName);
+            cloudResourceAccessCommandService.addLecturersToGroup(
+                    cloudConnectorId, groupUniqueName, new HashSet<>(addedLecturersLogins));
             cloudResourceAccessCommandService.removeUsers(
                     cloudConnectorId, new HashSet<>(deletedLecturersLogins), groupUniqueName);
         });

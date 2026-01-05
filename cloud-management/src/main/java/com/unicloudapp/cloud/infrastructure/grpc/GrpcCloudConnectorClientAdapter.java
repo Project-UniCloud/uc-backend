@@ -197,4 +197,14 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
             throw e;
         }
     }
+
+    @Override
+    public Map.Entry<Boolean, String> addLecturerForGroup(GroupUniqueName groupUniqueName, UserLogin lecturerLogin) {
+        var request = AdapterInterface.AddLeaderToGroupRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .setLeaderName(lecturerLogin.getValue())
+                .build();
+        var response = stub.addLeaderToGroup(request);
+        return Map.entry(response.getSuccess(), response.getMessage());
+    }
 }

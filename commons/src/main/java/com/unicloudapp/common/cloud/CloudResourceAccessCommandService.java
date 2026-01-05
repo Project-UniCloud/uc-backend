@@ -46,4 +46,7 @@ public interface CloudResourceAccessCommandService {
 
     void updateCloudResourceAccessClientDetails(
             CloudConnectorId of, CostLimit of1, CronExpression parse, String cloudConnectorName);
+
+    void addLecturersToGroup(
+            CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, Set<UserLogin> lecturerLogins);
 }
