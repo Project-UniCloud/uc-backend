@@ -27,12 +27,7 @@ auth:
   cookie:
     secure: ${AUTH_COOKIE_SECURE:false}
     same-site: ${AUTH_SAME_SITE:lax}
-  admins:
-    - s481871
-    - bikol
-    - s485704
-    - s481873
-    - s481833
+  admins: ${AUTH_ADMINS:}
   ldap:
     url: ldaps://dc1-2016.labs.wmi.amu.edu.pl:636
     domainSuffix: labs.wmi.amu.edu.pl
