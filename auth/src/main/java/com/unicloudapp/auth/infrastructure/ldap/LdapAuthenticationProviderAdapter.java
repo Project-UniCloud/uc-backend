@@ -13,6 +13,7 @@ import com.unicloudapp.common.vo.user.FirstName;
 import com.unicloudapp.common.vo.user.LastName;
 import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.common.vo.user.UserRole;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import org.springframework.ldap.support.LdapUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -48,6 +50,7 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
     private final LdapProperties ldapProperties;
 
     @Override
+    @Transactional
     public UserRole authenticate(String username, String password) {
         DirContext ctx = null;
         try {
@@ -82,6 +85,8 @@ class LdapAuthenticationProviderAdapter implements AuthenticationProviderPort, U
                         .email(Email.of(user.email()))
                         .build());
             }
+
+            userCommandService.logLoginOperation(UserLogin.of(username), Instant.now());
 
             return role;
 

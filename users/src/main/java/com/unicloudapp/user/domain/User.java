@@ -24,7 +24,9 @@ public class User {
     private Email email;
 
     private LastLoginAt lastLoginAt;
-    private final UserRole userRole;
+
+    @Setter
+    private UserRole userRole;
 
     public void logIn(LastLoginAt lastLoginAt) {
         if (this.lastLoginAt.isAfter(lastLoginAt)) {
