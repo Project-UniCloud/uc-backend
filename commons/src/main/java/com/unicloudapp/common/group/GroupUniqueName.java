@@ -26,6 +26,10 @@ public record GroupUniqueName(GroupName groupName, Semester semester) {
         return groupName + " " + semester;
     }
 
+    public String getGroupNameWithoutSpaces() {
+        return groupName + "-" + semester;
+    }
+
     public static GroupUniqueName fromStringWithoutSpaces(String groupName) {
         return fromString(groupName.replace("-", " "));
     }

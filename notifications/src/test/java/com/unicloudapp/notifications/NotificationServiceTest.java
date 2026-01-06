@@ -8,6 +8,7 @@ import com.unicloudapp.common.cloud.event.CloudBudgetThresholdExceededEvent;
 import com.unicloudapp.common.cloud.event.CloudUserCreatedEvent;
 import com.unicloudapp.common.group.GroupDto;
 import com.unicloudapp.common.group.GroupQueryService;
+import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.Email;
@@ -47,7 +48,8 @@ class NotificationServiceTest {
     void shouldSendEmailWhenCloudUserCreatedEventHandledAndUserExists() throws Exception {
         // given
         UserLogin userLogin = UserLogin.of("testuser");
-        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin);
+        var groupUniqueName = GroupUniqueName.fromString("AI 2024L");
+        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin, groupUniqueName);
         UserDetails userDetails = UserDetails.builder()
                 .login(userLogin)
                 .email(Email.of("test@example.com"))
@@ -76,7 +78,8 @@ class NotificationServiceTest {
     void shouldNotSendEmailWhenCloudUserCreatedEventHandledAndUserDoesNotExist() {
         // given
         UserLogin userLogin = UserLogin.of("nonexistent");
-        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin);
+        var groupUniqueName = GroupUniqueName.fromString("AI 2024L");
+        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin, groupUniqueName);
 
         when(userQueryService.getUserDetailsByUsername(userLogin)).thenReturn(Optional.empty());
 
@@ -93,7 +96,8 @@ class NotificationServiceTest {
     void shouldLogErrorButNotThrowExceptionWhenMailSendingFails() {
         // given
         UserLogin userLogin = UserLogin.of("testuser");
-        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin);
+        var groupUniqueName = GroupUniqueName.fromString("AI 2024L");
+        CloudUserCreatedEvent event = new CloudUserCreatedEvent(userLogin, groupUniqueName);
         UserDetails userDetails = UserDetails.builder()
                 .login(userLogin)
                 .email(Email.of("test@example.com"))

@@ -60,7 +60,10 @@ public class NotificationService {
             SendNotificationCommand sendNotificationCommand = SendNotificationCommand.builder()
                     .to(userDetails.email().getValue())
                     .subject("Your access to cloud resources has been granted")
-                    .text(mail.replace("{username}", userLogin.getValue())
+                    .text(mail.replace(
+                                    "{username}",
+                                    userLogin.getValue() + "-"
+                                            + event.groupUniqueName().getGroupNameWithoutSpaces())
                             .replace("{password}", userLogin.getValue() + "_password123$"))
                     .type(NotificationType.EMAIL)
                     .build();

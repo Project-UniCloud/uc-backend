@@ -302,8 +302,10 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
             List<Map.Entry<UserLogin, Email>> lecturers,
             CloudResourceType resourceType) {
         lecturers.forEach(lecturer -> {
-            CloudUserCreatedEvent event =
-                    CloudUserCreatedEvent.builder().userLogin(lecturer.getKey()).build();
+            CloudUserCreatedEvent event = CloudUserCreatedEvent.builder()
+                    .userLogin(lecturer.getKey())
+                    .groupUniqueName(groupUniqueName)
+                    .build();
             applicationEventPublisher.publishEvent(event);
         });
         val lecturerLogins = lecturers.stream().map(Map.Entry::getKey).toList();
@@ -339,8 +341,10 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
                 .get(cloudConnector.getCloudConnectorId())
                 .createUsers(logins.stream().toList(), groupUniqueName);
         logins.forEach(user -> {
-            CloudUserCreatedEvent event =
-                    CloudUserCreatedEvent.builder().userLogin(user).build();
+            CloudUserCreatedEvent event = CloudUserCreatedEvent.builder()
+                    .groupUniqueName(groupUniqueName)
+                    .userLogin(user)
+                    .build();
             applicationEventPublisher.publishEvent(event);
         });
         return createdUserLogin;
