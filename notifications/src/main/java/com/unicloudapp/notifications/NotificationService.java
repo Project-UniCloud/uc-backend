@@ -64,7 +64,10 @@ public class NotificationService {
                                     "{username}",
                                     userLogin.getValue() + "-"
                                             + event.groupUniqueName().getGroupNameWithoutSpaces())
-                            .replace("{password}", userLogin.getValue() + "-" + event.groupUniqueName().getGroupNameWithoutSpaces() + "_password123$"))
+                            .replace(
+                                    "{password}",
+                                    userLogin.getValue() + "-"
+                                            + event.groupUniqueName().getGroupNameWithoutSpaces() + "_password123$"))
                     .type(NotificationType.EMAIL)
                     .build();
             sendNotification(sendNotificationCommand);
