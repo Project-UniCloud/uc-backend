@@ -64,6 +64,9 @@ class UserRestControllerDiffblueTest {
     @MockitoBean
     private UserExternalQueryService userExternalQueryService;
 
+    @MockitoBean
+    private UpdateUserUseCase updateUserUseCase;
+
     /**
      * Test {@link UserRestController#createLecturer(CreateLecturerRequest)} with {@code createLecturerRequest}.
      * <p>
@@ -129,7 +132,8 @@ class UserRestControllerDiffblueTest {
                 searchLecturerUserCase,
                 userDomainDtoMapper,
                 findAllLecturersUseCase,
-                userExternalQueryService);
+                userExternalQueryService,
+                updateUserUseCase);
 
         // Act
         LecturerCreatedResponse actualCreateLecturerResult =
@@ -201,7 +205,8 @@ class UserRestControllerDiffblueTest {
                 searchLecturerUserCase,
                 userDomainDtoMapper,
                 findAllLecturersUseCase,
-                userExternalQueryService);
+                userExternalQueryService,
+                updateUserUseCase);
 
         // Act
         StudentCreatedResponse studentCreatedResponse =

@@ -10,6 +10,7 @@ import com.unicloudapp.user.application.port.in.CreateLecturerUseCase
 import com.unicloudapp.user.application.port.in.CreateStudentUseCase
 import com.unicloudapp.user.application.port.in.FindUserUseCase
 import com.unicloudapp.user.application.port.in.SearchLecturerUserCase
+import com.unicloudapp.user.application.port.in.UpdateUserUseCase
 import com.unicloudapp.user.domain.User
 import spock.lang.Specification
 
@@ -22,6 +23,7 @@ class UserRestControllerSpec extends Specification {
     UserToUserFoundResponseMapper userDomainDtoMapper = Mock()
     FindAllLecturersUseCase findAllLecturersUseCase = Mock()
     UserExternalQueryService userExternalQueryService = Mock()
+    UpdateUserUseCase updateUserUseCase = Mock()
 
     UserRestController controller = new UserRestController(
             createLecturerUseCase,
@@ -30,7 +32,8 @@ class UserRestControllerSpec extends Specification {
             searchLecturerUserCase,
             userDomainDtoMapper,
             findAllLecturersUseCase,
-            userExternalQueryService
+            userExternalQueryService,
+            updateUserUseCase
     )
 
     def "should create lecturer and return created response"() {

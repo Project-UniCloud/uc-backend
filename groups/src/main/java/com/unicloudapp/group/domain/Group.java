@@ -58,6 +58,10 @@ public class Group {
         this.groupStatus = GroupStatus.of(ARCHIVED);
     }
 
+    public void deleteStudent(UserId studentId) {
+        students.remove(studentId);
+    }
+
     @SuppressWarnings("unused")
     static class GroupBuilder {
 

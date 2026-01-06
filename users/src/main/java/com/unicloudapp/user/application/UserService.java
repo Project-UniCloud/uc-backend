@@ -3,19 +3,41 @@ package com.unicloudapp.user.application;
 import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException;
 import com.unicloudapp.common.exception.user.UserNotFoundException;
-import com.unicloudapp.common.user.*;
+import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserCommandService;
+import com.unicloudapp.common.user.UserCreateCommand;
+import com.unicloudapp.common.user.UserDetails;
+import com.unicloudapp.common.user.UserFullName;
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection;
+import com.unicloudapp.common.user.UserQueryService;
+import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.common.vo.Email;
-import com.unicloudapp.common.vo.user.*;
+import com.unicloudapp.common.vo.user.FirstName;
+import com.unicloudapp.common.vo.user.LastName;
+import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.common.vo.user.UserLogin;
+import com.unicloudapp.common.vo.user.UserRole;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.port.in.*;
+import com.unicloudapp.user.application.command.UpdateUserCommand;
+import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.port.in.FindAllLecturersUseCase;
+import com.unicloudapp.user.application.port.in.FindUserUseCase;
+import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
+import com.unicloudapp.user.application.port.in.UpdateUserUseCase;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +54,8 @@ class UserService
                 UserQueryService,
                 SearchLecturerUserCase,
                 UserCommandService,
-                FindAllLecturersUseCase {
+                FindAllLecturersUseCase,
+                UpdateUserUseCase {
 
     private final UserRepositoryPort userRepository;
     private final UserFactory userFactory;
@@ -205,5 +228,16 @@ class UserService
             int pageNumber, int pageSize, String lecturerFirstOrLastName) {
         return userRepository.findAllUsersByRoleAndFirstNameOrLastName(
                 pageNumber, pageSize, UserRole.Type.LECTURER, lecturerFirstOrLastName);
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(UpdateUserCommand user) {
+        User existingUser =
+                userRepository.findById(user.userId()).orElseThrow(() -> new UserNotFoundException(user.userId()));
+        existingUser.setEmail(user.email());
+        existingUser.setLastName(user.lastName());
+        existingUser.setFirstName(user.firstName());
+        userRepository.save(existingUser);
     }
 }

@@ -377,4 +377,26 @@ public class GroupService {
                 CloudConnectorId.of(cloudResourceDetails.getFirst().clientId()));
         cloudResourceAccessCommandService.deactivateCloudResourceAccess(cloudResourceAccessId);
     }
+
+    @Transactional
+    public void deleteStudentFromGroup(GroupId groupId, UserId studentId) {
+        Group group = groupRepository
+                .findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        UserLogin studentLogin =
+                userQueryService.getUserLoginsByIds(Set.of(studentId)).getFirst();
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .groupName(group.getName())
+                .semester(group.getSemester())
+                .build();
+        group.deleteStudent(studentId);
+        if (group.getGroupStatus().isActive()) {
+            cloudResourceAccessQueryService.getCloudResourceDetails(group.getCloudResourceAccesses()).stream()
+                    .map(CloudResourceRowView::clientId)
+                    .collect(Collectors.toSet())
+                    .forEach(cloudConnectorId -> cloudResourceAccessCommandService.removeUsers(
+                            CloudConnectorId.of(cloudConnectorId), Set.of(studentLogin), groupUniqueName));
+        }
+        groupRepository.save(group);
+    }
 }

@@ -10,6 +10,7 @@ import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupFilterCriteria;
@@ -29,6 +30,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -199,5 +201,12 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.OK)
     void deactivateCloudResourcesAccess(@PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
         groupService.deactivateCloudResourcesAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping(value = "/{groupId}/students/{studentId}")
+    @ResponseStatus(HttpStatus.OK)
+    void deleteStudentFromGroup(@PathVariable UUID groupId, @PathVariable UUID studentId) {
+        groupService.deleteStudentFromGroup(GroupId.of(groupId), UserId.of(studentId));
     }
 }
