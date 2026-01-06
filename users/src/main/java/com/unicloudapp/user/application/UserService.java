@@ -13,6 +13,7 @@ import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.FirstName;
+import com.unicloudapp.common.vo.user.LastLoginAt;
 import com.unicloudapp.common.vo.user.LastName;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.common.vo.user.UserLogin;
@@ -32,6 +33,8 @@ import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,16 +70,20 @@ class UserService
             throw new UserAlreadyExistsException(command.login());
         }
         Set<UserRole.Type> roleTypes = new HashSet<>(List.of(UserRole.Type.LECTURER));
-        if (adminProperties.getAdmins().contains(UserLogin.of(command.login()))) {
+        return getUser(roleTypes, command.login(), command.firstName(), command.lastName(), command.email());
+    }
+
+    private User getUser(Set<UserRole.Type> roleTypes, String login, String firstName, String lastName, String email) {
+        if (adminProperties.getAdmins().contains(UserLogin.of(login))) {
             roleTypes.add(UserRole.Type.ADMIN);
         }
         UserRole role = UserRole.of(roleTypes);
         User user = userFactory.create(
                 UserId.of(UUID.randomUUID()),
-                UserLogin.of(command.login()),
-                FirstName.of(command.firstName()),
-                LastName.of(command.lastName()),
-                Email.of(command.email()),
+                UserLogin.of(login),
+                FirstName.of(firstName),
+                LastName.of(lastName),
+                Email.of(email),
                 role);
         return userRepository.save(user);
     }
@@ -86,14 +93,8 @@ class UserService
         if (userRepository.existsByLogin(command.login())) {
             throw new UserAlreadyExistsException(command.login());
         }
-        User user = userFactory.create(
-                UserId.of(UUID.randomUUID()),
-                UserLogin.of(command.login()),
-                FirstName.of(command.firstName()),
-                LastName.of(command.lastName()),
-                Email.of(command.email()),
-                UserRole.of(UserRole.Type.STUDENT));
-        return userRepository.save(user);
+        Set<UserRole.Type> roleTypes = new HashSet<>(List.of(UserRole.Type.STUDENT));
+        return getUser(roleTypes, command.login(), command.firstName(), command.lastName(), command.email());
     }
 
     @Override
@@ -182,33 +183,32 @@ class UserService
 
     @Override
     public List<UserId> importStudents(List<StudentBasicData> studentBasicData) {
-        List<User> students = studentBasicData.stream()
+        return studentBasicData.stream()
                 .map(data -> userRepository
                         .findByLogin(UserLogin.of(data.getLogin()))
-                        .orElseGet(() -> userFactory.create(
-                                UserId.of(UUID.randomUUID()),
-                                UserLogin.of(data.getLogin()),
-                                FirstName.of(data.getFirstName()),
-                                LastName.of(data.getLastName()),
-                                Email.of(data.getEmail()),
-                                UserRole.of(UserRole.Type.STUDENT))))
+                        .orElseGet(() -> {
+                            Set<UserRole.Type> roleTypes = new HashSet<>(List.of(UserRole.Type.STUDENT));
+                            return getUser(
+                                    roleTypes,
+                                    data.getLogin(),
+                                    data.getFirstName(),
+                                    data.getLastName(),
+                                    data.getEmail());
+                        }))
+                .map(User::getUserId)
                 .toList();
-        userRepository.saveAll(students.stream()
-                .filter(user -> !existsByLogin(user.getUserLogin().getValue()))
-                .collect(Collectors.toList()));
-        return students.stream().map(User::getUserId).collect(Collectors.toList());
     }
 
     @Override
     public UserId createStudent(StudentBasicData studentBasicData) {
-        User user = userFactory.create(
-                UserId.of(UUID.randomUUID()),
-                UserLogin.of(studentBasicData.getLogin()),
-                FirstName.of(studentBasicData.getFirstName()),
-                LastName.of(studentBasicData.getLastName()),
-                Email.of(studentBasicData.getEmail()),
-                UserRole.of(UserRole.Type.STUDENT));
-        return userRepository.save(user).getUserId();
+        Set<UserRole.Type> roleTypes = new HashSet<>(List.of(UserRole.Type.STUDENT));
+        User user = getUser(
+                roleTypes,
+                studentBasicData.getLogin(),
+                studentBasicData.getFirstName(),
+                studentBasicData.getLastName(),
+                studentBasicData.getEmail());
+        return user.getUserId();
     }
 
     @Override
@@ -221,6 +221,15 @@ class UserService
                 userCreateCommand.email(),
                 userCreateCommand.userRole());
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void logLoginOperation(UserLogin userLogin, Instant loginTime) {
+        User existingUser =
+                userRepository.findByLogin(userLogin).orElseThrow(() -> new UserNotFoundException(userLogin));
+        existingUser.logIn(LastLoginAt.of(loginTime.atZone(ZoneOffset.UTC).toLocalDateTime()));
+        userRepository.save(existingUser);
     }
 
     @Override

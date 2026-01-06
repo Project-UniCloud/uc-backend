@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -38,6 +37,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(adminProperties.getAdmins()).thenReturn(List.of());
         userService = new UserService(userRepository, userFactory, adminProperties);
     }
 
@@ -123,7 +123,6 @@ class UserServiceTest {
 
     @Test
     @DisplayName("importStudents should save all new users and return all generated IDs")
-    @SuppressWarnings("unchecked")
     void importStudents_allNew_savesAll_andReturnsAllIds() {
         // given
         var s1 = StudentBasicData.builder()
@@ -146,30 +145,25 @@ class UserServiceTest {
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
 
-        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
                 .thenReturn(u1);
-        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
                 .thenReturn(u2);
 
         when(u1.getUserId()).thenReturn(UserId.of(id1));
         when(u2.getUserId()).thenReturn(UserId.of(id2));
-        when(u1.getUserLogin()).thenReturn(UserLogin.of("john"));
-        when(u2.getUserLogin()).thenReturn(UserLogin.of("anna"));
 
-        // All are new -> repository.existsByLogin returns false
-        when(userRepository.existsByLogin("john")).thenReturn(false);
-        when(userRepository.existsByLogin("anna")).thenReturn(false);
+        when(userRepository.findByLogin(any(UserLogin.class))).thenReturn(Optional.empty());
 
-        ArgumentCaptor<List<User>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
-        when(userRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         List<UserId> ids = userService.importStudents(input);
 
         // then
-        verify(userRepository).saveAll(toSaveCaptor.capture());
-        List<User> saved = toSaveCaptor.getValue();
-        assertThat(saved).containsExactlyInAnyOrder(u1, u2);
+        verify(userRepository, times(2)).save(any(User.class));
         assertThat(ids).containsExactlyInAnyOrder(UserId.of(id1), UserId.of(id2));
     }
 
@@ -204,36 +198,31 @@ class UserServiceTest {
         UUID id2 = UUID.randomUUID();
         UUID id3 = UUID.randomUUID();
 
-        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
                 .thenReturn(u1);
-        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
                 .thenReturn(u2);
-        when(userFactory.create(any(), eq(UserLogin.of("mike")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("mike")), any(), any(), any(), any()))
                 .thenReturn(u3);
 
         when(u1.getUserId()).thenReturn(UserId.of(id1));
         when(u2.getUserId()).thenReturn(UserId.of(id2));
         when(u3.getUserId()).thenReturn(UserId.of(id3));
-        when(u1.getUserLogin()).thenReturn(UserLogin.of("john"));
-        when(u2.getUserLogin()).thenReturn(UserLogin.of("anna"));
-        when(u3.getUserLogin()).thenReturn(UserLogin.of("mike"));
 
-        // john exists, anna new, mike exists
-        when(userRepository.existsByLogin("john")).thenReturn(true);
-        when(userRepository.existsByLogin("anna")).thenReturn(false);
-        when(userRepository.existsByLogin("mike")).thenReturn(true);
+        when(userRepository.findByLogin(UserLogin.of("john"))).thenReturn(Optional.of(u1));
+        when(userRepository.findByLogin(UserLogin.of("anna"))).thenReturn(Optional.empty());
+        when(userRepository.findByLogin(UserLogin.of("mike"))).thenReturn(Optional.of(u3));
 
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<User>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
-        when(userRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         List<UserId> ids = userService.importStudents(input);
 
         // then
-        verify(userRepository).saveAll(toSaveCaptor.capture());
-        List<User> saved = toSaveCaptor.getValue();
-        assertThat(saved).containsExactly(u2);
+        verify(userRepository, times(1)).save(u2);
         assertThat(ids).containsExactlyInAnyOrder(UserId.of(id1), UserId.of(id2), UserId.of(id3));
     }
 
@@ -260,30 +249,24 @@ class UserServiceTest {
         UUID id1 = UUID.randomUUID();
         UUID id2 = UUID.randomUUID();
 
-        when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("john")), any(), any(), any(), any()))
                 .thenReturn(u1);
-        when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
+        lenient()
+                .when(userFactory.create(any(), eq(UserLogin.of("anna")), any(), any(), any(), any()))
                 .thenReturn(u2);
 
         when(u1.getUserId()).thenReturn(UserId.of(id1));
         when(u2.getUserId()).thenReturn(UserId.of(id2));
-        when(u1.getUserLogin()).thenReturn(UserLogin.of("john"));
-        when(u2.getUserLogin()).thenReturn(UserLogin.of("anna"));
 
-        when(userRepository.existsByLogin("john")).thenReturn(true);
-        when(userRepository.existsByLogin("anna")).thenReturn(true);
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<User>> toSaveCaptor = ArgumentCaptor.forClass(List.class);
-        when(userRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userRepository.findByLogin(UserLogin.of("john"))).thenReturn(Optional.of(u1));
+        when(userRepository.findByLogin(UserLogin.of("anna"))).thenReturn(Optional.of(u2));
 
         // when
         List<UserId> ids = userService.importStudents(input);
 
         // then
-        verify(userRepository).saveAll(toSaveCaptor.capture());
-        List<User> saved = toSaveCaptor.getValue();
-        assertThat(saved).isEmpty();
+        verify(userRepository, never()).save(any(User.class));
         assertThat(ids).containsExactlyInAnyOrder(UserId.of(id1), UserId.of(id2));
     }
 
@@ -391,5 +374,36 @@ class UserServiceTest {
         org.junit.jupiter.api.Assertions.assertThrows(
                 com.unicloudapp.common.exception.user.UserNotFoundException.class,
                 () -> userService.updateUser(command));
+    }
+
+    @Test
+    @DisplayName("logLoginOperation should update lastLoginAt and save user when user exists")
+    void logLoginOperation_updatesLastLoginAt_whenUserExists() {
+        // given
+        UserLogin login = UserLogin.of("jdoe");
+        java.time.Instant now = java.time.Instant.now();
+        User existingUser = mock(User.class);
+        when(userRepository.findByLogin(login)).thenReturn(Optional.of(existingUser));
+
+        // when
+        userService.logLoginOperation(login, now);
+
+        // then
+        verify(existingUser).logIn(any(LastLoginAt.class));
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("logLoginOperation should throw UserNotFoundException when user does not exist")
+    void logLoginOperation_throwsUserNotFoundException_whenUserDoesNotExist() {
+        // given
+        UserLogin login = UserLogin.of("nonexistent");
+        java.time.Instant now = java.time.Instant.now();
+        when(userRepository.findByLogin(login)).thenReturn(Optional.empty());
+
+        // when & then
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.unicloudapp.common.exception.user.UserNotFoundException.class,
+                () -> userService.logLoginOperation(login, now));
     }
 }
