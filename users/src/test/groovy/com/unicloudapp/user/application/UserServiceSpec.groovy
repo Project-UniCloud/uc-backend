@@ -7,6 +7,7 @@ import com.unicloudapp.common.vo.user.LastName
 import com.unicloudapp.common.vo.user.UserId
 import com.unicloudapp.common.vo.user.UserLogin
 import com.unicloudapp.common.vo.user.UserRole
+import com.unicloudapp.common.vo.user.LastLoginAt
 import com.unicloudapp.common.exception.user.UserAlreadyExistsException
 import com.unicloudapp.common.exception.user.UserNotFoundException
 import com.unicloudapp.common.user.StudentBasicData
@@ -22,6 +23,8 @@ import org.springframework.data.domain.PageImpl
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Title
+
+import java.time.Instant
 
 @Title("UserService unit tests")
 class UserServiceSpec extends Specification {
@@ -275,6 +278,34 @@ class UserServiceSpec extends Specification {
 
         then:
         1 * userRepository.findById(userId) >> Optional.empty()
+        thrown(UserNotFoundException)
+    }
+
+    def "logLoginOperation should update lastLoginAt and save user"() {
+        given:
+        def login = UserLogin.of("jdoe")
+        def now = Instant.now()
+        def user = Mock(User)
+
+        when:
+        userService.logLoginOperation(login, now)
+
+        then:
+        1 * userRepository.findByLogin(login) >> Optional.of(user)
+        1 * user.logIn(_ as LastLoginAt)
+        1 * userRepository.save(user)
+    }
+
+    def "logLoginOperation should throw UserNotFoundException if user not found"() {
+        given:
+        def login = UserLogin.of("nonexistent")
+        def now = Instant.now()
+
+        when:
+        userService.logLoginOperation(login, now)
+
+        then:
+        1 * userRepository.findByLogin(login) >> Optional.empty()
         thrown(UserNotFoundException)
     }
 

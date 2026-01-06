@@ -183,7 +183,7 @@ class UserService
 
     @Override
     public List<UserId> importStudents(List<StudentBasicData> studentBasicData) {
-        List<User> students = studentBasicData.stream()
+        return studentBasicData.stream()
                 .map(data -> userRepository
                         .findByLogin(UserLogin.of(data.getLogin()))
                         .orElseGet(() -> {
@@ -195,11 +195,8 @@ class UserService
                                     data.getLastName(),
                                     data.getEmail());
                         }))
+                .map(User::getUserId)
                 .toList();
-        userRepository.saveAll(students.stream()
-                .filter(user -> !existsByLogin(user.getUserLogin().getValue()))
-                .collect(Collectors.toList()));
-        return students.stream().map(User::getUserId).collect(Collectors.toList());
     }
 
     @Override
@@ -211,7 +208,7 @@ class UserService
                 studentBasicData.getFirstName(),
                 studentBasicData.getLastName(),
                 studentBasicData.getEmail());
-        return userRepository.save(user).getUserId();
+        return user.getUserId();
     }
 
     @Override
