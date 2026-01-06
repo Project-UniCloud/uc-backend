@@ -1,6 +1,7 @@
 package com.unicloudapp.group.infrastructure.rest;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.common.vo.group.GroupId;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.application.port.StudentImporterPort;
@@ -142,5 +144,26 @@ class GroupRestControllerDiffblueTest {
                 .build()
                 .perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @DisplayName("Test deleteStudentFromGroup(UUID, UUID)")
+    void testDeleteStudentFromGroup() throws Exception {
+        // Arrange
+        UUID groupId = UUID.randomUUID();
+        UUID studentId = UUID.randomUUID();
+
+        doNothing().when(groupService).deleteStudentFromGroup(Mockito.any(), Mockito.any());
+
+        MockHttpServletRequestBuilder requestBuilder =
+                MockMvcRequestBuilders.delete("/groups/{groupId}/students/{studentId}", groupId, studentId);
+
+        // Act and Assert
+        MockMvcBuilders.standaloneSetup(groupRestController)
+                .build()
+                .perform(requestBuilder)
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(groupService).deleteStudentFromGroup(eq(GroupId.of(groupId)), eq(UserId.of(studentId)));
     }
 }

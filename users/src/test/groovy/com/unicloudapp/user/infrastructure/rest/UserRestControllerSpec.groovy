@@ -10,6 +10,7 @@ import com.unicloudapp.user.application.port.in.CreateLecturerUseCase
 import com.unicloudapp.user.application.port.in.CreateStudentUseCase
 import com.unicloudapp.user.application.port.in.FindUserUseCase
 import com.unicloudapp.user.application.port.in.SearchLecturerUserCase
+import com.unicloudapp.user.application.port.in.UpdateUserUseCase
 import com.unicloudapp.user.domain.User
 import spock.lang.Specification
 
@@ -22,6 +23,7 @@ class UserRestControllerSpec extends Specification {
     UserToUserFoundResponseMapper userDomainDtoMapper = Mock()
     FindAllLecturersUseCase findAllLecturersUseCase = Mock()
     UserExternalQueryService userExternalQueryService = Mock()
+    UpdateUserUseCase updateUserUseCase = Mock()
 
     UserRestController controller = new UserRestController(
             createLecturerUseCase,
@@ -30,7 +32,8 @@ class UserRestControllerSpec extends Specification {
             searchLecturerUserCase,
             userDomainDtoMapper,
             findAllLecturersUseCase,
-            userExternalQueryService
+            userExternalQueryService,
+            updateUserUseCase
     )
 
     def "should create lecturer and return created response"() {
@@ -114,5 +117,22 @@ class UserRestControllerSpec extends Specification {
         results[1].firstName() == user2.firstName
         results[1].lastName() == user2.lastName
         results[1].userId() == user2.uuid
+    }
+
+    def "should update user"() {
+        given:
+        def userId = UUID.randomUUID()
+        def request = new UpdateUserRequest("Jane", "Doe", "jane.doe@example.com")
+
+        when:
+        controller.updateUser(userId, request)
+
+        then:
+        1 * updateUserUseCase.updateUser({ command ->
+            command.userId().getValue() == userId &&
+            command.firstName().getValue() == "Jane" &&
+            command.lastName().getValue() == "Doe" &&
+            command.email().getValue() == "jane.doe@example.com"
+        })
     }
 }

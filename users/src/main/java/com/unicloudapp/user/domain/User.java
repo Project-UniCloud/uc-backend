@@ -5,6 +5,7 @@ import com.unicloudapp.common.vo.user.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Builder(access = AccessLevel.PACKAGE)
 @Getter
@@ -12,9 +13,16 @@ public class User {
 
     private final UserId userId;
     private final UserLogin userLogin;
+
+    @Setter
     private FirstName firstName;
+
+    @Setter
     private LastName lastName;
+
+    @Setter
     private Email email;
+
     private LastLoginAt lastLoginAt;
     private final UserRole userRole;
 

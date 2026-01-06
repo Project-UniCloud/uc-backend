@@ -7,6 +7,7 @@ import com.unicloudapp.common.auth.AdminProperties;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.user.*;
+import com.unicloudapp.user.application.command.UpdateUserCommand;
 import com.unicloudapp.user.application.port.out.UserRepositoryPort;
 import com.unicloudapp.user.domain.User;
 import com.unicloudapp.user.domain.UserFactory;
@@ -345,5 +346,50 @@ class UserServiceTest {
         // then
         assertThat(result).isEmpty();
         verify(userRepository).findAllByRole(role);
+    }
+
+    @Test
+    @DisplayName("updateUser should update user details when user exists")
+    void updateUser_updatesExistingUser_whenUserExists() {
+        // given
+        UserId userId = UserId.of(UUID.randomUUID());
+        UpdateUserCommand command = UpdateUserCommand.builder()
+                .userId(userId)
+                .firstName(FirstName.of("Jane"))
+                .lastName(LastName.of("Smith"))
+                .email(Email.of("jane.smith@example.com"))
+                .build();
+
+        User existingUser = mock(User.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+
+        // when
+        userService.updateUser(command);
+
+        // then
+        verify(existingUser).setFirstName(command.firstName());
+        verify(existingUser).setLastName(command.lastName());
+        verify(existingUser).setEmail(command.email());
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    @DisplayName("updateUser should throw UserNotFoundException when user does not exist")
+    void updateUser_throwsUserNotFoundException_whenUserDoesNotExist() {
+        // given
+        UserId userId = UserId.of(UUID.randomUUID());
+        UpdateUserCommand command = UpdateUserCommand.builder()
+                .userId(userId)
+                .firstName(FirstName.of("Jane"))
+                .lastName(LastName.of("Smith"))
+                .email(Email.of("jane.smith@example.com"))
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.unicloudapp.common.exception.user.UserNotFoundException.class,
+                () -> userService.updateUser(command));
     }
 }

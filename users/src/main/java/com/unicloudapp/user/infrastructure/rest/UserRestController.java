@@ -1,10 +1,19 @@
 package com.unicloudapp.user.infrastructure.rest;
 
 import com.unicloudapp.common.user.UserExternalQueryService;
+import com.unicloudapp.common.vo.Email;
+import com.unicloudapp.common.vo.user.FirstName;
+import com.unicloudapp.common.vo.user.LastName;
 import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.user.application.command.CreateLecturerCommand;
 import com.unicloudapp.user.application.command.CreateStudentCommand;
-import com.unicloudapp.user.application.port.in.*;
+import com.unicloudapp.user.application.command.UpdateUserCommand;
+import com.unicloudapp.user.application.port.in.CreateLecturerUseCase;
+import com.unicloudapp.user.application.port.in.CreateStudentUseCase;
+import com.unicloudapp.user.application.port.in.FindAllLecturersUseCase;
+import com.unicloudapp.user.application.port.in.FindUserUseCase;
+import com.unicloudapp.user.application.port.in.SearchLecturerUserCase;
+import com.unicloudapp.user.application.port.in.UpdateUserUseCase;
 import com.unicloudapp.user.application.projection.UserRowProjection;
 import com.unicloudapp.user.domain.User;
 import jakarta.validation.Valid;
@@ -15,7 +24,15 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/users")
@@ -29,6 +46,7 @@ class UserRestController {
     private final UserToUserFoundResponseMapper userDomainDtoMapper;
     private final FindAllLecturersUseCase findAllLecturersUseCase;
     private final UserExternalQueryService userExternalQueryService;
+    private final UpdateUserUseCase updateUserUseCase;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/lecturers")
@@ -78,6 +96,19 @@ class UserRestController {
     UserFoundResponse getUserById(@PathVariable("userId") UUID userId) {
         User user = findUserUseCase.findUserById(UserId.of(userId));
         return userDomainDtoMapper.toUserFoundResponse(user);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    void updateUser(@PathVariable("userId") UUID userId, @RequestBody UpdateUserRequest request) {
+        UpdateUserCommand updateUserCommand = UpdateUserCommand.builder()
+                .userId(UserId.of(userId))
+                .firstName(FirstName.of(request.firstName()))
+                .lastName(LastName.of(request.lastName()))
+                .email(Email.of(request.email()))
+                .build();
+        updateUserUseCase.updateUser(updateUserCommand);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

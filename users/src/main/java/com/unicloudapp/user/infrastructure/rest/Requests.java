@@ -16,3 +16,8 @@ record CreateStudentRequest(
         @NotBlank String firstName,
         @NotBlank String lastName,
         @Email String email) {}
+
+record UpdateUserRequest(
+        @NotBlank String firstName,
+        @NotBlank String lastName,
+        @Email String email) {}
