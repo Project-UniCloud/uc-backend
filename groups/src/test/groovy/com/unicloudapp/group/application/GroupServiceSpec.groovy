@@ -353,4 +353,71 @@ class GroupServiceSpec extends Specification {
         )
         1 * groupRepository.save(group)
     }
-} 
+
+    def "should delete student from group and update cloud if group is active"() {
+        given:
+        def groupId = GroupId.of(UUID.randomUUID())
+        def studentId = UserId.of(UUID.randomUUID())
+        def group = Mock(Group)
+        def studentLogin = UserLogin.of("s123")
+        def status = Mock(GroupStatus)
+        def accessId = CloudResourceAccessId.of(UUID.randomUUID())
+        def cloudResource = CloudResourceRowView.builder()
+                .clientId("connector-1")
+                .build()
+
+        when:
+        groupService.deleteStudentFromGroup(groupId, studentId)
+
+        then:
+        1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
+        1 * userQueryService.getUserLoginsByIds(Set.of(studentId)) >> [studentLogin]
+        1 * group.getName() >> GroupName.of("Group A")
+        1 * group.getSemester() >> Semester.of("2024L")
+        1 * group.getGroupStatus() >> status
+        1 * status.isActive() >> true
+        1 * group.getCloudResourceAccesses() >> Set.of(accessId)
+        1 * cloudResourceAccessQueryService.getCloudResourceDetails(Set.of(accessId)) >> [cloudResource]
+        1 * group.deleteStudent(studentId)
+        1 * cloudResourceAccessCommandService.removeUsers(
+                CloudConnectorId.of("connector-1"),
+                Set.of(studentLogin),
+                { it.groupName() == GroupName.of("Group A") && it.semester() == Semester.of("2024L") }
+        )
+        1 * groupRepository.save(group)
+    }
+
+    def "should delete student from group and not update cloud if group is inactive"() {
+        given:
+        def groupId = GroupId.of(UUID.randomUUID())
+        def studentId = UserId.of(UUID.randomUUID())
+        def group = Mock(Group)
+        def studentLogin = UserLogin.of("s123")
+        def status = Mock(GroupStatus)
+
+        when:
+        groupService.deleteStudentFromGroup(groupId, studentId)
+
+        then:
+        1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
+        1 * userQueryService.getUserLoginsByIds(Set.of(studentId)) >> [studentLogin]
+        1 * group.getGroupStatus() >> status
+        1 * status.isActive() >> false
+        1 * group.deleteStudent(studentId)
+        0 * cloudResourceAccessCommandService.removeUsers(_, _, _)
+        1 * groupRepository.save(group)
+    }
+
+    def "should throw exception when deleting student from non-existent group"() {
+        given:
+        def groupId = GroupId.of(UUID.randomUUID())
+        def studentId = UserId.of(UUID.randomUUID())
+
+        when:
+        groupService.deleteStudentFromGroup(groupId, studentId)
+
+        then:
+        1 * groupRepository.findById(groupId.uuid) >> Optional.empty()
+        thrown(RuntimeException)
+    }
+}

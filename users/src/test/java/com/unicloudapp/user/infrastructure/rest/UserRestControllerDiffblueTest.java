@@ -340,4 +340,31 @@ class UserRestControllerDiffblueTest {
         assertEquals(Set.of(UserRole.Type.ADMIN), actualUserById.userRoles());
         assertSame(userId, actualUserById.userId());
     }
+
+    @Test
+    @DisplayName("Test updateUser(UUID, UpdateUserRequest)")
+    void testUpdateUser() throws Exception {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        UpdateUserRequest request = new UpdateUserRequest("Jane", "Doe", "jane.doe@example.com");
+        doNothing().when(updateUserUseCase).updateUser(any());
+
+        String json = new ObjectMapper().writeValueAsString(request);
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.patch("/users/{userId}", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        // Act and Assert
+        MockMvcBuilders.standaloneSetup(userRestController)
+                .build()
+                .perform(requestBuilder)
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        verify(updateUserUseCase)
+                .updateUser(argThat(command -> command.userId().getValue().equals(userId)
+                        && command.firstName().getValue().equals("Jane")
+                        && command.lastName().getValue().equals("Doe")
+                        && command.email().getValue().equals("jane.doe@example.com")));
+    }
 }

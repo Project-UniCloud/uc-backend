@@ -12,6 +12,7 @@ import com.unicloudapp.common.exception.user.UserNotFoundException
 import com.unicloudapp.common.user.StudentBasicData
 import com.unicloudapp.user.application.command.CreateLecturerCommand
 import com.unicloudapp.user.application.command.CreateStudentCommand
+import com.unicloudapp.user.application.command.UpdateUserCommand
 import com.unicloudapp.user.application.port.out.UserRepositoryPort
 import com.unicloudapp.common.user.UserFullNameAndLoginProjection
 import com.unicloudapp.user.application.projection.UserRowProjection
@@ -237,6 +238,45 @@ class UserServiceSpec extends Specification {
         result == generatedId
     }
 
+    def "updateUser should update existing user"() {
+        given:
+        def userId = UserId.of(UUID.randomUUID())
+        def command = UpdateUserCommand.builder()
+                .userId(userId)
+                .firstName(FirstName.of("Jane"))
+                .lastName(LastName.of("Smith"))
+                .email(Email.of("jane.smith@example.com"))
+                .build()
+        def user = Mock(User)
+
+        when:
+        userService.updateUser(command)
+
+        then:
+        1 * userRepository.findById(userId) >> Optional.of(user)
+        1 * user.setFirstName(command.firstName())
+        1 * user.setLastName(command.lastName())
+        1 * user.setEmail(command.email())
+        1 * userRepository.save(user)
+    }
+
+    def "updateUser should throw UserNotFoundException if user not found"() {
+        given:
+        def userId = UserId.of(UUID.randomUUID())
+        def command = UpdateUserCommand.builder()
+                .userId(userId)
+                .firstName(FirstName.of("Jane"))
+                .lastName(LastName.of("Smith"))
+                .email(Email.of("jane.smith@example.com"))
+                .build()
+
+        when:
+        userService.updateUser(command)
+
+        then:
+        1 * userRepository.findById(userId) >> Optional.empty()
+        thrown(UserNotFoundException)
+    }
 
     def createStudentCommand() {
         CreateStudentCommand.builder()

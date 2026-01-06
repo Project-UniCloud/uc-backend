@@ -558,4 +558,76 @@ class GroupServiceTest {
         verify(group).archive();
         verify(groupRepository).save(group);
     }
+
+    @Test
+    @DisplayName("deleteStudentFromGroup removes student and updates cloud if group is active")
+    void deleteStudentFromGroup_behavior() {
+        // Arrange
+        GroupId groupId = GroupId.of(UUID.randomUUID());
+        UserId studentId = UserId.of(UUID.randomUUID());
+        Group group = mock(Group.class);
+        UserLogin studentLogin = UserLogin.of("s123");
+        GroupStatus status = mock(GroupStatus.class);
+
+        when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.of(group));
+        when(userQueryService.getUserLoginsByIds(Set.of(studentId))).thenReturn(List.of(studentLogin));
+        when(group.getName()).thenReturn(GroupName.of("Group A"));
+        when(group.getSemester()).thenReturn(Semester.of("2024L"));
+        when(group.getGroupStatus()).thenReturn(status);
+        when(status.isActive()).thenReturn(true);
+
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        when(group.getCloudResourceAccesses()).thenReturn(Set.of(accessId));
+
+        CloudResourceRowView cloudResource =
+                CloudResourceRowView.builder().clientId("connector-1").build();
+        when(cloudQuery.getCloudResourceDetails(Set.of(accessId))).thenReturn(List.of(cloudResource));
+
+        // Act
+        service.deleteStudentFromGroup(groupId, studentId);
+
+        // Assert
+        verify(group).deleteStudent(studentId);
+        verify(cloudCmd)
+                .removeUsers(
+                        eq(CloudConnectorId.of("connector-1")),
+                        eq(Set.of(studentLogin)),
+                        argThat(uniqueName -> uniqueName.groupName().equals(GroupName.of("Group A"))
+                                && uniqueName.semester().equals(Semester.of("2024L"))));
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    @DisplayName("deleteStudentFromGroup removes student but does not update cloud if group is inactive")
+    void deleteStudentFromGroup_inactive_noCloud() {
+        // Arrange
+        GroupId groupId = GroupId.of(UUID.randomUUID());
+        UserId studentId = UserId.of(UUID.randomUUID());
+        Group group = mock(Group.class);
+        UserLogin studentLogin = UserLogin.of("s123");
+        GroupStatus status = mock(GroupStatus.class);
+
+        when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.of(group));
+        when(userQueryService.getUserLoginsByIds(Set.of(studentId))).thenReturn(List.of(studentLogin));
+        when(group.getGroupStatus()).thenReturn(status);
+        when(status.isActive()).thenReturn(false);
+
+        // Act
+        service.deleteStudentFromGroup(groupId, studentId);
+
+        // Assert
+        verify(group).deleteStudent(studentId);
+        verifyNoInteractions(cloudCmd);
+        verify(groupRepository).save(group);
+    }
+
+    @Test
+    @DisplayName("deleteStudentFromGroup throws when group not found")
+    void deleteStudentFromGroup_notFound_throws() {
+        GroupId groupId = GroupId.of(UUID.randomUUID());
+        UserId studentId = UserId.of(UUID.randomUUID());
+        when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> service.deleteStudentFromGroup(groupId, studentId));
+    }
 }

@@ -118,4 +118,21 @@ class UserRestControllerSpec extends Specification {
         results[1].lastName() == user2.lastName
         results[1].userId() == user2.uuid
     }
+
+    def "should update user"() {
+        given:
+        def userId = UUID.randomUUID()
+        def request = new UpdateUserRequest("Jane", "Doe", "jane.doe@example.com")
+
+        when:
+        controller.updateUser(userId, request)
+
+        then:
+        1 * updateUserUseCase.updateUser({ command ->
+            command.userId().getValue() == userId &&
+            command.firstName().getValue() == "Jane" &&
+            command.lastName().getValue() == "Doe" &&
+            command.email().getValue() == "jane.doe@example.com"
+        })
+    }
 }
