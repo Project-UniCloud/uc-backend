@@ -9,6 +9,7 @@ import com.unicloudapp.common.user.*;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
@@ -379,6 +380,21 @@ public class GroupService {
     }
 
     @Transactional
+    public List<CloudResourceDetail> getGroupResourcesList(
+            GroupId groupId, CloudResourceAccessId cloudResourceAccessId) {
+        Group group = groupRepository
+                .findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        GroupUniqueName groupUniqueName = GroupUniqueName.builder()
+                .groupName(group.getName())
+                .semester(group.getSemester())
+                .build();
+        CloudResourceRowView cloudResourceDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessId);
+        return cloudResourceAccessQueryService.getGroupResourcesList(
+                groupUniqueName, CloudConnectorId.of(cloudResourceDetails.clientId()));
+    }
+
     public void deleteStudentFromGroup(GroupId groupId, UserId studentId) {
         Group group = groupRepository
                 .findById(groupId.getUuid())

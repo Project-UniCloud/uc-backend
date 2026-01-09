@@ -1,6 +1,7 @@
 package com.unicloudapp.cloud.application.port;
 
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
@@ -38,4 +39,6 @@ public interface CloudConnectorClientPort {
     void assignCloudResourceAccess(CloudResourceType resourceType, GroupUniqueName groupUniqueName, UserLogin lecturer);
 
     Map.Entry<Boolean, String> addLecturerForGroup(GroupUniqueName groupUniqueName, UserLogin lecturerLogin);
+
+    List<CloudResourceDetail> getGroupResourcesList(GroupUniqueName groupUniqueName);
 }

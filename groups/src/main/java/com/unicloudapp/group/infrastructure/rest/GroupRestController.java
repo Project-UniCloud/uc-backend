@@ -6,6 +6,7 @@ import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
@@ -201,6 +202,13 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.OK)
     void deactivateCloudResourcesAccess(@PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
         groupService.deactivateCloudResourcesAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
+    @GetMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/resources")
+    @ResponseStatus(HttpStatus.OK)
+    List<CloudResourceDetail> getGroupResources(@PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
+        return groupService.getGroupResourcesList(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

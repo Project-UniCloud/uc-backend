@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.user.UserLogin;
 import io.grpc.Status;
@@ -103,5 +104,50 @@ class GrpcCloudConnectorClientAdapterTest {
 
         assertThat(result.getKey()).isFalse();
         assertThat(result.getValue()).isEqualTo("Failed to add lecturer");
+    }
+
+    @Test
+    void getGroupResourcesList_returnsMappedList_whenSuccess() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.ResourceDetail resourceProto = AdapterInterface.ResourceDetail.newBuilder()
+                .setArn("arn:aws:ec2:region:account:instance/i-1234567890abcdef0")
+                .setName("test-instance")
+                .setType("instance")
+                .setService("ec2")
+                .setCreatedBy("user1")
+                .setResourceId("i-1234567890abcdef0")
+                .build();
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(true)
+                        .addResources(resourceProto)
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).hasSize(1);
+        CloudResourceDetail detail = result.getFirst();
+        assertThat(detail.getArn()).isEqualTo(resourceProto.getArn());
+        assertThat(detail.getName()).isEqualTo(resourceProto.getName());
+        assertThat(detail.getType()).isEqualTo(resourceProto.getType());
+        assertThat(detail.getService()).isEqualTo(resourceProto.getService());
+        assertThat(detail.getCreatedBy()).isEqualTo(resourceProto.getCreatedBy());
+        assertThat(detail.getResourceId()).isEqualTo(resourceProto.getResourceId());
+    }
+
+    @Test
+    void getGroupResourcesList_returnsEmptyList_whenFailure() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Error")
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).isEmpty();
     }
 }
