@@ -4,6 +4,7 @@ import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.cloud.application.port.CloudConnectorClientPort;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
 import com.unicloudapp.common.vo.user.UserLogin;
@@ -206,5 +207,42 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                 .build();
         var response = stub.addLeaderToGroup(request);
         return Map.entry(response.getSuccess(), response.getMessage());
+    }
+
+    @Override
+    public List<CloudResourceDetail> getGroupResourcesList(GroupUniqueName groupUniqueName) {
+        var request = AdapterInterface.GetGroupResourcesListRequest.newBuilder()
+                .setGroupName(groupUniqueName.toString())
+                .build();
+        var response = stub.getGroupResourcesList(request);
+        if (!response.getSuccess()) {
+            log.warn(
+                    "Failed to get group resources list for group: {}. Message: {}",
+                    groupUniqueName,
+                    response.getMessage());
+            return List.of();
+        }
+        return response.getResourcesList().stream()
+                .map(resource -> CloudResourceDetail.builder()
+                        .resourceGlobalId(resource.getResourceGlobalId())
+                        .name(resource.getName())
+                        .type(resource.getType())
+                        .service(resource.getService())
+                        .createdBy(resource.getCreatedBy())
+                        .resourceId(resource.getResourceId())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    public void deleteResource(String resourceGlobalId) {
+        var request = AdapterInterface.DeleteResourceRequest.newBuilder()
+                .setResourceGlobalId(resourceGlobalId)
+                .build();
+        var response = stub.deleteResource(request);
+        if (!response.getSuccess()) {
+            throw new RuntimeException(
+                    "Failed to delete resource: " + resourceGlobalId + ". Message: " + response.getMessage());
+        }
     }
 }

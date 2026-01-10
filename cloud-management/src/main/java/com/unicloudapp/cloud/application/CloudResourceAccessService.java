@@ -21,6 +21,7 @@ import com.unicloudapp.common.group.GroupUniqueName;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.cloud.UsedLimit;
@@ -515,6 +516,27 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
         }
 
         applicationEventPublisher.publishEvent(event.build());
+    }
+
+    @Override
+    public List<CloudResourceDetail> getGroupResourcesList(
+            GroupUniqueName groupUniqueName, CloudConnectorId cloudConnectorId) {
+        CloudConnectorClientPort client = cloudConnectorClients.get(cloudConnectorId);
+        if (client == null) {
+            log.warn("Cloud connector client not found for id: {}", cloudConnectorId);
+            return List.of();
+        }
+        return client.getGroupResourcesList(groupUniqueName);
+    }
+
+    @Override
+    public void deleteResource(CloudConnectorId cloudConnectorId, String resourceGlobalId) {
+        CloudConnectorClientPort client = cloudConnectorClients.get(cloudConnectorId);
+        if (client == null) {
+            log.warn("Cloud connector client not found for id: {}", cloudConnectorId);
+            return;
+        }
+        client.deleteResource(resourceGlobalId);
     }
 
     @Override

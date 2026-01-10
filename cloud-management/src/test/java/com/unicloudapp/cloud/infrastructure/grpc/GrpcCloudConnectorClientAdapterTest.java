@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import adapter.AdapterInterface;
 import adapter.CloudAdapterGrpc;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.user.UserLogin;
 import io.grpc.Status;
@@ -103,5 +104,131 @@ class GrpcCloudConnectorClientAdapterTest {
 
         assertThat(result.getKey()).isFalse();
         assertThat(result.getValue()).isEqualTo("Failed to add lecturer");
+    }
+
+    @Test
+    void getGroupResourcesList_returnsMappedList_whenSuccess() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.ResourceDetail resourceProto = AdapterInterface.ResourceDetail.newBuilder()
+                .setResourceGlobalId("resourceGlobalId:aws:ec2:region:account:instance/i-1234567890abcdef0")
+                .setName("test-instance")
+                .setType("instance")
+                .setService("ec2")
+                .setCreatedBy("user1")
+                .setResourceId("i-1234567890abcdef0")
+                .build();
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(true)
+                        .addResources(resourceProto)
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).hasSize(1);
+        CloudResourceDetail detail = result.getFirst();
+        assertThat(detail.getResourceGlobalId()).isEqualTo(resourceProto.getResourceGlobalId());
+        assertThat(detail.getName()).isEqualTo(resourceProto.getName());
+        assertThat(detail.getType()).isEqualTo(resourceProto.getType());
+        assertThat(detail.getService()).isEqualTo(resourceProto.getService());
+        assertThat(detail.getCreatedBy()).isEqualTo(resourceProto.getCreatedBy());
+        assertThat(detail.getResourceId()).isEqualTo(resourceProto.getResourceId());
+    }
+
+    @Test
+    void getGroupResourcesList_returnsEmptyList_whenFailure() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Error")
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getGroupResourcesList_returnsMultipleMappedResources_whenSuccess() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.ResourceDetail resource1 = AdapterInterface.ResourceDetail.newBuilder()
+                .setResourceGlobalId("arn1")
+                .setName("name1")
+                .setType("type1")
+                .setService("service1")
+                .setCreatedBy("user1")
+                .setResourceId("id1")
+                .build();
+        AdapterInterface.ResourceDetail resource2 = AdapterInterface.ResourceDetail.newBuilder()
+                .setResourceGlobalId("arn2")
+                .setName("name2")
+                .setType("type2")
+                .setService("service2")
+                .setCreatedBy("user2")
+                .setResourceId("id2")
+                .build();
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(true)
+                        .addResources(resource1)
+                        .addResources(resource2)
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getResourceGlobalId()).isEqualTo("arn1");
+        assertThat(result.get(1).getResourceGlobalId()).isEqualTo("arn2");
+    }
+
+    @Test
+    void getGroupResourcesList_returnsEmptyList_whenSuccessButNoResources() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(true)
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getGroupResourcesList_throwsException_whenGrpcThrows() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        when(stub.getGroupResourcesList(any())).thenThrow(new StatusRuntimeException(Status.UNAVAILABLE));
+
+        assertThrows(StatusRuntimeException.class, () -> adapter.getGroupResourcesList(groupUniqueName));
+    }
+
+    @Test
+    void deleteResource_callsGrcp_whenSuccess() {
+        String arn = "test-resourceGlobalId";
+        AdapterInterface.DeleteResourceResponse response = AdapterInterface.DeleteResourceResponse.newBuilder()
+                .setSuccess(true)
+                .build();
+        when(stub.deleteResource(any())).thenReturn(response);
+
+        adapter.deleteResource(arn);
+
+        Mockito.verify(stub).deleteResource(any());
+    }
+
+    @Test
+    void deleteResource_throwsException_whenFailure() {
+        String arn = "test-resourceGlobalId";
+        AdapterInterface.DeleteResourceResponse response = AdapterInterface.DeleteResourceResponse.newBuilder()
+                .setSuccess(false)
+                .setMessage("Failed to delete")
+                .build();
+        when(stub.deleteResource(any())).thenReturn(response);
+
+        assertThrows(RuntimeException.class, () -> adapter.deleteResource(arn));
     }
 }

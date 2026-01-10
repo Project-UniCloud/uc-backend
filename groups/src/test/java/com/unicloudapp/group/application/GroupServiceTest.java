@@ -630,4 +630,49 @@ class GroupServiceTest {
 
         assertThrows(RuntimeException.class, () -> service.deleteStudentFromGroup(groupId, studentId));
     }
+
+    @Test
+    @DisplayName("getGroupResourcesList should return list of resources when group and resource access exist")
+    void getGroupResourcesList_behavior() {
+        // given
+        GroupId groupId = GroupId.of(UUID.randomUUID());
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        Group group = mock(Group.class);
+        when(group.getName()).thenReturn(GroupName.of("TestGroup"));
+        when(group.getSemester()).thenReturn(Semester.of("2024L"));
+        when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.of(group));
+
+        CloudResourceRowView rowView = mock(CloudResourceRowView.class);
+        when(rowView.clientId()).thenReturn(UUID.randomUUID().toString());
+        when(cloudQuery.getCloudResourceDetails(accessId)).thenReturn(rowView);
+
+        List<com.unicloudapp.common.vo.cloud.CloudResourceDetail> resources =
+                List.of(mock(com.unicloudapp.common.vo.cloud.CloudResourceDetail.class));
+        when(cloudQuery.getGroupResourcesList(any(GroupUniqueName.class), any(CloudConnectorId.class)))
+                .thenReturn(resources);
+
+        // when
+        List<com.unicloudapp.common.vo.cloud.CloudResourceDetail> result =
+                service.getGroupResourcesList(groupId, accessId);
+
+        // then
+        assertEquals(resources, result);
+        verify(groupRepository).findById(groupId.getUuid());
+        verify(cloudQuery).getCloudResourceDetails(accessId);
+        verify(cloudQuery).getGroupResourcesList(any(GroupUniqueName.class), any(CloudConnectorId.class));
+    }
+
+    @Test
+    @DisplayName("getGroupResourcesList should throw exception when group not found")
+    void getGroupResourcesList_groupNotFound_throws() {
+        // given
+        GroupId groupId = GroupId.of(UUID.randomUUID());
+        CloudResourceAccessId accessId = CloudResourceAccessId.of(UUID.randomUUID());
+        when(groupRepository.findById(groupId.getUuid())).thenReturn(Optional.empty());
+
+        // when & then
+        RuntimeException exception =
+                assertThrows(RuntimeException.class, () -> service.getGroupResourcesList(groupId, accessId));
+        assertTrue(exception.getMessage().contains("Group not found"));
+    }
 }
