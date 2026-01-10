@@ -41,4 +41,6 @@ public interface CloudConnectorClientPort {
     Map.Entry<Boolean, String> addLecturerForGroup(GroupUniqueName groupUniqueName, UserLogin lecturerLogin);
 
     List<CloudResourceDetail> getGroupResourcesList(GroupUniqueName groupUniqueName);
+
+    void deleteResource(String resourceArn);
 }

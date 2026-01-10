@@ -530,6 +530,16 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
     }
 
     @Override
+    public void deleteResource(CloudConnectorId cloudConnectorId, String resourceArn) {
+        CloudConnectorClientPort client = cloudConnectorClients.get(cloudConnectorId);
+        if (client == null) {
+            log.warn("Cloud connector client not found for id: {}", cloudConnectorId);
+            return;
+        }
+        client.deleteResource(resourceArn);
+    }
+
+    @Override
     public void addLecturersToGroup(
             CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, Set<UserLogin> lecturerLogins) {
         CloudConnector cloudConnector =

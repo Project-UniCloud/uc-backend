@@ -233,4 +233,16 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                         .build())
                 .toList();
     }
+
+    @Override
+    public void deleteResource(String resourceArn) {
+        var request = AdapterInterface.DeleteResourceRequest.newBuilder()
+                .setResourceArn(resourceArn)
+                .build();
+        var response = stub.deleteResource(request);
+        if (!response.getSuccess()) {
+            throw new RuntimeException(
+                    "Failed to delete resource: " + resourceArn + ". Message: " + response.getMessage());
+        }
+    }
 }

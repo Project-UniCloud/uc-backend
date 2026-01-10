@@ -206,4 +206,29 @@ class GrpcCloudConnectorClientAdapterTest {
 
         assertThrows(StatusRuntimeException.class, () -> adapter.getGroupResourcesList(groupUniqueName));
     }
+
+    @Test
+    void deleteResource_callsGrcp_whenSuccess() {
+        String arn = "test-arn";
+        AdapterInterface.DeleteResourceResponse response = AdapterInterface.DeleteResourceResponse.newBuilder()
+                .setSuccess(true)
+                .build();
+        when(stub.deleteResource(any())).thenReturn(response);
+
+        adapter.deleteResource(arn);
+
+        Mockito.verify(stub).deleteResource(any());
+    }
+
+    @Test
+    void deleteResource_throwsException_whenFailure() {
+        String arn = "test-arn";
+        AdapterInterface.DeleteResourceResponse response = AdapterInterface.DeleteResourceResponse.newBuilder()
+                .setSuccess(false)
+                .setMessage("Failed to delete")
+                .build();
+        when(stub.deleteResource(any())).thenReturn(response);
+
+        assertThrows(RuntimeException.class, () -> adapter.deleteResource(arn));
+    }
 }

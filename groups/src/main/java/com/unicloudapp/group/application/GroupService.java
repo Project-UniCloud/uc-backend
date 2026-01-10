@@ -395,6 +395,16 @@ public class GroupService {
                 groupUniqueName, CloudConnectorId.of(cloudResourceDetails.clientId()));
     }
 
+    public void deleteResource(GroupId groupId, CloudResourceAccessId cloudAccessId, String resourceArn) {
+        groupRepository
+                .findById(groupId.getUuid())
+                .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
+        CloudResourceRowView cloudResourceDetails =
+                cloudResourceAccessQueryService.getCloudResourceDetails(cloudAccessId);
+        cloudResourceAccessCommandService.deleteResource(
+                CloudConnectorId.of(cloudResourceDetails.clientId()), resourceArn);
+    }
+
     public void deleteStudentFromGroup(GroupId groupId, UserId studentId) {
         Group group = groupRepository
                 .findById(groupId.getUuid())
