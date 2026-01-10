@@ -150,4 +150,60 @@ class GrpcCloudConnectorClientAdapterTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void getGroupResourcesList_returnsMultipleMappedResources_whenSuccess() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.ResourceDetail resource1 = AdapterInterface.ResourceDetail.newBuilder()
+                .setArn("arn1")
+                .setName("name1")
+                .setType("type1")
+                .setService("service1")
+                .setCreatedBy("user1")
+                .setResourceId("id1")
+                .build();
+        AdapterInterface.ResourceDetail resource2 = AdapterInterface.ResourceDetail.newBuilder()
+                .setArn("arn2")
+                .setName("name2")
+                .setType("type2")
+                .setService("service2")
+                .setCreatedBy("user2")
+                .setResourceId("id2")
+                .build();
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(true)
+                        .addResources(resource1)
+                        .addResources(resource2)
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getArn()).isEqualTo("arn1");
+        assertThat(result.get(1).getArn()).isEqualTo("arn2");
+    }
+
+    @Test
+    void getGroupResourcesList_returnsEmptyList_whenSuccessButNoResources() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        AdapterInterface.GetGroupResourcesListResponse response =
+                AdapterInterface.GetGroupResourcesListResponse.newBuilder()
+                        .setSuccess(true)
+                        .build();
+        when(stub.getGroupResourcesList(any())).thenReturn(response);
+
+        List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void getGroupResourcesList_throwsException_whenGrpcThrows() {
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
+        when(stub.getGroupResourcesList(any())).thenThrow(new StatusRuntimeException(Status.UNAVAILABLE));
+
+        assertThrows(StatusRuntimeException.class, () -> adapter.getGroupResourcesList(groupUniqueName));
+    }
 }

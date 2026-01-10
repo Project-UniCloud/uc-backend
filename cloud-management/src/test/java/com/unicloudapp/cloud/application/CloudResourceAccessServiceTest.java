@@ -1089,4 +1089,69 @@ class CloudResourceAccessServiceTest {
                 java.util.NoSuchElementException.class,
                 () -> service.addLecturersToGroup(missingId, GroupUniqueName.fromString("AI 2024L"), Set.of()));
     }
+
+    @Test
+    @DisplayName("assignCloudResourceAccess success")
+    void assignCloudResourceAccess_success() {
+        // given
+        CloudConnectorId clientId = CloudConnectorId.of("a-client");
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("TestGroup 2024L");
+        CloudResourceType resourceType = CloudResourceType.of("EC2");
+
+        // when
+        service.assignCloudResourceAccess(clientId, groupUniqueName, resourceType);
+
+        // then
+        verify(cloudConnectorClientA).assignCloudResourceAccess(resourceType, groupUniqueName, null);
+    }
+
+    @Test
+    @DisplayName("assignCloudResourceAccess connector not found")
+    void assignCloudResourceAccess_connectorNotFound_throws() {
+        // given
+        CloudConnectorId clientId = CloudConnectorId.of("missing-client");
+        GroupUniqueName groupUniqueName = GroupUniqueName.fromString("TestGroup 2024L");
+        CloudResourceType resourceType = CloudResourceType.of("EC2");
+
+        // when & then
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.assignCloudResourceAccess(clientId, groupUniqueName, resourceType));
+    }
+
+    @Test
+    @DisplayName("updateCloudResourceAccessClientDetails success")
+    void updateCloudResourceAccessClientDetails_success() {
+        // given
+        CloudConnectorId clientId = CloudConnectorId.of("a-client");
+        CostLimit newLimit = CostLimit.of(BigDecimal.valueOf(100));
+        CronExpression newCron = CronExpression.parse("0 0 12 * * *");
+        String newName = "New Name";
+
+        // when
+        service.updateCloudResourceAccessClientDetails(clientId, newLimit, newCron, newName);
+
+        // then
+        assertEquals(newName, cloudConnectorA.getName());
+        assertEquals(newLimit, cloudConnectorA.getDefaultCostLimit());
+        assertEquals(newCron, cloudConnectorA.getCronExpression());
+        verify(cloudConnectorRepositoryPort, atLeastOnce()).save(cloudConnectorA);
+    }
+
+    @Test
+    @DisplayName("updateCloudResourceAccessClientDetails does nothing when client not found")
+    void updateCloudResourceAccessClientDetails_notFound_doesNothing() {
+        // given
+        CloudConnectorId clientId = CloudConnectorId.of("missing-client");
+        CostLimit newLimit = CostLimit.of(BigDecimal.valueOf(100));
+        CronExpression newCron = CronExpression.parse("0 0 12 * * *");
+        String newName = "New Name";
+
+        // when
+        service.updateCloudResourceAccessClientDetails(clientId, newLimit, newCron, newName);
+
+        // then
+        // We expect only the saves from init()
+        verify(cloudConnectorRepositoryPort, times(2)).save(any());
+    }
 }
