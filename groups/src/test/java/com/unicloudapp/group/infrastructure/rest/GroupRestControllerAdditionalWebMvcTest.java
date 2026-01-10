@@ -229,7 +229,8 @@ class GroupRestControllerAdditionalWebMvcTest {
         when(groupService.getGroupResourcesList(GroupId.of(gid), CloudResourceAccessId.of(aid)))
                 .thenReturn(List.of(resource));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/groups/{groupId}/cloud-access/{cloudAccessId}/resources", gid, aid))
+        mockMvc.perform(MockMvcRequestBuilders.get(
+                        "/groups/{groupId}/cloud-access/{cloudAccessId}/resources", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].arn", is("arn:123")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name", is("resource-name")));
