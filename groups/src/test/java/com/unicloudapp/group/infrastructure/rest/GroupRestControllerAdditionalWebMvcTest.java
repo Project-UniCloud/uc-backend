@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.group.application.GroupDetailsView;
@@ -210,5 +211,27 @@ class GroupRestControllerAdditionalWebMvcTest {
         mockMvc.perform(MockMvcRequestBuilders.post(
                         "/groups/{groupId}/cloud-access/{CloudResourceAccessId}/deactivate", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /groups/{gid}/cloud-access/{aid}/resources returns resources list")
+    void getGroupResources_endpoint() throws Exception {
+        UUID gid = UUID.randomUUID();
+        UUID aid = UUID.randomUUID();
+        CloudResourceDetail resource = CloudResourceDetail.builder()
+                .arn("arn:123")
+                .name("resource-name")
+                .type("instance")
+                .service("ec2")
+                .createdBy("user")
+                .resourceId("i-123")
+                .build();
+        when(groupService.getGroupResourcesList(GroupId.of(gid), CloudResourceAccessId.of(aid)))
+                .thenReturn(List.of(resource));
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/groups/{groupId}/cloud-access/{cloudAccessId}/resources", gid, aid))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].arn", is("arn:123")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name", is("resource-name")));
     }
 }
