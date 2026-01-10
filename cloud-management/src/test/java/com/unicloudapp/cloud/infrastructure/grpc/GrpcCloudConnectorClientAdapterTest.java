@@ -110,7 +110,7 @@ class GrpcCloudConnectorClientAdapterTest {
     void getGroupResourcesList_returnsMappedList_whenSuccess() {
         GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
         AdapterInterface.ResourceDetail resourceProto = AdapterInterface.ResourceDetail.newBuilder()
-                .setArn("arn:aws:ec2:region:account:instance/i-1234567890abcdef0")
+                .setResourceGlobalId("resourceGlobalId:aws:ec2:region:account:instance/i-1234567890abcdef0")
                 .setName("test-instance")
                 .setType("instance")
                 .setService("ec2")
@@ -128,7 +128,7 @@ class GrpcCloudConnectorClientAdapterTest {
 
         assertThat(result).hasSize(1);
         CloudResourceDetail detail = result.getFirst();
-        assertThat(detail.getArn()).isEqualTo(resourceProto.getArn());
+        assertThat(detail.getResourceGlobalId()).isEqualTo(resourceProto.getResourceGlobalId());
         assertThat(detail.getName()).isEqualTo(resourceProto.getName());
         assertThat(detail.getType()).isEqualTo(resourceProto.getType());
         assertThat(detail.getService()).isEqualTo(resourceProto.getService());
@@ -155,7 +155,7 @@ class GrpcCloudConnectorClientAdapterTest {
     void getGroupResourcesList_returnsMultipleMappedResources_whenSuccess() {
         GroupUniqueName groupUniqueName = GroupUniqueName.fromString("test-group 2023Z");
         AdapterInterface.ResourceDetail resource1 = AdapterInterface.ResourceDetail.newBuilder()
-                .setArn("arn1")
+                .setResourceGlobalId("arn1")
                 .setName("name1")
                 .setType("type1")
                 .setService("service1")
@@ -163,7 +163,7 @@ class GrpcCloudConnectorClientAdapterTest {
                 .setResourceId("id1")
                 .build();
         AdapterInterface.ResourceDetail resource2 = AdapterInterface.ResourceDetail.newBuilder()
-                .setArn("arn2")
+                .setResourceGlobalId("arn2")
                 .setName("name2")
                 .setType("type2")
                 .setService("service2")
@@ -181,8 +181,8 @@ class GrpcCloudConnectorClientAdapterTest {
         List<CloudResourceDetail> result = adapter.getGroupResourcesList(groupUniqueName);
 
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getArn()).isEqualTo("arn1");
-        assertThat(result.get(1).getArn()).isEqualTo("arn2");
+        assertThat(result.get(0).getResourceGlobalId()).isEqualTo("arn1");
+        assertThat(result.get(1).getResourceGlobalId()).isEqualTo("arn2");
     }
 
     @Test
@@ -209,7 +209,7 @@ class GrpcCloudConnectorClientAdapterTest {
 
     @Test
     void deleteResource_callsGrcp_whenSuccess() {
-        String arn = "test-arn";
+        String arn = "test-resourceGlobalId";
         AdapterInterface.DeleteResourceResponse response = AdapterInterface.DeleteResourceResponse.newBuilder()
                 .setSuccess(true)
                 .build();
@@ -222,7 +222,7 @@ class GrpcCloudConnectorClientAdapterTest {
 
     @Test
     void deleteResource_throwsException_whenFailure() {
-        String arn = "test-arn";
+        String arn = "test-resourceGlobalId";
         AdapterInterface.DeleteResourceResponse response = AdapterInterface.DeleteResourceResponse.newBuilder()
                 .setSuccess(false)
                 .setMessage("Failed to delete")

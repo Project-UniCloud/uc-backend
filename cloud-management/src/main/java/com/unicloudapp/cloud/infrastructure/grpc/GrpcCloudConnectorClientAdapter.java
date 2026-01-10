@@ -224,7 +224,7 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
         }
         return response.getResourcesList().stream()
                 .map(resource -> CloudResourceDetail.builder()
-                        .arn(resource.getArn())
+                        .resourceGlobalId(resource.getResourceGlobalId())
                         .name(resource.getName())
                         .type(resource.getType())
                         .service(resource.getService())
@@ -235,14 +235,14 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
     }
 
     @Override
-    public void deleteResource(String resourceArn) {
+    public void deleteResource(String resourceGlobalId) {
         var request = AdapterInterface.DeleteResourceRequest.newBuilder()
-                .setResourceArn(resourceArn)
+                .setResourceGlobalId(resourceGlobalId)
                 .build();
         var response = stub.deleteResource(request);
         if (!response.getSuccess()) {
             throw new RuntimeException(
-                    "Failed to delete resource: " + resourceArn + ". Message: " + response.getMessage());
+                    "Failed to delete resource: " + resourceGlobalId + ". Message: " + response.getMessage());
         }
     }
 }

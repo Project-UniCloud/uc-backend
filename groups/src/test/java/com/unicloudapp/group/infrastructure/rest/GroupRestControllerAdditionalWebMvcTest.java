@@ -219,7 +219,7 @@ class GroupRestControllerAdditionalWebMvcTest {
         UUID gid = UUID.randomUUID();
         UUID aid = UUID.randomUUID();
         CloudResourceDetail resource = CloudResourceDetail.builder()
-                .arn("arn:123")
+                .resourceGlobalId("resourceGlobalId:123")
                 .name("resource-name")
                 .type("instance")
                 .service("ec2")
@@ -232,7 +232,7 @@ class GroupRestControllerAdditionalWebMvcTest {
         mockMvc.perform(MockMvcRequestBuilders.get(
                         "/groups/{groupId}/cloud-access/{cloudAccessId}/resources", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].arn", is("arn:123")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].resourceGlobalId", is("resourceGlobalId:123")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].name", is("resource-name")));
     }
 }

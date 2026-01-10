@@ -50,5 +50,5 @@ public interface CloudResourceAccessCommandService {
     void addLecturersToGroup(
             CloudConnectorId cloudConnectorId, GroupUniqueName groupUniqueName, Set<UserLogin> lecturerLogins);
 
-    void deleteResource(CloudConnectorId cloudConnectorId, String resourceArn);
+    void deleteResource(CloudConnectorId cloudConnectorId, String resourceGlobalId);
 }

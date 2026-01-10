@@ -215,8 +215,8 @@ class GroupRestController {
     @DeleteMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/resources")
     @ResponseStatus(HttpStatus.OK)
     void deleteResource(
-            @PathVariable UUID groupId, @PathVariable UUID cloudAccessId, @RequestParam String resourceArn) {
-        groupService.deleteResource(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId), resourceArn);
+            @PathVariable UUID groupId, @PathVariable UUID cloudAccessId, @RequestParam String resourceGlobalId) {
+        groupService.deleteResource(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId), resourceGlobalId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

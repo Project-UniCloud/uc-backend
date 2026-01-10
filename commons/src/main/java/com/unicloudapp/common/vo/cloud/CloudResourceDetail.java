@@ -6,7 +6,7 @@ import lombok.Value;
 @Value
 @Builder
 public class CloudResourceDetail {
-    String arn;
+    String resourceGlobalId;
     String name;
     String type;
     String service;

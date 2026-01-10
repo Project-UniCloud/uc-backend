@@ -42,5 +42,5 @@ public interface CloudConnectorClientPort {
 
     List<CloudResourceDetail> getGroupResourcesList(GroupUniqueName groupUniqueName);
 
-    void deleteResource(String resourceArn);
+    void deleteResource(String resourceGlobalId);
 }

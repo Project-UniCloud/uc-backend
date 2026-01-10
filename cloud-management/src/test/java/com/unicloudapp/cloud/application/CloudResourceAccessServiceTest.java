@@ -1164,7 +1164,7 @@ class CloudResourceAccessServiceTest {
         CloudConnectorId clientId = CloudConnectorId.of("a-client");
         List<CloudResourceDetail> expectedList = List.of(
                 CloudResourceDetail.builder()
-                        .arn("arn1")
+                        .resourceGlobalId("arn1")
                         .name("name1")
                         .type("S3")
                         .service("S3")
@@ -1172,7 +1172,7 @@ class CloudResourceAccessServiceTest {
                         .resourceId("id1")
                         .build(),
                 CloudResourceDetail.builder()
-                        .arn("arn2")
+                        .resourceGlobalId("arn2")
                         .name("name2")
                         .type("EC2")
                         .service("EC2")
@@ -1208,13 +1208,13 @@ class CloudResourceAccessServiceTest {
     void deleteResource_success() {
         // given
         CloudConnectorId clientId = CloudConnectorId.of("a-client");
-        String resourceArn = "arn:aws:s3:::my-bucket";
+        String resourceGlobalId = "resourceGlobalId:aws:s3:::my-bucket";
 
         // when
-        service.deleteResource(clientId, resourceArn);
+        service.deleteResource(clientId, resourceGlobalId);
 
         // then
-        verify(cloudConnectorClientA).deleteResource(resourceArn);
+        verify(cloudConnectorClientA).deleteResource(resourceGlobalId);
     }
 
     @Test
@@ -1222,10 +1222,10 @@ class CloudResourceAccessServiceTest {
     void deleteResource_clientNotFound() {
         // given
         CloudConnectorId clientId = CloudConnectorId.of("missing-client");
-        String resourceArn = "arn:aws:s3:::my-bucket";
+        String resourceGlobalId = "resourceGlobalId:aws:s3:::my-bucket";
 
         // when
-        service.deleteResource(clientId, resourceArn);
+        service.deleteResource(clientId, resourceGlobalId);
 
         // then
         // verify that no deleteResource was called on any mock client
