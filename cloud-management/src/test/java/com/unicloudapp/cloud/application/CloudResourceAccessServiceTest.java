@@ -38,6 +38,7 @@ import com.unicloudapp.common.notifications.NotificationsCommandService;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
+import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.cloud.NotificationLevel;
@@ -1153,5 +1154,82 @@ class CloudResourceAccessServiceTest {
         // then
         // We expect only the saves from init()
         verify(cloudConnectorRepositoryPort, times(2)).save(any());
+    }
+
+    @Test
+    @DisplayName("getGroupResourcesList returns list from client when client exists")
+    void getGroupResourcesList_success() {
+        // given
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        CloudConnectorId clientId = CloudConnectorId.of("a-client");
+        List<CloudResourceDetail> expectedList = List.of(
+                CloudResourceDetail.builder()
+                        .arn("arn1")
+                        .name("name1")
+                        .type("S3")
+                        .service("S3")
+                        .createdBy("user")
+                        .resourceId("id1")
+                        .build(),
+                CloudResourceDetail.builder()
+                        .arn("arn2")
+                        .name("name2")
+                        .type("EC2")
+                        .service("EC2")
+                        .createdBy("user")
+                        .resourceId("id2")
+                        .build());
+        when(cloudConnectorClientA.getGroupResourcesList(groupName)).thenReturn(expectedList);
+
+        // when
+        List<CloudResourceDetail> result = service.getGroupResourcesList(groupName, clientId);
+
+        // then
+        assertEquals(expectedList, result);
+        verify(cloudConnectorClientA).getGroupResourcesList(groupName);
+    }
+
+    @Test
+    @DisplayName("getGroupResourcesList returns empty list when client does not exist")
+    void getGroupResourcesList_clientNotFound() {
+        // given
+        GroupUniqueName groupName = GroupUniqueName.fromString("AI 2024L");
+        CloudConnectorId clientId = CloudConnectorId.of("missing-client");
+
+        // when
+        List<CloudResourceDetail> result = service.getGroupResourcesList(groupName, clientId);
+
+        // then
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("deleteResource delegates to client when client exists")
+    void deleteResource_success() {
+        // given
+        CloudConnectorId clientId = CloudConnectorId.of("a-client");
+        String resourceArn = "arn:aws:s3:::my-bucket";
+
+        // when
+        service.deleteResource(clientId, resourceArn);
+
+        // then
+        verify(cloudConnectorClientA).deleteResource(resourceArn);
+    }
+
+    @Test
+    @DisplayName("deleteResource does nothing when client does not exist")
+    void deleteResource_clientNotFound() {
+        // given
+        CloudConnectorId clientId = CloudConnectorId.of("missing-client");
+        String resourceArn = "arn:aws:s3:::my-bucket";
+
+        // when
+        service.deleteResource(clientId, resourceArn);
+
+        // then
+        // verify that no deleteResource was called on any mock client
+        verify(cloudConnectorClientA, times(0)).deleteResource(any());
+        verify(cloudConnectorClientB, times(0)).deleteResource(any());
     }
 }
