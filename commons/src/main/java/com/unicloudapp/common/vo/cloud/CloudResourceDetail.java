@@ -12,4 +12,5 @@ public class CloudResourceDetail {
     String service;
     String createdBy;
     String resourceId;
+    String status;
 }

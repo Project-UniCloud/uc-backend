@@ -230,6 +230,7 @@ class GrpcCloudConnectorClientAdapter implements CloudConnectorClientPort {
                         .service(resource.getService())
                         .createdBy(resource.getCreatedBy())
                         .resourceId(resource.getResourceId())
+                        .status(resource.getStatus())
                         .build())
                 .toList();
     }
