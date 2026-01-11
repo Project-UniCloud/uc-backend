@@ -37,8 +37,24 @@ class AuthorizationController {
                 .sameSite(authCookieConfigurationProperties.sameSite())
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        String roles = String.join(
+                "-",
+                authenticatedResult.roles().getRoles().stream()
+                        .sorted()
+                        .map(Enum::name)
+                        .toList());
+        ResponseCookie rolesCookie = ResponseCookie.from("roles", roles)
+                .httpOnly(false)
+                .secure(authCookieConfigurationProperties.secure())
+                .path("/")
+                .sameSite(authCookieConfigurationProperties.sameSite())
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, rolesCookie.toString());
+
         return ResponseEntity.ok()
                 .body(new AuthenticateResponse(authenticatedResult.roles().getRoles().stream()
+                        .sorted()
                         .map(Enum::name)
                         .toList()));
     }
