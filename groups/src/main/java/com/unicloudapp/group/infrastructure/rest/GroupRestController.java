@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -207,8 +208,23 @@ class GroupRestController {
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/resources")
     @ResponseStatus(HttpStatus.OK)
-    List<CloudResourceDetail> getGroupResources(@PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
-        return groupService.getGroupResourcesList(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
+    Page<@org.jetbrains.annotations.NotNull CloudResourceDetail> getGroupResources(
+            @PathVariable UUID groupId,
+            @PathVariable UUID cloudAccessId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<CloudResourceDetail> allResources =
+                groupService.getGroupResourcesList(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allResources.size());
+
+        if (start > allResources.size()) {
+            return new PageImpl<>(List.of(), pageable, allResources.size());
+        }
+
+        return new PageImpl<>(allResources.subList(start, end), pageable, allResources.size());
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")

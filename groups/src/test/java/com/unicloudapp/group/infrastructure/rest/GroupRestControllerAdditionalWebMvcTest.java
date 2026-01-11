@@ -232,7 +232,7 @@ class GroupRestControllerAdditionalWebMvcTest {
         mockMvc.perform(MockMvcRequestBuilders.get(
                         "/groups/{groupId}/cloud-access/{cloudAccessId}/resources", gid, aid))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].resourceGlobalId", is("resourceGlobalId:123")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].name", is("resource-name")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].resourceGlobalId", is("resourceGlobalId:123")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name", is("resource-name")));
     }
 }
