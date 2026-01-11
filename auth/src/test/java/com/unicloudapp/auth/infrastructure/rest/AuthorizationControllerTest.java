@@ -15,7 +15,6 @@ import com.unicloudapp.common.vo.user.UserRole;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Set;
-
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +54,8 @@ class AuthorizationControllerTest {
         when(authCookieConfigurationProperties.sameSite()).thenReturn("Lax");
 
         // when
-        ResponseEntity<@NotNull AuthenticateResponse> responseEntity = authorizationController.authenticate(request, response);
+        ResponseEntity<@NotNull AuthenticateResponse> responseEntity =
+                authorizationController.authenticate(request, response);
 
         // then
         assertThat(responseEntity.getStatusCode().is2xxSuccessful()).isTrue();
