@@ -64,6 +64,6 @@ class AuthorizationControllerTest {
 
         List<String> cookies = headerValueCaptor.getAllValues();
         assertThat(cookies).anyMatch(c -> c.contains("jwt=test-token") && c.contains("HttpOnly"));
-        assertThat(cookies).anyMatch(c -> c.contains("roles=STUDENT-LECTURER") && !c.contains("HttpOnly"));
+        assertThat(cookies).anyMatch(c -> c.contains("roles=STUDENT-LECTURER") && c.contains("HttpOnly"));
     }
 }
