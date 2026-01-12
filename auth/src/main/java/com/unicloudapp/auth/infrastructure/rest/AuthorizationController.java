@@ -45,7 +45,7 @@ class AuthorizationController {
                         .map(Enum::name)
                         .toList());
         ResponseCookie rolesCookie = ResponseCookie.from("roles", roles)
-                .httpOnly(false)
+                .httpOnly(true)
                 .secure(authCookieConfigurationProperties.secure())
                 .path("/")
                 .sameSite(authCookieConfigurationProperties.sameSite())
