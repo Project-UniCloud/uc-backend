@@ -61,7 +61,15 @@ class AuthorizationController {
 
     @PostMapping("/auth/logout")
     protected ResponseEntity<@NotNull Void> logout() {
-        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt", "")
+                .httpOnly(true)
+                .secure(authCookieConfigurationProperties.secure())
+                .path("/")
+                .sameSite(authCookieConfigurationProperties.sameSite())
+                .maxAge(0)
+                .build();
+
+        ResponseCookie rolesCookie = ResponseCookie.from("roles", "")
                 .httpOnly(true)
                 .secure(authCookieConfigurationProperties.secure())
                 .path("/")
@@ -74,7 +82,8 @@ class AuthorizationController {
                 .getResponse();
 
         if (response != null) {
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+            response.addHeader(HttpHeaders.SET_COOKIE, rolesCookie.toString());
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
