@@ -158,34 +158,36 @@ class GroupServiceSpec extends Specification {
                 .lastUsedAt(now)
                 .limitUsed(BigDecimal.ONE)
                 .build()
-        def cloudResourceTypeViews = [resourceTypeRowView]
+        def pageable = PageRequest.of(0, 20)
+        def pagedCloudResourceTypeViews = new PageImpl<>([resourceTypeRowView], pageable, 1)
 
         when:
-        def result = groupService.getCloudResourceAccesses(groupId)
+        def result = groupService.getCloudResourceAccesses(groupId, pageable)
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.of(group)
         1 * group.getCloudResourceAccesses() >> cloudResourceAccessIds
-        1 * cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessIds) >> cloudResourceTypeViews
+        1 * cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccessIds, pageable) >> pagedCloudResourceTypeViews
 
         and:
-        result == cloudResourceTypeViews
-        result.size() == 1
-        result[0].name() == "EC2"
-        result[0].clientId() == "aws"
-        result[0].limitUsed() == BigDecimal.ONE
-        result[0].cronCleanupSchedule() == "0 0 0 * * ?"
-        result[0].expiresAt() == today
-        result[0].lastUsedAt() == now
-        result[0].limitUsed() == BigDecimal.ONE
+        result == pagedCloudResourceTypeViews
+        result.content.size() == 1
+        result.content[0].name() == "EC2"
+        result.content[0].clientId() == "aws"
+        result.content[0].limitUsed() == BigDecimal.ONE
+        result.content[0].cronCleanupSchedule() == "0 0 0 * * ?"
+        result.content[0].expiresAt() == today
+        result.content[0].lastUsedAt() == now
+        result.content[0].limitUsed() == BigDecimal.ONE
     }
 
     def "should throw exception when getting cloud resource accesses for non-existent group"() {
         given:
         def groupId = GroupId.of(UUID.randomUUID())
+        def pageable = PageRequest.of(0, 20)
 
         when:
-        groupService.getCloudResourceAccesses(groupId)
+        groupService.getCloudResourceAccesses(groupId, pageable)
 
         then:
         1 * groupRepository.findById(groupId.uuid) >> Optional.empty()

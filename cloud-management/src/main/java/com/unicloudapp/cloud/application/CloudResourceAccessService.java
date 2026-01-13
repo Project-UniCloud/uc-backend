@@ -204,52 +204,50 @@ public class CloudResourceAccessService implements CloudResourceAccessQueryServi
     public List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccessIds) {
         List<CloudResourceAccess> cloudResourceAccesses =
                 cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
-        return cloudResourceAccesses.stream()
-                .map(cloudResourceAccess -> CloudResourceRowView.builder()
-                        .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
-                        .name(cloudResourceAccess.getCloudResourceType().getName())
-                        .costLimit(cloudResourceAccess.getCostLimit().getCost())
-                        .clientId(cloudResourceAccess.getCloudConnectorId().id())
-                        .status(cloudResourceAccess.getStatus().getStatus().name())
-                        .cronCleanupSchedule(
-                                cloudResourceAccess.getCronExpression().toString())
-                        .lastUsedAt(LocalDateTime.now())
-                        .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
-                        .limitUsed(cloudResourceAccess.getUsedLimit().getValue())
-                        .notificationLevel1(
-                                cloudResourceAccess.getNotificationLevel1().level())
-                        .notificationLevel2(
-                                cloudResourceAccess.getNotificationLevel2().level())
-                        .notificationLevel3(
-                                cloudResourceAccess.getNotificationLevel3().level())
-                        .build())
+        return cloudResourceAccesses.stream().map(this::mapToView).toList();
+    }
+
+    @Override
+    public Page<CloudResourceRowView> getCloudResourceDetails(
+            Set<CloudResourceAccessId> cloudResourceAccessIds, Pageable pageable) {
+        List<CloudResourceAccess> cloudResourceAccesses =
+                cloudResourceAccessRepository.findAllById(cloudResourceAccessIds);
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), cloudResourceAccesses.size());
+
+        if (start > cloudResourceAccesses.size()) {
+            return new PageImpl<>(List.of(), pageable, cloudResourceAccesses.size());
+        }
+
+        List<CloudResourceRowView> content = cloudResourceAccesses.subList(start, end).stream()
+                .map(this::mapToView)
                 .toList();
+        return new PageImpl<>(content, pageable, cloudResourceAccesses.size());
+    }
+
+    private CloudResourceRowView mapToView(CloudResourceAccess cloudResourceAccess) {
+        return CloudResourceRowView.builder()
+                .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
+                .name(cloudResourceAccess.getCloudResourceType().getName())
+                .costLimit(cloudResourceAccess.getCostLimit().getCost())
+                .clientId(cloudResourceAccess.getCloudConnectorId().id())
+                .status(cloudResourceAccess.getStatus().getStatus().name())
+                .cronCleanupSchedule(cloudResourceAccess.getCronExpression().toString())
+                .lastUsedAt(LocalDateTime.now())
+                .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
+                .limitUsed(cloudResourceAccess.getUsedLimit().getValue())
+                .notificationLevel1(cloudResourceAccess.getNotificationLevel1().level())
+                .notificationLevel2(cloudResourceAccess.getNotificationLevel2().level())
+                .notificationLevel3(cloudResourceAccess.getNotificationLevel3().level())
+                .build();
     }
 
     @Override
     public CloudResourceRowView getCloudResourceDetails(CloudResourceAccessId cloudResourceAccessId) {
         Optional<CloudResourceAccess> cloudResourceAccessDetails =
                 cloudResourceAccessRepository.findById(cloudResourceAccessId);
-        return cloudResourceAccessDetails
-                .map(cloudResourceAccess -> CloudResourceRowView.builder()
-                        .id(cloudResourceAccess.getCloudResourceAccessId().getValue())
-                        .name(cloudResourceAccess.getCloudResourceType().getName())
-                        .costLimit(cloudResourceAccess.getCostLimit().getCost())
-                        .clientId(cloudResourceAccess.getCloudConnectorId().id())
-                        .status(cloudResourceAccess.getStatus().getStatus().name())
-                        .cronCleanupSchedule(
-                                cloudResourceAccess.getCronExpression().toString())
-                        .lastUsedAt(LocalDateTime.now())
-                        .expiresAt(cloudResourceAccess.getExpiresAt().getValue())
-                        .limitUsed(cloudResourceAccess.getUsedLimit().getValue())
-                        .notificationLevel1(
-                                cloudResourceAccess.getNotificationLevel1().level())
-                        .notificationLevel2(
-                                cloudResourceAccess.getNotificationLevel2().level())
-                        .notificationLevel3(
-                                cloudResourceAccess.getNotificationLevel3().level())
-                        .build())
-                .orElseThrow();
+        return cloudResourceAccessDetails.map(this::mapToView).orElseThrow();
     }
 
     @Override

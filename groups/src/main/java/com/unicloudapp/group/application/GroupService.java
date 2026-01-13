@@ -191,12 +191,12 @@ public class GroupService {
         return cloudResourceAccessId;
     }
 
-    public List<CloudResourceRowView> getCloudResourceAccesses(GroupId groupId) {
+    public Page<CloudResourceRowView> getCloudResourceAccesses(GroupId groupId, Pageable pageable) {
         Group group = groupRepository
                 .findById(groupId.getUuid())
                 .orElseThrow(() -> new RuntimeException("Group not found with id: " + groupId));
         Set<CloudResourceAccessId> cloudResourceAccesses = group.getCloudResourceAccesses();
-        return cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccesses);
+        return cloudResourceAccessQueryService.getCloudResourceDetails(cloudResourceAccesses, pageable);
     }
 
     public void updateGroup(GroupId groupId, GroupDTO groupDTO) {

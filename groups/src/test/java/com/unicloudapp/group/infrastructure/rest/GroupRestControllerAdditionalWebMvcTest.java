@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -171,7 +172,7 @@ class GroupRestControllerAdditionalWebMvcTest {
     }
 
     @Test
-    @DisplayName("GET /groups/{id}/cloud-access returns list")
+    @DisplayName("GET /groups/{id}/cloud-access returns paginated list")
     void listCloudResourceAccess_success() throws Exception {
         UUID gid = UUID.randomUUID();
         CloudResourceRowView row = CloudResourceRowView.builder()
@@ -184,12 +185,17 @@ class GroupRestControllerAdditionalWebMvcTest {
                 .lastUsedAt(LocalDate.now().atStartOfDay())
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
+                .notificationLevel1(10)
+                .notificationLevel2(20)
+                .notificationLevel3(30)
                 .build();
-        when(groupService.getCloudResourceAccesses(GroupId.of(gid))).thenReturn(List.of(row));
+        Pageable pageable = PageRequest.of(0, 20);
+        when(groupService.getCloudResourceAccesses(eq(GroupId.of(gid)), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(row), pageable, 1));
 
         mockMvc.perform(MockMvcRequestBuilders.get("/groups/{groupId}/cloud-access", gid))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].clientId", is("clientA")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].clientId", is("clientA")));
     }
 
     @Test
