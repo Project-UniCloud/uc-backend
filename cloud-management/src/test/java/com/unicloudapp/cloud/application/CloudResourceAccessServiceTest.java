@@ -64,6 +64,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.scheduling.support.CronTrigger;
@@ -298,32 +299,8 @@ class CloudResourceAccessServiceTest {
         assertTrue(service.getCloudResourceDetails(Set.of()).isEmpty());
 
         // Multiple
-        CloudResourceAccess cra1 = CloudResourceAccess.builder()
-                .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudConnectorId(CloudConnectorId.of("a-client"))
-                .cloudResourceType(CloudResourceType.of("S3"))
-                .costLimit(CostLimit.zero())
-                .usedLimit(UsedLimit.empty())
-                .cronExpression(CronExpression.parse("0 0 * * * *"))
-                .expiresAt(ExpiresDate.of(LocalDate.now()))
-                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
-                .notificationLevel1(NotificationLevel.of(1))
-                .notificationLevel2(NotificationLevel.of(2))
-                .notificationLevel3(NotificationLevel.of(3))
-                .build();
-        CloudResourceAccess cra2 = CloudResourceAccess.builder()
-                .cloudResourceAccessId(CloudResourceAccessId.of(UUID.randomUUID()))
-                .cloudConnectorId(CloudConnectorId.of("b-client"))
-                .cloudResourceType(CloudResourceType.of("EC2"))
-                .costLimit(CostLimit.zero())
-                .usedLimit(UsedLimit.empty())
-                .cronExpression(CronExpression.parse("0 0 * * * *"))
-                .expiresAt(ExpiresDate.of(LocalDate.now()))
-                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
-                .notificationLevel1(NotificationLevel.of(1))
-                .notificationLevel2(NotificationLevel.of(2))
-                .notificationLevel3(NotificationLevel.of(3))
-                .build();
+        CloudResourceAccess cra1 = createCloudResourceAccess(UUID.randomUUID(), "a-client", "S3");
+        CloudResourceAccess cra2 = createCloudResourceAccess(UUID.randomUUID(), "b-client", "EC2");
 
         when(repository.findAllById(anySet())).thenReturn(List.of(cra1, cra2));
         List<CloudResourceRowView> results = service.getCloudResourceDetails(
@@ -331,6 +308,71 @@ class CloudResourceAccessServiceTest {
         assertEquals(2, results.size());
         assertTrue(results.stream().anyMatch(r -> r.name().equals("S3")));
         assertTrue(results.stream().anyMatch(r -> r.name().equals("EC2")));
+    }
+
+    @Test
+    @DisplayName("getCloudResourceDetails (paginated) returns first page")
+    void getCloudResourceDetails_paginated_firstPage() {
+        CloudResourceAccess cra1 = createCloudResourceAccess(UUID.randomUUID(), "client1", "S3");
+        CloudResourceAccess cra2 = createCloudResourceAccess(UUID.randomUUID(), "client2", "EC2");
+        CloudResourceAccess cra3 = createCloudResourceAccess(UUID.randomUUID(), "client3", "RDS");
+
+        when(repository.findAllById(anySet())).thenReturn(List.of(cra1, cra2, cra3));
+
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<CloudResourceRowView> result = service.getCloudResourceDetails(Set.of(), pageable);
+
+        assertEquals(3, result.getTotalElements());
+        assertEquals(2, result.getContent().size());
+        assertEquals("S3", result.getContent().get(0).name());
+        assertEquals("EC2", result.getContent().get(1).name());
+    }
+
+    @Test
+    @DisplayName("getCloudResourceDetails (paginated) returns second page")
+    void getCloudResourceDetails_paginated_secondPage() {
+        CloudResourceAccess cra1 = createCloudResourceAccess(UUID.randomUUID(), "client1", "S3");
+        CloudResourceAccess cra2 = createCloudResourceAccess(UUID.randomUUID(), "client2", "EC2");
+        CloudResourceAccess cra3 = createCloudResourceAccess(UUID.randomUUID(), "client3", "RDS");
+
+        when(repository.findAllById(anySet())).thenReturn(List.of(cra1, cra2, cra3));
+
+        Pageable pageable = PageRequest.of(1, 2);
+        Page<CloudResourceRowView> result = service.getCloudResourceDetails(Set.of(), pageable);
+
+        assertEquals(3, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+        assertEquals("RDS", result.getContent().getFirst().name());
+    }
+
+    @Test
+    @DisplayName("getCloudResourceDetails (paginated) returns empty page when offset out of bounds")
+    void getCloudResourceDetails_paginated_offsetOutOfBounds() {
+        CloudResourceAccess cra1 = createCloudResourceAccess(UUID.randomUUID(), "client1", "S3");
+
+        when(repository.findAllById(anySet())).thenReturn(List.of(cra1));
+
+        Pageable pageable = PageRequest.of(1, 10);
+        Page<CloudResourceRowView> result = service.getCloudResourceDetails(Set.of(), pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertTrue(result.getContent().isEmpty());
+    }
+
+    private CloudResourceAccess createCloudResourceAccess(UUID id, String clientId, String name) {
+        return CloudResourceAccess.builder()
+                .cloudResourceAccessId(CloudResourceAccessId.of(id))
+                .cloudConnectorId(CloudConnectorId.of(clientId))
+                .cloudResourceType(CloudResourceType.of(name))
+                .costLimit(CostLimit.zero())
+                .usedLimit(UsedLimit.empty())
+                .cronExpression(CronExpression.parse("0 0 * * * *"))
+                .expiresAt(ExpiresDate.of(LocalDate.now()))
+                .status(CloudResourcesAccessStatus.of(CloudResourcesAccessStatus.Status.ACTIVE))
+                .notificationLevel1(NotificationLevel.of(1))
+                .notificationLevel2(NotificationLevel.of(2))
+                .notificationLevel3(NotificationLevel.of(3))
+                .build();
     }
 
     @Test
