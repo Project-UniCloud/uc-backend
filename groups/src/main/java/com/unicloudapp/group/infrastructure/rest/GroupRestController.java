@@ -165,8 +165,11 @@ class GroupRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = "/{groupId}/cloud-access")
     @ResponseStatus(HttpStatus.OK)
-    List<CloudResourceRowView> getCloudResourceAccesses(@PathVariable UUID groupId) {
-        return groupService.getCloudResourceAccesses(GroupId.of(groupId));
+    Page<CloudResourceRowView> getCloudResourceAccesses(
+            @PathVariable UUID groupId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return groupService.getCloudResourceAccesses(GroupId.of(groupId), PageRequest.of(page, size));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

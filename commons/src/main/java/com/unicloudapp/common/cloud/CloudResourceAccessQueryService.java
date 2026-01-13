@@ -7,12 +7,17 @@ import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import java.util.List;
 import java.util.Set;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CloudResourceAccessQueryService {
 
     Set<CloudResourceType> getCloudResourceTypes(Set<CloudResourceAccessId> cloudResourceAccessIds);
 
     boolean isCloudGroupExists(GroupUniqueName groupId, CloudConnectorId cloudConnectorId);
+
+    Page<CloudResourceRowView> getCloudResourceDetails(
+            Set<CloudResourceAccessId> cloudResourceAccesses, Pageable pageable);
 
     List<CloudResourceRowView> getCloudResourceDetails(Set<CloudResourceAccessId> cloudResourceAccesses);
 

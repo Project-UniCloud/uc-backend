@@ -366,7 +366,7 @@ class GroupServiceTest {
         when(groupRepository.findById(gid.getUuid())).thenReturn(Optional.of(group));
         Set<CloudResourceAccessId> ids = Set.of(CloudResourceAccessId.of(UUID.randomUUID()));
         when(group.getCloudResourceAccesses()).thenReturn(ids);
-        List<CloudResourceRowView> rows = List.of(CloudResourceRowView.builder()
+        Page<CloudResourceRowView> page = new PageImpl<>(List.of(CloudResourceRowView.builder()
                 .clientId("c")
                 .name("S3")
                 .costLimit(BigDecimal.ZERO)
@@ -375,9 +375,10 @@ class GroupServiceTest {
                 .lastUsedAt(LocalDate.now().atStartOfDay())
                 .cronCleanupSchedule("cron")
                 .status("ACTIVE")
-                .build());
-        when(cloudQuery.getCloudResourceDetails(ids)).thenReturn(rows);
-        assertSame(rows, service.getCloudResourceAccesses(gid));
+                .build()));
+        Pageable pageable = PageRequest.of(0, 20);
+        when(cloudQuery.getCloudResourceDetails(ids, pageable)).thenReturn(page);
+        assertSame(page, service.getCloudResourceAccesses(gid, pageable));
     }
 
     @Test
