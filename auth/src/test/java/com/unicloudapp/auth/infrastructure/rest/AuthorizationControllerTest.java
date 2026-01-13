@@ -24,6 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @ExtendWith(MockitoExtension.class)
 class AuthorizationControllerTest {
@@ -65,5 +67,31 @@ class AuthorizationControllerTest {
         List<String> cookies = headerValueCaptor.getAllValues();
         assertThat(cookies).anyMatch(c -> c.contains("jwt=test-token") && c.contains("HttpOnly"));
         assertThat(cookies).anyMatch(c -> c.contains("roles=STUDENT-LECTURER") && c.contains("HttpOnly"));
+    }
+
+    @Test
+    void shouldClearCookiesOnLogout() {
+        // given
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        ServletRequestAttributes attrs = mock(ServletRequestAttributes.class);
+        when(attrs.getResponse()).thenReturn(response);
+        RequestContextHolder.setRequestAttributes(attrs);
+
+        when(authCookieConfigurationProperties.secure()).thenReturn(true);
+        when(authCookieConfigurationProperties.sameSite()).thenReturn("Strict");
+
+        // when
+        ResponseEntity<Void> responseEntity = authorizationController.logout();
+
+        // then
+        assertThat(responseEntity.getStatusCode().is2xxSuccessful()).isTrue();
+        ArgumentCaptor<String> headerValueCaptor = ArgumentCaptor.forClass(String.class);
+        verify(response, times(2)).addHeader(eq(HttpHeaders.SET_COOKIE), headerValueCaptor.capture());
+
+        List<String> cookies = headerValueCaptor.getAllValues();
+        assertThat(cookies).anyMatch(c -> c.contains("jwt=") && c.contains("Max-Age=0"));
+        assertThat(cookies).anyMatch(c -> c.contains("roles=") && c.contains("Max-Age=0"));
+
+        RequestContextHolder.resetRequestAttributes();
     }
 }
