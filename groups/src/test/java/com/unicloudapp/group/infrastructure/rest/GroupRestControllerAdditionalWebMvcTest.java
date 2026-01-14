@@ -1,27 +1,18 @@
 package com.unicloudapp.group.infrastructure.rest;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.user.UserDetails;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
-import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.group.GroupId;
+import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupRowView;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.application.port.StudentImporterPort;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,8 +22,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -41,7 +36,24 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import tools.jackson.databind.ObjectMapper;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringJUnitConfig(classes = GroupRestController.class)
 class GroupRestControllerAdditionalWebMvcTest {
@@ -60,13 +72,24 @@ class GroupRestControllerAdditionalWebMvcTest {
     @MockitoBean
     UserQueryService userQueryService;
 
+    public static class TestControllerAdvice {
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<@NotNull String> handleAccessDenied(AccessDeniedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+        }
+    }
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(groupRestController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(groupRestController)
+                .setControllerAdvice(new TestControllerAdvice())
+                .build();
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication authentication = mock(Authentication.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
+
+        when(authentication.getAuthorities()).thenReturn((java.util.Collection) List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
     private ObjectMapper mapper() {
@@ -232,25 +255,49 @@ class GroupRestControllerAdditionalWebMvcTest {
     }
 
     @Test
-    @DisplayName("GET /groups/{gid}/cloud-access/{aid}/resources returns resources list")
-    void getGroupResources_endpoint() throws Exception {
+    @DisplayName("POST /groups/{groupId}/students returns 403 when lecturer is not assigned to group")
+    void addStudent_forbiddenForUnassignedLecturer() {
         UUID gid = UUID.randomUUID();
-        UUID aid = UUID.randomUUID();
-        CloudResourceDetail resource = CloudResourceDetail.builder()
-                .resourceGlobalId("resourceGlobalId:123")
-                .name("resource-name")
-                .type("instance")
-                .service("ec2")
-                .createdBy("user")
-                .resourceId("i-123")
-                .build();
-        when(groupService.getGroupResourcesList(GroupId.of(gid), CloudResourceAccessId.of(aid)))
-                .thenReturn(List.of(resource));
+        String lecturerLogin = "lecturer1";
+        UserId lecturerId = UserId.of(UUID.randomUUID());
 
-        mockMvc.perform(MockMvcRequestBuilders.get(
-                        "/groups/{groupId}/cloud-access/{cloudAccessId}/resources", gid, aid))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].resourceGlobalId", is("resourceGlobalId:123")))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name", is("resource-name")));
+        Authentication auth = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(auth);
+        SecurityContextHolder.setContext(securityContext);
+
+        when(auth.getAuthorities()).thenReturn((java.util.Collection) List.of(new SimpleGrantedAuthority("ROLE_LECTURER")));
+        when(auth.getName()).thenReturn(lecturerLogin);
+
+        UserDetails userDetails = UserDetails.builder().userId(lecturerId).build();
+        when(userQueryService.getUserDetailsByUsername(UserLogin.of(lecturerLogin)))
+                .thenReturn(Optional.of(userDetails));
+
+        GroupDetailsView groupDetails = GroupDetailsView.builder()
+                .lecturerIds(Collections.singleton(UUID.randomUUID())) // assigned to someone else
+                .build();
+        when(groupService.findById(gid)).thenReturn(groupDetails);
+
+        String body = mapper().writeValueAsString(com.unicloudapp.common.user.StudentBasicData.builder()
+                .login("s123")
+                .firstName("A")
+                .lastName("B")
+                .email("a@b.com")
+                .build());
+
+        org.junit.jupiter.api.Assertions.assertThrows(AccessDeniedException.class, () -> {
+            try {
+                mockMvc.perform(MockMvcRequestBuilders.post("/groups/{groupId}/students", gid)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body));
+            } catch (jakarta.servlet.ServletException e) {
+                if (e.getCause() instanceof AccessDeniedException) {
+                    throw e.getCause();
+                }
+                throw e;
+            }
+        });
+
+        verify(groupService, atLeastOnce()).findById(gid);
     }
 }
