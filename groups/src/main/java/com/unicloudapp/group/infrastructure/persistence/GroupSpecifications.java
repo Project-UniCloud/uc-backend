@@ -2,6 +2,7 @@ package com.unicloudapp.group.infrastructure.persistence;
 
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.group.GroupName;
+import com.unicloudapp.common.vo.user.UserId;
 import com.unicloudapp.group.domain.vo.GroupStatus;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
@@ -49,5 +50,9 @@ class GroupSpecifications {
     public static Specification<@NotNull GroupEntity> hasPastExpiresDate() {
         return (root, _, cb) ->
                 cb.and(cb.isNotNull(root.get("endDate")), cb.lessThan(root.get("endDate"), LocalDate.now()));
+    }
+
+    public static Specification<@NotNull GroupEntity> isLecturer(UserId lecturerId) {
+        return (root, _, cb) -> cb.isMember(lecturerId.getValue(), root.get("lecturers"));
     }
 }

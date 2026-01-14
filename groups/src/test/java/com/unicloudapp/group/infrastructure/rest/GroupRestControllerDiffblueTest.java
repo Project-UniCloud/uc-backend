@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.user.UserId;
@@ -19,6 +20,7 @@ import com.unicloudapp.group.domain.Group;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -51,7 +56,18 @@ class GroupRestControllerDiffblueTest {
     private UserValidationService userValidationService;
 
     @MockitoBean
+    private UserQueryService userQueryService;
+
+    @MockitoBean
     private StudentImporterPort studentImporterPort;
+
+    @BeforeEach
+    void setUp() {
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Authentication authentication = Mockito.mock(Authentication.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     /**
      * Test {@link GroupRestController#createGroup(CreateGroupRequest)}.
@@ -103,8 +119,10 @@ class GroupRestControllerDiffblueTest {
         when(group.getGroupId()).thenReturn(GroupId.of(uuid));
         GroupService groupService = mock(GroupService.class);
         StudentImporterPort studentBasicData = mock(StudentImporterPort.class);
+        UserQueryService userQueryService = mock(UserQueryService.class);
         when(groupService.createGroup(Mockito.any())).thenReturn(group);
-        GroupRestController groupRestController = new GroupRestController(groupService, studentBasicData);
+        GroupRestController groupRestController =
+                new GroupRestController(groupService, studentBasicData, userQueryService);
         HashSet<UUID> lecturers = new HashSet<>();
         LocalDate startDate = LocalDate.of(1970, 1, 1);
 

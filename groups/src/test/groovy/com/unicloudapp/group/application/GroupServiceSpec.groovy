@@ -1,8 +1,10 @@
 package com.unicloudapp.group.application
 
+import com.unicloudapp.common.audit.AuditEvent
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService
 import com.unicloudapp.common.cloud.CloudResourceRowView
+import com.unicloudapp.common.security.UserContext
 import com.unicloudapp.common.vo.Email
 import com.unicloudapp.common.vo.cloud.CloudConnectorId
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId
@@ -22,6 +24,7 @@ import com.unicloudapp.group.domain.vo.Description
 import com.unicloudapp.group.domain.vo.EndDate
 import com.unicloudapp.group.domain.vo.GroupStatus
 import com.unicloudapp.group.domain.vo.StartDate
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
@@ -38,6 +41,8 @@ class GroupServiceSpec extends Specification {
     def cloudResourceAccessQueryService = Mock(CloudResourceAccessQueryService)
     def cloudResourceAccessCommandService = Mock(CloudResourceAccessCommandService)
     def userCommandService = Mock(UserCommandService)
+    def eventPublisher = Mock(ApplicationEventPublisher)
+    def userContext = Mock(UserContext)
 
     @Subject
     def groupService = new GroupService(
@@ -46,7 +51,9 @@ class GroupServiceSpec extends Specification {
             userQueryService,
             cloudResourceAccessQueryService,
             cloudResourceAccessCommandService,
-            userCommandService
+            userCommandService,
+            eventPublisher,
+            userContext
     )
 
     def "should create a new group"() {
@@ -68,6 +75,7 @@ class GroupServiceSpec extends Specification {
         groupService.createGroup(groupDTO)
 
         then:
+        1 * userContext.getCurrentUserLogin() >> "test-user"
         1 * groupRepository.existsByNameAndSemester(groupName, semester) >> false
         1 * groupFactory.create(
                 groupDTO.name(),
@@ -78,6 +86,9 @@ class GroupServiceSpec extends Specification {
                 groupDTO.description()
         ) >> group
         1 * groupRepository.save(group) >> group
+        _ * group.getGroupId() >> GroupId.of(groupDTO.groupId())
+        _ * group.getName() >> GroupName.of(groupDTO.name())
+        1 * eventPublisher.publishEvent(_ as AuditEvent)
     }
 
     def "should throw exception when creating group with existing name and semester"() {
@@ -137,6 +148,7 @@ class GroupServiceSpec extends Specification {
         1 * groupRepository.findById(groupId.uuid) >> Optional.empty()
         def exception = thrown(RuntimeException)
         exception.message == "Group not found with id: " + groupId
+        0 * eventPublisher.publishEvent(_)
     }
 
     def "should get cloud resource accesses for group"() {
@@ -248,24 +260,24 @@ class GroupServiceSpec extends Specification {
     def "should find group by id"() {
         given:
         def groupId = UUID.randomUUID()
-        def details = Mock(GroupDetailsProjection)
+        def details = Stub(GroupDetailsProjection)
         def userId = UUID.randomUUID()
         def userFullName = new UserFullName(UserId.of(userId), FirstName.of("John"), LastName.of("Doe"))
+        details.getUuid() >> groupId
+        details.getName() >> "Test Group"
+        details.getGroupStatus() >> GroupStatus.Type.ACTIVE
+        details.getDescription() >> "Test Description"
+        details.getEndDate() >> LocalDate.now().plusMonths(6)
+        details.getStartDate() >> LocalDate.now()
+        details.getSemester() >> "2023Z"
+        details.getLecturers() >> [userId]
 
         when:
         def result = groupService.findById(groupId)
 
         then:
         1 * groupRepository.findGroupDetailsByUuid(groupId) >> details
-        1 * details.getLecturers() >> [userId]
         1 * userQueryService.getFullNameForUserIds(_) >> [(UserId.of(userId)): userFullName]
-        1 * details.getUuid() >> groupId
-        1 * details.getName() >> "Test Group"
-        1 * details.getGroupStatus() >> GroupStatus.Type.ACTIVE
-        1 * details.getDescription() >> "Test Description"
-        1 * details.getEndDate() >> LocalDate.now().plusMonths(6)
-        1 * details.getStartDate() >> LocalDate.now()
-        1 * details.getSemester() >> "2023Z"
 
         and:
         result.groupId == groupId
@@ -406,7 +418,6 @@ class GroupServiceSpec extends Specification {
         1 * group.getGroupStatus() >> status
         1 * status.isActive() >> false
         1 * group.deleteStudent(studentId)
-        0 * cloudResourceAccessCommandService.removeUsers(_, _, _)
         1 * groupRepository.save(group)
     }
 

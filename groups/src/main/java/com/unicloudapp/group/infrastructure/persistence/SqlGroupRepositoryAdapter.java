@@ -3,6 +3,7 @@ package com.unicloudapp.group.infrastructure.persistence;
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasCloudResourceAccess;
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasPastExpiresDate;
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.hasStatus;
+import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.isLecturer;
 import static com.unicloudapp.group.infrastructure.persistence.GroupSpecifications.nameLike;
 
 import com.unicloudapp.common.group.GroupCloudDto;
@@ -72,6 +73,7 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
 
         if (criteria.getStatus() != null) specs.add(hasStatus(criteria.getStatus()));
         if (criteria.getGroupName() != null) specs.add(nameLike(criteria.getGroupName()));
+        if (criteria.getLecturerId() != null) specs.add(isLecturer(criteria.getLecturerId()));
         return getGroupRowProjections(criteria, pageable, specs);
     }
 
@@ -85,6 +87,9 @@ class SqlGroupRepositoryAdapter implements GroupRepositoryPort {
         }
         if (criteria.getGroupName() != null) {
             specs.add(nameLike(criteria.getGroupName()));
+        }
+        if (criteria.getLecturerId() != null) {
+            specs.add(isLecturer(criteria.getLecturerId()));
         }
         if (criteria.getCloudClientId() != null || criteria.getResourceType() != null) {
             specs.add(hasCloudResourceAccess(cloudResourceAccesses));

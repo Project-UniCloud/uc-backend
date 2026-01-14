@@ -3,10 +3,12 @@ package com.unicloudapp.group.application;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.unicloudapp.common.audit.AuditEvent;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.security.UserContext;
 import com.unicloudapp.common.user.StudentBasicData;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserDetails;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -50,6 +53,8 @@ class GroupServiceTest {
     CloudResourceAccessQueryService cloudQuery;
     CloudResourceAccessCommandService cloudCmd;
     UserCommandService userCmd;
+    ApplicationEventPublisher eventPublisher;
+    UserContext userContext;
 
     GroupService service;
 
@@ -61,7 +66,17 @@ class GroupServiceTest {
         cloudQuery = mock(CloudResourceAccessQueryService.class);
         cloudCmd = mock(CloudResourceAccessCommandService.class);
         userCmd = mock(UserCommandService.class);
-        service = new GroupService(groupRepository, groupFactory, userQueryService, cloudQuery, cloudCmd, userCmd);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        userContext = mock(UserContext.class);
+        service = new GroupService(
+                groupRepository,
+                groupFactory,
+                userQueryService,
+                cloudQuery,
+                cloudCmd,
+                userCmd,
+                eventPublisher,
+                userContext);
     }
 
     // createGroup
@@ -81,14 +96,18 @@ class GroupServiceTest {
                 .build();
 
         Group group = mock(Group.class);
+        when(group.getGroupId()).thenReturn(GroupId.of(gid));
+        when(group.getName()).thenReturn(GroupName.of("AI"));
         when(groupFactory.create("AI", "2024L", lecturers, dto.startDate(), dto.endDate(), "desc"))
                 .thenReturn(group);
         when(groupRepository.existsByNameAndSemester(GroupName.of("AI"), Semester.of("2024L")))
                 .thenReturn(false);
         when(groupRepository.save(group)).thenReturn(group);
+        when(userContext.getCurrentUserLogin()).thenReturn("test-user");
 
         Group created = service.createGroup(dto);
         assertSame(group, created);
+        verify(eventPublisher).publishEvent(any(AuditEvent.class));
 
         // invalid dates
         GroupDTO badDates = GroupDTO.builder()

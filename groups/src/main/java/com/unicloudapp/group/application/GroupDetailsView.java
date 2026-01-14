@@ -11,6 +11,7 @@ public record GroupDetailsView(
         UUID groupId,
         String name,
         Set<UserFullNameDTO> lecturerFullNames,
+        Set<UUID> lecturerIds,
         String semester,
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate startDate,
         @JsonFormat(pattern = "dd-MM-yyyy") LocalDate endDate,

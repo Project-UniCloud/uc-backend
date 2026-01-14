@@ -12,6 +12,7 @@ import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.security.UserContext;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
@@ -28,6 +29,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 class GroupServiceAdditionalTest {
 
@@ -37,6 +39,8 @@ class GroupServiceAdditionalTest {
     CloudResourceAccessCommandService cloudCmd;
     UserQueryService userQueryService;
     UserCommandService userCmd;
+    ApplicationEventPublisher eventPublisher;
+    UserContext userContext;
 
     GroupService service;
 
@@ -48,7 +52,17 @@ class GroupServiceAdditionalTest {
         cloudCmd = mock(CloudResourceAccessCommandService.class);
         userQueryService = mock(com.unicloudapp.common.user.UserQueryService.class);
         userCmd = mock(com.unicloudapp.common.user.UserCommandService.class);
-        service = new GroupService(groupRepository, groupFactory, userQueryService, cloudQuery, cloudCmd, userCmd);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        userContext = mock(UserContext.class);
+        service = new GroupService(
+                groupRepository,
+                groupFactory,
+                userQueryService,
+                cloudQuery,
+                cloudCmd,
+                userCmd,
+                eventPublisher,
+                userContext);
     }
 
     @Test

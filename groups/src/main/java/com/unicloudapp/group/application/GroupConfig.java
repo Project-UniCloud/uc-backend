@@ -2,10 +2,12 @@ package com.unicloudapp.group.application;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
+import com.unicloudapp.common.security.UserContext;
 import com.unicloudapp.common.user.UserCommandService;
 import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.group.application.port.GroupRepositoryPort;
 import com.unicloudapp.group.domain.GroupFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,13 +20,17 @@ class GroupConfig {
             UserQueryService userQueryService,
             CloudResourceAccessQueryService cloudResourceAccessQueryService,
             CloudResourceAccessCommandService cloudResourceAccessCommandService,
-            UserCommandService userCommandService) {
+            UserCommandService userCommandService,
+            ApplicationEventPublisher eventPublisher,
+            UserContext userContext) {
         return new GroupService(
                 groupRepository,
                 new GroupFactory(),
                 userQueryService,
                 cloudResourceAccessQueryService,
                 cloudResourceAccessCommandService,
-                userCommandService);
+                userCommandService,
+                eventPublisher,
+                userContext);
     }
 }
