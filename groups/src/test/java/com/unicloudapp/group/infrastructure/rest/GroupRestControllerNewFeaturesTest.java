@@ -18,12 +18,24 @@ import com.unicloudapp.group.application.port.StudentImporterPort;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 class GroupRestControllerNewFeaturesTest {
+
+    @BeforeEach
+    void setUp() {
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     @Test
     @DisplayName("getAllGroupsByStatus throws when resourceType provided but cloudClientId missing")

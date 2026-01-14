@@ -20,6 +20,7 @@ import com.unicloudapp.group.domain.Group;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.aot.DisabledInAotMode;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -56,6 +60,14 @@ class GroupRestControllerDiffblueTest {
 
     @MockitoBean
     private StudentImporterPort studentImporterPort;
+
+    @BeforeEach
+    void setUp() {
+        SecurityContext securityContext = Mockito.mock(SecurityContext.class);
+        Authentication authentication = Mockito.mock(Authentication.class);
+        Mockito.when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     /**
      * Test {@link GroupRestController#createGroup(CreateGroupRequest)}.

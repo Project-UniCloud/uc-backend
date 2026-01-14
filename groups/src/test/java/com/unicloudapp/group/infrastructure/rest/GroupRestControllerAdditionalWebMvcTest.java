@@ -3,10 +3,12 @@ package com.unicloudapp.group.infrastructure.rest;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
 import com.unicloudapp.common.vo.cloud.CloudResourceDetail;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
@@ -30,6 +32,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,9 +57,16 @@ class GroupRestControllerAdditionalWebMvcTest {
     @MockitoBean
     StudentImporterPort studentImporterPort;
 
+    @MockitoBean
+    UserQueryService userQueryService;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(groupRestController).build();
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
     }
 
     private ObjectMapper mapper() {
