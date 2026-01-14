@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.user.UserValidationService;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.user.UserId;
@@ -49,6 +50,9 @@ class GroupRestControllerDiffblueTest {
 
     @MockitoBean
     private UserValidationService userValidationService;
+
+    @MockitoBean
+    private UserQueryService userQueryService;
 
     @MockitoBean
     private StudentImporterPort studentImporterPort;
@@ -103,8 +107,10 @@ class GroupRestControllerDiffblueTest {
         when(group.getGroupId()).thenReturn(GroupId.of(uuid));
         GroupService groupService = mock(GroupService.class);
         StudentImporterPort studentBasicData = mock(StudentImporterPort.class);
+        UserQueryService userQueryService = mock(UserQueryService.class);
         when(groupService.createGroup(Mockito.any())).thenReturn(group);
-        GroupRestController groupRestController = new GroupRestController(groupService, studentBasicData);
+        GroupRestController groupRestController =
+                new GroupRestController(groupService, studentBasicData, userQueryService);
         HashSet<UUID> lecturers = new HashSet<>();
         LocalDate startDate = LocalDate.of(1970, 1, 1);
 

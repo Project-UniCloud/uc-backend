@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.cloud.CloudResourceType;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.group.application.GroupService;
@@ -29,7 +30,8 @@ class GroupRestControllerNewFeaturesTest {
     void getAllGroupsByStatus_validation() {
         GroupService groupService = mock(GroupService.class);
         StudentImporterPort importer = mock(StudentImporterPort.class);
-        GroupRestController controller = new GroupRestController(groupService, importer);
+        UserQueryService userQueryService = mock(UserQueryService.class);
+        GroupRestController controller = new GroupRestController(groupService, importer, userQueryService);
 
         IllegalArgumentException ex = assertThrows(
                 IllegalArgumentException.class,
@@ -43,7 +45,8 @@ class GroupRestControllerNewFeaturesTest {
     void importStudents_parsesAndDelegates() throws IOException {
         GroupService groupService = mock(GroupService.class);
         StudentImporterPort importer = mock(StudentImporterPort.class);
-        GroupRestController controller = new GroupRestController(groupService, importer);
+        UserQueryService userQueryService = mock(UserQueryService.class);
+        GroupRestController controller = new GroupRestController(groupService, importer, userQueryService);
 
         UUID groupId = UUID.randomUUID();
         MockMultipartFile file = new MockMultipartFile(

@@ -1,10 +1,12 @@
 package com.unicloudapp.group.application;
 
+import com.unicloudapp.common.audit.AuditEvent;
 import com.unicloudapp.common.cloud.CloudResourceAccessCommandService;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceAccessQueryService;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.group.GroupUniqueName;
+import com.unicloudapp.common.security.UserContext;
 import com.unicloudapp.common.user.*;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
@@ -29,12 +31,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-@RequiredArgsConstructor
 @Transactional
+@RequiredArgsConstructor
 public class GroupService {
 
     private final GroupRepositoryPort groupRepository;
@@ -43,6 +46,8 @@ public class GroupService {
     private final CloudResourceAccessQueryService cloudResourceAccessQueryService;
     private final CloudResourceAccessCommandService cloudResourceAccessCommandService;
     private final UserCommandService userCommandService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final UserContext userContext;
 
     public Group createGroup(GroupDTO groupDTO) {
         if (!groupDTO.endDate().isAfter(groupDTO.startDate())) {
@@ -61,7 +66,18 @@ public class GroupService {
                 groupDTO.startDate(),
                 groupDTO.endDate(),
                 groupDTO.description());
-        return groupRepository.save(group);
+        Group savedGroup = groupRepository.save(group);
+
+        eventPublisher.publishEvent(AuditEvent.of(
+                "GROUP_CREATED",
+                userContext.getCurrentUserLogin(),
+                Map.of(
+                        "groupId",
+                        savedGroup.getGroupId().getUuid().toString(),
+                        "name",
+                        savedGroup.getName().getName())));
+
+        return savedGroup;
     }
 
     public void addStudent(GroupId groupId, StudentBasicData studentBasicData) {
@@ -92,6 +108,11 @@ public class GroupService {
                             .build()));
         }
         groupRepository.save(group);
+
+        eventPublisher.publishEvent(AuditEvent.of(
+                "STUDENT_ADDED_TO_GROUP",
+                userContext.getCurrentUserLogin(),
+                Map.of("groupId", groupId.getUuid().toString(), "studentLogin", studentBasicData.getLogin())));
     }
 
     public GroupDetailsView findById(UUID groupId) {
@@ -108,6 +129,7 @@ public class GroupService {
                 .groupId(details.getUuid())
                 .name(details.getName())
                 .lecturerFullNames(lecturers)
+                .lecturerIds(details.getLecturers())
                 .status(details.getGroupStatus().getDisplayName())
                 .description(details.getDescription())
                 .endDate(details.getEndDate())

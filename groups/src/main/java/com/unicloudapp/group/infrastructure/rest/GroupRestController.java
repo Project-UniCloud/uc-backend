@@ -3,6 +3,7 @@ package com.unicloudapp.group.infrastructure.rest;
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.user.StudentBasicData;
+import com.unicloudapp.common.user.UserQueryService;
 import com.unicloudapp.common.vo.Email;
 import com.unicloudapp.common.vo.cloud.CloudConnectorId;
 import com.unicloudapp.common.vo.cloud.CloudResourceAccessId;
@@ -12,6 +13,7 @@ import com.unicloudapp.common.vo.cloud.CostLimit;
 import com.unicloudapp.common.vo.group.GroupId;
 import com.unicloudapp.common.vo.group.GroupName;
 import com.unicloudapp.common.vo.user.UserId;
+import com.unicloudapp.common.vo.user.UserLogin;
 import com.unicloudapp.group.application.GroupDTO;
 import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupFilterCriteria;
@@ -31,7 +33,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -52,6 +57,7 @@ class GroupRestController {
 
     private final GroupService groupService;
     private final StudentImporterPort csvUserImporter;
+    private final UserQueryService userQueryService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
@@ -68,22 +74,24 @@ class GroupRestController {
         return groupService.createGroup(groupDto).getGroupId().getUuid();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @PostMapping("/{groupId}/students")
     @ResponseStatus(HttpStatus.OK)
     void addStudent(@PathVariable UUID groupId, @RequestBody @Valid StudentBasicData request) {
+        checkAccess(groupId);
         groupService.addStudent(GroupId.of(groupId), request);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @PostMapping("/{groupId}/students/import")
     @ResponseStatus(HttpStatus.OK)
     void importStudents(@PathVariable UUID groupId, @RequestParam("file") MultipartFile file) throws IOException {
+        checkAccess(groupId);
         List<StudentBasicData> parsedStudentBasicData = csvUserImporter.parseCsv(file);
         groupService.addStudents(GroupId.of(groupId), parsedStudentBasicData);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping
     Page<@org.jetbrains.annotations.NotNull GroupRowView> getAllGroupsByStatus(
@@ -97,30 +105,65 @@ class GroupRestController {
             throw new IllegalArgumentException("Cloud client id is required when resourceType is given");
         }
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserId lecturerId = null;
+
+        if (authentication.getAuthorities().stream().anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_LECTURER"))
+                && authentication.getAuthorities().stream()
+                        .noneMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"))) {
+            lecturerId = userQueryService
+                    .getUserDetailsByUsername(UserLogin.of(authentication.getName()))
+                    .orElseThrow()
+                    .userId();
+        }
+
         GroupFilterCriteria criteria = GroupFilterCriteria.builder()
                 .status(status != null ? GroupStatus.of(status) : null)
                 .groupName(groupName != null ? GroupName.of(groupName) : null)
                 .cloudClientId(cloudClientId != null ? CloudConnectorId.of(cloudClientId) : null)
                 .resourceType(resourceType != null ? CloudResourceType.of(resourceType) : null)
+                .lecturerId(lecturerId)
                 .build();
 
         Pageable pageable = PageRequest.of(page, pageSize);
         return groupService.getGroupsByFilter(criteria, pageable);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping("/{groupId}")
     @ResponseStatus(HttpStatus.OK)
     GroupDetailsView getGroupById(@PathVariable UUID groupId) {
+        checkAccess(groupId);
         return groupService.findById(groupId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    private void checkAccess(UUID groupId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.getAuthorities().stream()
+                        .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_LECTURER"))
+                && authentication.getAuthorities().stream()
+                        .noneMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"))) {
+
+            UserId currentUserId = userQueryService
+                    .getUserDetailsByUsername(UserLogin.of(authentication.getName()))
+                    .orElseThrow()
+                    .userId();
+
+            GroupDetailsView group = groupService.findById(groupId);
+            if (!group.lecturerIds().contains(currentUserId.getValue())) {
+                throw new AccessDeniedException(
+                        "You don't have access to this group");
+            }
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping("/{groupId}/students")
     Page<@org.jetbrains.annotations.NotNull UserRowViewResponse> getStudentsDetails(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
             @PathVariable @NotNull UUID groupId) {
+        checkAccess(groupId);
         Pageable pageable = PageRequest.of(page, pageSize);
         return groupService
                 .getStudentsDetailsByGroupId(GroupId.of(groupId), pageable)
@@ -162,21 +205,23 @@ class GroupRestController {
                         .build());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping(value = "/{groupId}/cloud-access")
     @ResponseStatus(HttpStatus.OK)
     Page<CloudResourceRowView> getCloudResourceAccesses(
             @PathVariable UUID groupId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        checkAccess(groupId);
         return groupService.getCloudResourceAccesses(GroupId.of(groupId), PageRequest.of(page, size));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @GetMapping(value = "/{groupId}/cloud-access/{cloudAccessId}")
     @ResponseStatus(HttpStatus.OK)
     CloudResourceAccessDetailsDto getCloudResourceAccesses(
             @PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
+        checkAccess(groupId);
         return groupService.getCloudResourceAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
     }
 
@@ -187,24 +232,27 @@ class GroupRestController {
         groupService.saveCloudResourceAccess(GroupId.of(groupId), request);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @PostMapping(value = "/{groupId}/activate")
     @ResponseStatus(HttpStatus.OK)
     void activate(@PathVariable UUID groupId) {
+        checkAccess(groupId);
         groupService.activate(GroupId.of(groupId));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @PostMapping(value = "/{groupId}/archive")
     @ResponseStatus(HttpStatus.OK)
     void archive(@PathVariable UUID groupId) {
+        checkAccess(groupId);
         groupService.archive(GroupId.of(groupId));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @PostMapping(value = "/{groupId}/cloud-access/{cloudAccessId}/deactivate")
     @ResponseStatus(HttpStatus.OK)
     void deactivateCloudResourcesAccess(@PathVariable UUID groupId, @PathVariable UUID cloudAccessId) {
+        checkAccess(groupId);
         groupService.deactivateCloudResourcesAccess(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
     }
 
@@ -216,6 +264,7 @@ class GroupRestController {
             @PathVariable UUID cloudAccessId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        checkAccess(groupId);
         Pageable pageable = PageRequest.of(page, size);
         List<CloudResourceDetail> allResources =
                 groupService.getGroupResourcesList(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId));
@@ -235,13 +284,15 @@ class GroupRestController {
     @ResponseStatus(HttpStatus.OK)
     void deleteResource(
             @PathVariable UUID groupId, @PathVariable UUID cloudAccessId, @RequestParam String resourceGlobalId) {
+        checkAccess(groupId);
         groupService.deleteResource(GroupId.of(groupId), CloudResourceAccessId.of(cloudAccessId), resourceGlobalId);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LECTURER')")
     @DeleteMapping(value = "/{groupId}/students/{studentId}")
     @ResponseStatus(HttpStatus.OK)
     void deleteStudentFromGroup(@PathVariable UUID groupId, @PathVariable UUID studentId) {
+        checkAccess(groupId);
         groupService.deleteStudentFromGroup(GroupId.of(groupId), UserId.of(studentId));
     }
 }
