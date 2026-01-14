@@ -1,5 +1,13 @@
 package com.unicloudapp.group.infrastructure.rest;
 
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.unicloudapp.common.cloud.CloudResourceAccessDetailsDto;
 import com.unicloudapp.common.cloud.CloudResourceRowView;
 import com.unicloudapp.common.user.UserDetails;
@@ -13,6 +21,13 @@ import com.unicloudapp.group.application.GroupDetailsView;
 import com.unicloudapp.group.application.GroupRowView;
 import com.unicloudapp.group.application.GroupService;
 import com.unicloudapp.group.application.port.StudentImporterPort;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -38,22 +53,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import tools.jackson.databind.ObjectMapper;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @SpringJUnitConfig(classes = GroupRestController.class)
 class GroupRestControllerAdditionalWebMvcTest {
@@ -89,7 +88,8 @@ class GroupRestControllerAdditionalWebMvcTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        when(authentication.getAuthorities()).thenReturn((java.util.Collection) List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+        when(authentication.getAuthorities())
+                .thenReturn((java.util.Collection) List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
     private ObjectMapper mapper() {
@@ -266,7 +266,8 @@ class GroupRestControllerAdditionalWebMvcTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         SecurityContextHolder.setContext(securityContext);
 
-        when(auth.getAuthorities()).thenReturn((java.util.Collection) List.of(new SimpleGrantedAuthority("ROLE_LECTURER")));
+        when(auth.getAuthorities())
+                .thenReturn((java.util.Collection) List.of(new SimpleGrantedAuthority("ROLE_LECTURER")));
         when(auth.getName()).thenReturn(lecturerLogin);
 
         UserDetails userDetails = UserDetails.builder().userId(lecturerId).build();
