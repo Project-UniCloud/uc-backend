@@ -139,8 +139,7 @@ class GroupRestController {
 
     private void checkAccess(UUID groupId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.getAuthorities().stream()
-                        .anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_LECTURER"))
+        if (authentication.getAuthorities().stream().anyMatch(a -> Objects.equals(a.getAuthority(), "ROLE_LECTURER"))
                 && authentication.getAuthorities().stream()
                         .noneMatch(a -> Objects.equals(a.getAuthority(), "ROLE_ADMIN"))) {
 
@@ -151,8 +150,7 @@ class GroupRestController {
 
             GroupDetailsView group = groupService.findById(groupId);
             if (!group.lecturerIds().contains(currentUserId.getValue())) {
-                throw new AccessDeniedException(
-                        "You don't have access to this group");
+                throw new AccessDeniedException("You don't have access to this group");
             }
         }
     }
