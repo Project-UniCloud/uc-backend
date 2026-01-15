@@ -50,7 +50,8 @@ class AuditRestControllerTest {
                 .details(Map.of("groupId", "uuid-1"))
                 .build();
 
-        when(auditLogQueryService.getAuditLogs(any())).thenReturn(new PageImpl<>(List.of(log1), PageRequest.of(0, 10), 1));
+        when(auditLogQueryService.getAuditLogs(any()))
+                .thenReturn(new PageImpl<>(List.of(log1), PageRequest.of(0, 10), 1));
 
         // when & then
         mockMvc.perform(MockMvcRequestBuilders.get("/audit-logs")

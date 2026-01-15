@@ -15,8 +15,7 @@ public class AuditLogQueryService {
 
     @Transactional(readOnly = true)
     public Page<AuditLogResponse> getAuditLogs(Pageable pageable) {
-        return auditLogRepository.findAll(pageable)
-                .map(this::mapToResponse);
+        return auditLogRepository.findAll(pageable).map(this::mapToResponse);
     }
 
     private AuditLogResponse mapToResponse(AuditLogEntity entity) {

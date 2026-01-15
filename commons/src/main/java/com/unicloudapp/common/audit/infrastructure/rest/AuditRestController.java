@@ -21,8 +21,7 @@ public class AuditRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public Page<AuditLogResponse> getAuditLogs(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int pageSize) {
         Pageable pageable = PageRequest.of(page, pageSize);
         return auditLogQueryService.getAuditLogs(pageable);
     }
