@@ -11,7 +11,7 @@ repositories {
     mavenCentral()
 }
 
-val postgresVersion = "42.7.8"
+val postgresVersion = "42.7.9"
 
 dependencies {
     annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
