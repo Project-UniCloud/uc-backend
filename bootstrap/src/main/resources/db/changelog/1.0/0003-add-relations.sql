@@ -7,4 +7,4 @@ RENAME TO cloud_resource_accesses;
 ALTER TABLE audit_logs
 ADD CONSTRAINT fk_ald_actor
 FOREIGN KEY (actor)
-REFERENCES users(uuid);
+REFERENCES users(login);
