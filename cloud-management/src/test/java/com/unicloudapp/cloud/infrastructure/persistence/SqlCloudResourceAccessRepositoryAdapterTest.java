@@ -229,7 +229,7 @@ class SqlCloudResourceAccessRepositoryAdapterTest {
             String cron,
             CloudResourcesAccessStatus.Status status) {
         return CloudResourceAccessEntity.builder()
-                .cloudResourceAccessId(id)
+                .uuid(id)
                 .cloudConnectorId(clientId)
                 .resourceType(resourceType)
                 .costLimit(cost)

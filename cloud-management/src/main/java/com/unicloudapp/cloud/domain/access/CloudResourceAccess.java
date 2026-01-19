@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Getter;
 import org.springframework.scheduling.support.CronExpression;
 
+import java.math.BigDecimal;
+
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Builder
 @Getter
@@ -31,7 +33,7 @@ public class CloudResourceAccess {
     public void updateUsedLimit(UsedLimit newUsedCost) {
         if (newUsedCost == null
                 || newUsedCost.getValue().intValue() < usedLimit.getValue().intValue()) {
-            throw new IllegalArgumentException("New used limit cannot be null");
+            UsedLimit.of(BigDecimal.ZERO);
         }
         this.usedLimit = newUsedCost;
     }

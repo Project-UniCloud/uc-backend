@@ -37,7 +37,7 @@ class CloudResourceAccessMapperTest {
         int notificationLevel3 = 95;
 
         CloudResourceAccessEntity entity = CloudResourceAccessEntity.builder()
-                .cloudResourceAccessId(id)
+                .uuid(id)
                 .cloudConnectorId(clientId)
                 .resourceType(resourceType)
                 .costLimit(costLimit)
@@ -97,7 +97,7 @@ class CloudResourceAccessMapperTest {
         CloudResourceAccessEntity entity = mapper.toEntity(domain);
 
         // then
-        assertThat(entity.getCloudResourceAccessId()).isEqualTo(id);
+        assertThat(entity.getUuid()).isEqualTo(id);
         assertThat(entity.getCloudConnectorId()).isEqualTo(clientId);
         assertThat(entity.getResourceType()).isEqualTo(resourceType);
         assertThat(entity.getCostLimit()).isEqualByComparingTo(costLimit);
@@ -130,7 +130,7 @@ class CloudResourceAccessMapperTest {
         CloudResourcesAccessStatus.Status status = CloudResourcesAccessStatus.Status.ACTIVE;
 
         CloudResourceAccessEntity entity = CloudResourceAccessEntity.builder()
-                .cloudResourceAccessId(id)
+                .uuid(id)
                 .cloudConnectorId(clientId)
                 .resourceType(resourceType)
                 .costLimit(costLimit)

@@ -15,10 +15,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "cloud_resource_accesses")
 class CloudResourceAccessEntity {
 
     @Id
-    private UUID cloudResourceAccessId;
+    private UUID uuid;
 
     @Column(nullable = false)
     private String cloudConnectorId;
