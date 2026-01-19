@@ -4,21 +4,6 @@
 ALTER TABLE cloud_resource_access_entity
 RENAME TO cloud_resource_accesses;
 
-ALTER TABLE group_students
-ADD CONSTRAINT fk_gs_users
-FOREIGN KEY (user_id)
-REFERENCES users(uuid);
-
-ALTER TABLE group_lecturers
-ADD CONSTRAINT fk_gl_users
-FOREIGN KEY (user_id)
-REFERENCES users(uuid);
-
-ALTER TABLE group_cloud_resource_accesses
-ADD CONSTRAINT fk_gcra_cloud_resource_access_id
-FOREIGN KEY (cloud_resource_access_id)
-REFERENCES cloud_resource_accesses(uuid);
-
 ALTER TABLE audit_logs
 ADD CONSTRAINT fk_ald_actor
 FOREIGN KEY (actor)
