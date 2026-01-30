@@ -16,7 +16,7 @@ repositories {
     mavenCentral()
 }
 val grpcVersion = "1.78.0"
-val protobufJavaVersion = "4.33.4"
+val protobufJavaVersion = "4.33.5"
 val lombokVersion = "1.18.42"
 val javaxAnnotationsVersion = "1.3.2"
 val lombokMapstructBindingVersion = "0.2.0"
